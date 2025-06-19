@@ -6,99 +6,149 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { authService } from '../src/services/authService';
+import { storageService } from '../src/services/AsyncStorage';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    navigation.navigate('Home');
-  };
+  const handleLogin = async () => {
+  // Basit validasyon
+  if (!email || !password) {
+    Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
+    return;
+  }
+
+  if (!email.includes('@')) {
+    Alert.alert('Hata', 'Geçerli bir email adresi girin');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await authService.login(email, password);
+
+    console.log('Backend cevabı:', response);
+
+    const { accessToken, user } = response.data;
+
+    if (!accessToken) {
+      Alert.alert('Hata', 'Token alınamadı, lütfen tekrar deneyin.');
+      setLoading(false);
+      return;
+    }
+
+    console.log('Token geldi mi?', accessToken);
+
+    await storageService.saveToken(accessToken);
+    await storageService.saveUser(user);
+
+    Alert.alert('Başarılı', 'Giriş yapıldı!', [
+      { text: 'Tamam', onPress: () => navigation.navigate('Home') },
+    ]);
+  } catch (error) {
+    // Hata mesajını farklı tiplerde yakalamak için güncel kontrol
+    let errorMessage = 'Giriş yapılırken bir hata oluştu';
+
+    if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error && typeof error === 'object') {
+      errorMessage = error.message || error.error || JSON.stringify(error);
+    }
+
+    Alert.alert('Hata', errorMessage);
+    console.error('Login hatası:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.background}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
-            contentContainerStyle={styles.container}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.header}>
-              <Text style={styles.title}>Welcome Back</Text>
-              <Text style={styles.subtitle}>Sign in to continue</Text>
-            </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Sign in to continue</Text>
+        </View>
 
-            <View style={styles.card}>
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                placeholderTextColor="#999"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
+        <View style={styles.card}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#999"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
+
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput]}
+              placeholder="Password"
+              placeholderTextColor="#999"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              editable={!loading}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+              disabled={loading}
+            >
+              <Icon
+                name={showPassword ? 'visibility-off' : 'visibility'}
+                size={24}
+                color="#666"
               />
+            </TouchableOpacity>
+          </View>
 
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={[styles.input, styles.passwordInput]}
-                  placeholder="Password"
-                  placeholderTextColor="#999"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                />
-                <TouchableOpacity
-                  style={styles.eyeIcon}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  <Icon
-                    name={showPassword ? 'visibility-off' : 'visibility'}
-                    size={24}
-                    color="#666"
-                  />
-                </TouchableOpacity>
-              </View>
+          <TouchableOpacity style={styles.forgotPassword}>
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
 
-              <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-              </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.loginButtonText}>Login</Text>
+            )}
+          </TouchableOpacity>
 
-              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                <Text style={styles.loginButtonText}>Login</Text>
-              </TouchableOpacity>
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or continue with</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-              <View style={styles.dividerContainer}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or continue with</Text>
-                <View style={styles.dividerLine} />
-              </View>
+          <View style={styles.socialLoginContainer}>
+            <TouchableOpacity style={styles.socialButton}>
+              <Text style={styles.googleText}>G</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-              <View style={styles.socialLoginContainer}>
-                <TouchableOpacity style={styles.socialButton}>
-                  <Text style={styles.googleText}>G</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account?</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.signUpText}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.signUpText}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </View>
   );

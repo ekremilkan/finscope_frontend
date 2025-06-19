@@ -6,24 +6,64 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Alert,
+  ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { authService } from '../src/services/authService';
 
 const { height } = Dimensions.get('window');
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
-  const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    navigation.navigate('Login');
+  const handleRegister = async () => {
+    if (!name || !email || !password) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      Alert.alert('Hata', 'Geçerli bir email adresi girin');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Hata', 'Şifre en az 6 karakter olmalıdır');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const userData = {
+        name: name,
+        email:email,
+        password,
+      };
+
+      const response = await authService.register(userData);
+
+      Alert.alert(
+        'Başarılı',
+        'Hesabınız oluşturuldu! Giriş yapabilirsiniz.',
+        [{ text: 'Tamam', onPress: () => navigation.navigate('Login') }]
+      );
+    } catch (error) {
+      const errorMessage = error.message || 'Kayıt olurken bir hata oluştu';
+      Alert.alert('Hata', errorMessage);
+      console.error('Register hatası:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,14 +90,6 @@ const RegisterScreen = ({ navigation }) => {
                 placeholderTextColor="#999"
                 value={name}
                 onChangeText={setName}
-                autoCapitalize="words"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Surname"
-                placeholderTextColor="#999"
-                value={surname}
-                onChangeText={setSurname}
                 autoCapitalize="words"
               />
 
@@ -95,8 +127,13 @@ const RegisterScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={styles.registerButton}
                 onPress={handleRegister}
+                disabled={loading}
               >
-                <Text style={styles.registerButtonText}>Create Account</Text>
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.registerButtonText}>Create Account</Text>
+                )}
               </TouchableOpacity>
 
               <View style={styles.termsContainer}>
@@ -268,6 +305,5 @@ const styles = StyleSheet.create({
     color: '#DB4437',
   },
 });
-
 
 export default RegisterScreen;

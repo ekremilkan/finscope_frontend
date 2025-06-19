@@ -7,7 +7,33 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authService } from '../../services/authService';
+import { storageService } from '../../services/AsyncStorage';
+
 const HomeScreen = ({ navigation }) => {
+
+  const handleLogout = async () => {
+  try {
+    const token = await storageService.getItem('userToken');
+    const userId = await storageService.getItem('userId');
+
+    // Backend'e logout isteği at
+    await authService.logoutUser(userId, token);
+
+    // AsyncStorage temizliği
+    await storageService.multiRemove(['userToken', 'refreshToken', 'userId']);
+
+    // Login ekranına yönlendir
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  } catch (error) {
+    console.log('Logout error:', error);
+  }
+};
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -16,7 +42,7 @@ const HomeScreen = ({ navigation }) => {
         
         <TouchableOpacity 
           style={styles.logoutButton}
-          onPress={() => navigation.navigate('Auth')}
+          onPress={handleLogout}
         >
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>

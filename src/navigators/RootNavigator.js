@@ -1,36 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthStack from './StackNavigation/AuthStack';
-
 
 const Stack = createStackNavigator();
 
 const RootNavigator = () => {
-  const [isFirstLaunch, setIsFirstLaunch] = useState(false);
+  const [initialRoute, setInitialRoute] = useState(null);
 
   useEffect(() => {
-    // Check if it's the first launch
-    // For demo purposes, we'll set it to false after 3s
-    const timer = setTimeout(() => {
-      setIsFirstLaunch(false);
-    }, 3000);
-    
-    return () => clearTimeout(timer);
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('accessToken');
+        if (token) {
+          setInitialRoute('Home');
+        } else {
+          setInitialRoute('Login');
+        }
+      } catch (error) {
+        setInitialRoute('Login');
+      }
+    };
+
+    checkToken();
   }, []);
 
- return (
+  if (!initialRoute) return null; // veya bir loading ekranı göster
+
+  return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isFirstLaunch ? (
-          // <Stack.Screen name="OnBoard" component={OnBoardScreen} />
-          <Stack.Screen name="Auth" component={AuthStack} />
-        ) : (
-          <>
-            <Stack.Screen name="Auth" component={AuthStack} />
-            {/* <Stack.Screen name="Home" component={HomeScreen} /> */}
-          </>
-        )}
+      <Stack.Navigator 
+        initialRouteName="Auth"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Auth">
+          {() => <AuthStack initialRoute={initialRoute} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
