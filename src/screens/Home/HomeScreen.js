@@ -14,6 +14,7 @@ import { storageService } from '../../services/AsyncStorage';
 const HomeScreen = ({ navigation }) => {
 
   const handleLogout = async () => {
+    console.log("Logout fonksiyonu tetiklendi");
   try {
     const token = await storageService.getItem('userToken');
     const userId = await storageService.getItem('userId');

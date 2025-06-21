@@ -10,8 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { authService } from '../src/services/authService';
-import { storageService } from '../src/services/AsyncStorage';
+import { authService } from './services/authService';
+import { storageService } from './services/AsyncStorage';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -38,17 +38,17 @@ const LoginScreen = ({ navigation }) => {
 
     console.log('Backend cevabı:', response);
 
-    const { accessToken, user } = response.data;
+    const { token, user } = response.data;
 
-    if (!accessToken) {
+    if (!token) {
       Alert.alert('Hata', 'Token alınamadı, lütfen tekrar deneyin.');
       setLoading(false);
       return;
     }
 
-    console.log('Token geldi mi?', accessToken);
+    console.log('Token geldi mi?', token);
 
-    await storageService.saveToken(accessToken);
+    await storageService.saveToken(token);
     await storageService.saveUser(user);
 
     Alert.alert('Başarılı', 'Giriş yapıldı!', [
