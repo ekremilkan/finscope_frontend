@@ -86,7 +86,7 @@ const RegisterScreen = ({ navigation }) => {
             <View style={styles.card}>
               <TextInput
                 style={styles.input}
-                placeholder="Full Name"
+                placeholder="Name"
                 placeholderTextColor="#999"
                 value={name}
                 onChangeText={setName}

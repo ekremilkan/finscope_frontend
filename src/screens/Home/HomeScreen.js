@@ -5,9 +5,9 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from '../../services/authService';
 import { storageService } from '../../services/AsyncStorage';
 
@@ -15,25 +15,68 @@ const HomeScreen = ({ navigation }) => {
 
   const handleLogout = async () => {
     console.log("Logout fonksiyonu tetiklendi");
-  try {
-    const token = await storageService.getItem('userToken');
-    const userId = await storageService.getItem('userId');
+    try {
+      // Token ve userId'yi al
+      const token = await storageService.getToken();
+      const userId = await storageService.getItem('userId');
 
-    // Backend'e logout isteği at
-    await authService.logoutUser(userId, token);
+      console.log('Token:', token);
+      console.log('UserId:', userId);
 
-    // AsyncStorage temizliği
-    await storageService.multiRemove(['userToken', 'refreshToken', 'userId']);
+      if (token && userId) {
+        try {
+          // Backend'e logout isteği at
+          await authService.logoutUser(userId, token);
+          console.log('Backend logout başarılı');
+        } catch (backendError) {
+          console.log('Backend logout hatası:', backendError);
+          // Backend hatası olsa bile devam et
+        }
+      }
 
-    // Login ekranına yönlendir
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
-  } catch (error) {
-    console.log('Logout error:', error);
-  }
-};
+      // AsyncStorage temizliği
+      await storageService.multiRemove(['userToken', 'refreshToken', 'userId', 'userData']);
+      
+      // Global token'ı da temizle
+      global.userToken = null;
+
+      console.log('Storage temizlendi');
+
+      // Login ekranına yönlendir
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+
+      console.log('Login ekranına yönlendirildi');
+
+    } catch (error) {
+      console.log('Logout error:', error);
+      
+      // Hata olsa bile kullanıcıyı çıkart
+      Alert.alert(
+        'Uyarı',
+        'Çıkış yapılırken bir hata oluştu, yine de çıkış yapılacak.',
+        [
+          {
+            text: 'Tamam',
+            onPress: async () => {
+              try {
+                await storageService.multiRemove(['userToken', 'refreshToken', 'userId', 'userData']);
+                global.userToken = null;
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Login' }],
+                });
+              } catch (cleanupError) {
+                console.error('Cleanup error:', cleanupError);
+              }
+            },
+          },
+        ]
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>

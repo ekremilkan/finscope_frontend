@@ -20,56 +20,62 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-  // Basit validasyon
-  if (!email || !password) {
-    Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
-    return;
-  }
-
-  if (!email.includes('@')) {
-    Alert.alert('Hata', 'Geçerli bir email adresi girin');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const response = await authService.login(email, password);
-
-    console.log('Backend cevabı:', response);
-
-    const { token, user } = response.data;
-
-    if (!token) {
-      Alert.alert('Hata', 'Token alınamadı, lütfen tekrar deneyin.');
-      setLoading(false);
+    // Basit validasyon
+    if (!email || !password) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
       return;
     }
 
-    console.log('Token geldi mi?', token);
-
-    await storageService.saveToken(token);
-    await storageService.saveUser(user);
-
-    Alert.alert('Başarılı', 'Giriş yapıldı!', [
-      { text: 'Tamam', onPress: () => navigation.navigate('Home') },
-    ]);
-  } catch (error) {
-    // Hata mesajını farklı tiplerde yakalamak için güncel kontrol
-    let errorMessage = 'Giriş yapılırken bir hata oluştu';
-
-    if (typeof error === 'string') {
-      errorMessage = error;
-    } else if (error && typeof error === 'object') {
-      errorMessage = error.message || error.error || JSON.stringify(error);
+    if (!email.includes('@')) {
+      Alert.alert('Hata', 'Geçerli bir email adresi girin');
+      return;
     }
 
-    Alert.alert('Hata', errorMessage);
-    console.error('Login hatası:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+
+    try {
+      const response = await authService.login(email, password);
+
+      console.log('Backend cevabı:', response);
+
+      const { token, user, refreshToken } = response.data;
+
+      if (!token) {
+        Alert.alert('Hata', 'Token alınamadı, lütfen tekrar deneyin.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Token geldi mi?', token);
+
+      // Token ve kullanıcı bilgilerini kaydet
+      await storageService.saveToken(token);
+      await storageService.saveUser(user);
+      
+      // Refresh token varsa kaydet
+      if (refreshToken) {
+        await storageService.saveRefreshToken(refreshToken);
+      }
+
+      Alert.alert('Başarılı', 'Giriş yapıldı!', [
+        { text: 'Tamam', onPress: () => navigation.navigate('Home') },
+      ]);
+    } catch (error) {
+      // Hata mesajını farklı tiplerde yakalamak için güncel kontrol
+      let errorMessage = 'Giriş yapılırken bir hata oluştu';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object') {
+        errorMessage = error.message || error.error || JSON.stringify(error);
+      }
+
+      Alert.alert('Hata', errorMessage);
+      console.error('Login hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.background}>
@@ -224,6 +230,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 25,
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
   },
   loginButtonText: {
     color: '#fff',
