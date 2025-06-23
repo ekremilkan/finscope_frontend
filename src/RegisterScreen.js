@@ -173,7 +173,7 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#000000',  // Splash ile uyumlu siyah arka plan
   },
   safeArea: {
     flex: 1,
@@ -191,37 +191,38 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#ffffff', // Beyaz
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.7)', // Beyaz yarı saydam
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#121212', // Koyu kart arka planı
     borderRadius: 20,
     padding: 25,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.5,
     shadowRadius: 10,
     elevation: 5,
   },
   input: {
     height: 50,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#1f1f1f', // Koyu input arka planı
     borderRadius: 12,
     paddingHorizontal: 15,
     marginBottom: 20,
     fontSize: 16,
-    color: '#333',
+    color: '#fff', // Beyaz yazı
   },
   passwordContainer: {
     position: 'relative',
   },
   passwordInput: {
     paddingRight: 50,
+    color: '#fff',
   },
   eyeIcon: {
     position: 'absolute',
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     top: 13,
   },
   registerButton: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#4a90e2', // Mavi vurgu buton rengi
     borderRadius: 12,
     height: 50,
     justifyContent: 'center',
@@ -246,12 +247,12 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   termsText: {
-    color: '#666',
+    color: '#999999', // Açık gri, koyu temaya uyumlu
     fontSize: 14,
     textAlign: 'center',
   },
   termsLink: {
-    color: '#1a73e8',
+    color: '#4a90e2', // Mavi vurgu link
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -261,11 +262,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#333333', // Koyu gri çizgi
   },
   dividerText: {
     paddingHorizontal: 10,
-    color: '#999',
+    color: '#777777', // Koyu gri metin
     fontSize: 14,
   },
   socialLoginContainer: {
@@ -277,11 +278,11 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#1f1f1f', // Koyu sosyal buton arka planı
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#333333',
   },
   footer: {
     flexDirection: 'row',
@@ -290,11 +291,11 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   footerText: {
-    color: '#fff',
+    color: '#ffffff', // Beyaz
     fontSize: 16,
   },
   signInText: {
-    color: '#fff',
+    color: '#4a90e2', // Mavi vurgu
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 5,
@@ -305,5 +306,6 @@ const styles = StyleSheet.create({
     color: '#DB4437',
   },
 });
+
 
 export default RegisterScreen;

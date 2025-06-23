@@ -11,7 +11,7 @@ const AuthStack = ({ initialRoute }) => (
     initialRouteName={initialRoute}
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: '#1a2b6d' },
+      cardStyle: { backgroundColor: '#000000' },
     }}
   >
     <Stack.Screen name="Login" component={LoginScreen} />

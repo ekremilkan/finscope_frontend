@@ -98,7 +98,7 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#000000',  // Splash ile uyumlu siyah arka plan
   },
   content: {
     flex: 1,
@@ -109,26 +109,27 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#ffffff',  // Beyaz yazı
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#bbbbbb',  // Açık gri, koyu arka plana uyumlu
     marginBottom: 30,
     textAlign: 'center',
   },
   logoutButton: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#4a90e2',  // Mavi vurgu buton rengi
     borderRadius: 12,
     paddingHorizontal: 30,
     paddingVertical: 15,
   },
   logoutButtonText: {
-    color: '#fff',
+    color: '#ffffff',  // Beyaz yazı
     fontSize: 16,
     fontWeight: 'bold',
   },
 });
+
 
 export default HomeScreen;
