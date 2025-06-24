@@ -1,7 +1,7 @@
 // AuthStack.js
 import { createStackNavigator } from '@react-navigation/stack';
-import LoginScreen from '../../LoginScreen';
-import RegisterScreen from '../../RegisterScreen';
+import LoginScreen from '../../screens/LoginScreen';
+import RegisterScreen from '../../screens/RegisterScreen';
 import HomeScreen from '../../screens/Home/HomeScreen';
 
 const Stack = createStackNavigator();
