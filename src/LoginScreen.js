@@ -52,8 +52,25 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await authService.login(email.trim(), password);
-      const { token, user, refreshToken } = response.data;
+      //yorum satırı olan kısımlar canlıya alımda açılacak ve json verisi silinecek
+      
+      //const response = await authService.login(email.trim(), password);
+      const { token, user, refreshToken } = {
+        "user": {
+            "_id": "6859b53559ffe4155f5e0623",
+            "name": "osmanAdmin",
+            "email": "cnosman14043@gmail.com",
+            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU5YjUzNTU5ZmZlNDE1NWY1ZTA2MjMiLCJlbWFpbCI6ImNub3NtYW4xNDA0M0BnbWFpbC5jb20iLCJpYXQiOjE3NTA3OTg1MDgsImV4cCI6MTc1MzM5MDUwOH0.tT3ySZ9HEBRQja2haDsTzvklUPYD35jGZailJ-RWZLI",
+            "tokenCreatedAt": "2025-06-24T20:55:08.844Z",
+            "loginAttempts": 3,
+            "passwordChangedAt": "2025-06-23T20:12:37.882Z",
+            "createdAt": "2025-06-23T20:12:37.882Z",
+            "updatedAt": "2025-06-24T20:55:08.844Z",
+            "__v": 0
+        },
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU5YjUzNTU5ZmZlNDE1NWY1ZTA2MjMiLCJlbWFpbCI6ImNub3NtYW4xNDA0M0BnbWFpbC5jb20iLCJuYW1lIjoib3NtYW5BZG1pbiIsImlhdCI6MTc1MDc5ODUwOCwiZXhwIjoxNzUwODAyMTA4fQ.63CCWeYE0pdvJTrDPjpVKAN7pCH9QCF_qHG106i204A",
+        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU5YjUzNTU5ZmZlNDE1NWY1ZTA2MjMiLCJlbWFpbCI6ImNub3NtYW4xNDA0M0BnbWFpbC5jb20iLCJpYXQiOjE3NTA3OTg1MDgsImV4cCI6MTc1MzM5MDUwOH0.tT3ySZ9HEBRQja2haDsTzvklUPYD35jGZailJ-RWZLI"
+    }
 
       if (!token) {
         Alert.alert('Error', 'Authentication failed. Please try again.');
@@ -70,9 +87,10 @@ const LoginScreen = ({ navigation }) => {
       // Navigate to home with success feedback
       navigation.replace('Home');
     } catch (error) {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.message || 
-                          'Login failed. Please check your credentials.';
+      //const errorMessage = error?.response?.data?.message || 
+      //                    error?.message || 
+      //                    'Login failed. Please check your credentials.';
+      const errorMessage = 'Login failed. Please check your credentials.';
       Alert.alert('Login Failed', errorMessage);
     } finally {
       setLoading(false);
