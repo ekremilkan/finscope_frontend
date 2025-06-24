@@ -179,8 +179,14 @@ const CustomerDashboard = ({ navigation }) => {
   const renderHeader = () => (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
-        <Icon name="business" size={24} color="#6366f1" />
-        <Text style={styles.companyName}>DeFiSwap Protocol</Text>
+        <Icon name="business" size={Math.max(20, Math.min(28, width * 0.06))} color="#6366f1" />
+        <Text 
+          style={styles.companyName}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          DeFiSwap Protocol
+        </Text>
       </View>
       <View style={styles.headerRight}>
         <TouchableOpacity 
@@ -188,17 +194,17 @@ const CustomerDashboard = ({ navigation }) => {
           onPress={() => navigation.navigate('Home')}
           activeOpacity={0.7}
         >
-          <Icon name="person" size={18} color="#10b981" />
+          <Icon name="person" size={Math.max(16, Math.min(20, width * 0.045))} color="#10b981" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.headerIcon}>
-          <Icon name="notifications" size={24} color="#94a3b8" />
+          <Icon name="notifications" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
           <View style={styles.notificationDot} />
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.headerIcon}
           onPress={() => setShowSettingsModal(true)}
         >
-          <Icon name="settings" size={24} color="#94a3b8" />
+          <Icon name="settings" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
         </TouchableOpacity>
       </View>
     </View>
@@ -373,39 +379,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: Math.max(16, width * 0.04),
+    paddingVertical: Math.max(12, width * 0.035),
     borderBottomWidth: 1,
     borderBottomColor: '#1e293b',
+    minHeight: Math.max(60, width * 0.16),
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    minWidth: 0,
+    paddingRight: Math.max(8, width * 0.02),
   },
   companyName: {
-    fontSize: Math.min(18, width * 0.04),
+    fontSize: Math.max(14, Math.min(20, width * 0.045)),
     fontWeight: '600',
     color: '#ffffff',
-    marginLeft: 8,
+    marginLeft: Math.max(6, width * 0.02),
     flexShrink: 1,
+    maxWidth: width * 0.5,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 0,
+    justifyContent: 'flex-end',
   },
   headerIcon: {
-    marginLeft: 16,
+    marginLeft: Math.max(12, width * 0.035),
     position: 'relative',
+    padding: Math.max(4, width * 0.01),
   },
   notificationDot: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: Math.max(2, width * 0.005),
+    right: Math.max(2, width * 0.005),
+    width: Math.max(6, width * 0.02),
+    height: Math.max(6, width * 0.02),
+    borderRadius: Math.max(3, width * 0.01),
     backgroundColor: '#ef4444',
   },
 
@@ -616,20 +628,20 @@ const styles = StyleSheet.create({
 
   // Switch Button
   switchButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: Math.max(32, width * 0.08),
+    height: Math.max(32, width * 0.08),
+    borderRadius: Math.max(16, width * 0.04),
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#10b981',
-    marginRight: 12,
+    marginRight: Math.max(8, width * 0.025),
   },
   switchText: {
     color: '#10b981',
-    fontSize: 12,
+    fontSize: Math.max(10, width * 0.03),
     fontWeight: '600',
-    marginLeft: 4,
+    marginLeft: Math.max(3, width * 0.01),
   },
 
   // Settings Modal
