@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authService } from '../services/authService';
@@ -115,10 +116,14 @@ const LoginScreen = ({ navigation }) => {
           {/* Header Section */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <View style={styles.logo}>
-                <Icon name="lock" size={32} color="#6366f1" />
-              </View>
-            </View>
+  <View style={styles.logo}>
+    <Image 
+      source={require('../assets/logo/logo.png')}
+      style={styles.logoImage}
+      resizeMode="contain"
+    />
+  </View>
+</View>
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>
               Sign in to your account to continue
@@ -271,15 +276,24 @@ const styles = StyleSheet.create({
   logoContainer: {
     marginBottom: 24,
   },
-  logo: {
+   logo: {
     width: 80,
-    height: 80,
-    borderRadius: 40,
+    height: 80, 
+    borderRadius: 12,
     backgroundColor: 'rgba(99, 102, 241, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: 'rgba(99, 102, 241, 0.2)',
+    overflow: 'hidden',
+  },
+  logoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    alignSelf: 'center',
+    marginTop: 12,
+  
   },
   title: {
     fontSize: width * 0.08,
