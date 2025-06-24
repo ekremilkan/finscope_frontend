@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Image,
   Modal,
   Alert,
 } from 'react-native';
@@ -17,53 +16,78 @@ import { authService } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
-const HomeScreen = ({ navigation }) => {
-  const [userData, setUserData] = useState({
-    name: 'Ali',
-    totalEarnings: 45,
-    userClass: 'B',
-    completedCampaigns: 3,
-    totalCampaigns: 5,
-    successRate: 78
+const CustomerDashboard = ({ navigation }) => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  
+  const [dashboardData] = useState({
+    activeCampaigns: 2,
+    totalSpend: 1450,
+    reachedUsers: 147,
+    roi: 340,
+    performanceChange: 23
   });
 
-  const [activeCampaigns] = useState([
+  const [recentCampaigns] = useState([
     {
       id: 1,
-      title: 'UniDEX DeFi Eğitimi',
-      reward: 15,
-      daysLeft: 2,
-      icon: '📊'
+      title: 'DeFiSwap Launch Campaign',
+      participants: 47,
+      successRate: 78,
+      status: 'active',
+      icon: '🎯'
     },
     {
       id: 2,
-      title: 'Layer 2 Rehberi',
-      reward: 25,
-      daysLeft: 5,
-      icon: '🌐'
+      title: 'Liquidity Mining Education',
+      participants: 32,
+      successRate: 100,
+      status: 'completed',
+      icon: '📚'
     }
   ]);
 
-  const [activeTab, setActiveTab] = useState('home');
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
-    try {
-      const user = await storageService.getUser();
-      if (user) {
-        setUserData(prev => ({
-          ...prev,
-          name: user.name || 'Ali'
-        }));
-      }
-    } catch (error) {
-      console.log('User data yükleme hatası:', error);
+  const kpiCards = [
+    {
+      id: 1,
+      title: 'Aktif Kampanyalar',
+      value: dashboardData.activeCampaigns,
+      unit: '',
+      color: '#6366f1',
+      icon: 'campaign'
+    },
+    {
+      id: 2,
+      title: 'Harcama',
+      value: dashboardData.totalSpend.toLocaleString(),
+      unit: 'USDT',
+      color: '#f59e0b',
+      icon: 'payments'
+    },
+    {
+      id: 3,
+      title: 'Ulaşılan Kullanıcı',
+      value: dashboardData.reachedUsers,
+      unit: '',
+      color: '#10b981',
+      icon: 'people'
+    },
+    {
+      id: 4,
+      title: 'ROI',
+      value: dashboardData.roi,
+      unit: '%',
+      color: '#8b5cf6',
+      icon: 'trending-up'
     }
-  };
+  ];
+
+  const bottomNavItems = [
+    { id: 'dashboard', title: 'Dashboard', icon: 'dashboard' },
+    { id: 'campaign', title: 'Kampanya', icon: 'add-circle' },
+    { id: 'segments', title: 'Segmentler', icon: 'group' },
+    { id: 'reports', title: 'Raporlar', icon: 'analytics' }
+  ];
 
   const handleLogout = async () => {
     console.log("Logout fonksiyonu tetiklendi");
@@ -152,33 +176,19 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
-  const quickActions = [
-    { id: 1, title: 'Kampanyalar', icon: 'campaign', color: '#6366f1' },
-    { id: 2, title: 'Eğitim', icon: 'school', color: '#8b5cf6' },
-    { id: 3, title: 'Ödüllerim', icon: 'card-giftcard', color: '#f59e0b' },
-    { id: 4, title: 'Topluluk', icon: 'group', color: '#10b981' }
-  ];
-
-  const bottomNavItems = [
-    { id: 'home', title: 'Ana Sayfa', icon: 'home' },
-    { id: 'campaigns', title: 'Kampanyalar', icon: 'campaign' },
-    { id: 'wallet', title: 'Cüzdan', icon: 'account-balance-wallet' },
-    { id: 'profile', title: 'Profil', icon: 'person' }
-  ];
-
   const renderHeader = () => (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
-        <Icon name="person" size={24} color="#6366f1" />
-        <Text style={styles.welcomeText}>Hoş geldin, {userData.name}!</Text>
+        <Icon name="business" size={24} color="#6366f1" />
+        <Text style={styles.companyName}>DeFiSwap Protocol</Text>
       </View>
       <View style={styles.headerRight}>
         <TouchableOpacity 
           style={styles.switchButton}
-          onPress={() => navigation.navigate('CustomerDashboard')}
+          onPress={() => navigation.navigate('Home')}
           activeOpacity={0.7}
         >
-          <Icon name="business" size={18} color="#6366f1" />
+          <Icon name="person" size={18} color="#10b981" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.headerIcon}>
           <Icon name="notifications" size={24} color="#94a3b8" />
@@ -220,80 +230,85 @@ const HomeScreen = ({ navigation }) => {
     </Modal>
   );
 
-  const renderStatsCard = () => (
-    <View style={styles.statsCard}>
-      <View style={styles.statsHeader}>
-        <Text style={styles.statsTitle}>Kullanıcı İstatistikleri</Text>
-      </View>
-      
-      <View style={styles.statsGrid}>
-        <View style={styles.statItem}>
-          <Text style={styles.statIcon}>💰</Text>
-          <Text style={styles.statLabel}>Toplam Kazanç</Text>
-          <Text style={styles.statValue}>{userData.totalEarnings} USDT</Text>
-        </View>
-        
-        <View style={styles.statItem}>
-          <Text style={styles.statIcon}>📊</Text>
-          <Text style={styles.statLabel}>Sınıf</Text>
-          <Text style={styles.statValue}>{userData.userClass} Sınıfı</Text>
-        </View>
-      </View>
-
-      <View style={styles.statsGrid}>
-        <View style={styles.statItem}>
-          <Text style={styles.statIcon}>🎯</Text>
-          <Text style={styles.statLabel}>Tamamlanan</Text>
-          <Text style={styles.statValue}>{userData.completedCampaigns}/{userData.totalCampaigns} kampanya</Text>
-        </View>
-        
-        <View style={styles.statItem}>
-          <Text style={styles.statIcon}>📈</Text>
-          <Text style={styles.statLabel}>Başarı Oranı</Text>
-          <Text style={styles.statValue}>%{userData.successRate}</Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderQuickActions = () => (
-    <View style={styles.quickActionsSection}>
-      <Text style={styles.sectionTitle}>Hızlı Erişim</Text>
-      <View style={styles.quickActionsGrid}>
-        {quickActions.map((action) => (
-          <TouchableOpacity
-            key={action.id}
-            style={[styles.quickActionItem, { borderColor: action.color }]}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
-              <Icon name={action.icon} size={24} color="#ffffff" />
+  const renderKPICards = () => (
+    <View style={styles.kpiSection}>
+      <View style={styles.kpiGrid}>
+        {kpiCards.map((kpi) => (
+          <View key={kpi.id} style={[styles.kpiCard, { borderLeftColor: kpi.color }]}>
+            <View style={styles.kpiHeader}>
+              <Icon name={kpi.icon} size={20} color={kpi.color} />
+              <Text style={styles.kpiTitle}>{kpi.title}</Text>
             </View>
-            <Text style={styles.quickActionTitle}>{action.title}</Text>
-          </TouchableOpacity>
+            <View style={styles.kpiValue}>
+              <Text style={styles.kpiNumber}>{kpi.value}</Text>
+              {kpi.unit && <Text style={styles.kpiUnit}>{kpi.unit}</Text>}
+            </View>
+          </View>
         ))}
       </View>
     </View>
   );
 
-  const renderActiveCampaigns = () => (
+  const renderPerformanceChart = () => (
+    <View style={styles.performanceSection}>
+      <View style={styles.performanceHeader}>
+        <Icon name="bar-chart" size={20} color="#6366f1" />
+        <Text style={styles.sectionTitle}>Son 7 günlük performans</Text>
+      </View>
+      
+      {/* Chart Placeholder */}
+      <View style={styles.chartPlaceholder}>
+        <View style={styles.chartBars}>
+          {[65, 45, 80, 55, 90, 70, 85].map((height, index) => (
+            <View
+              key={index}
+              style={[
+                styles.chartBar,
+                { height: height, backgroundColor: index === 6 ? '#6366f1' : '#334155' }
+              ]}
+            />
+          ))}
+        </View>
+        <View style={styles.chartLabels}>
+          {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((day, index) => (
+            <Text key={index} style={styles.chartLabel}>{day}</Text>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.performanceMetric}>
+        <Icon name="trending-up" size={16} color="#10b981" />
+        <Text style={styles.performanceText}>%{dashboardData.performanceChange} artış</Text>
+      </View>
+    </View>
+  );
+
+  const renderRecentCampaigns = () => (
     <View style={styles.campaignsSection}>
-      <Text style={styles.sectionTitle}>Aktif Kampanyalar</Text>
-      {activeCampaigns.map((campaign) => (
+      <Text style={styles.sectionTitle}>Son Kampanyalar</Text>
+      
+      {recentCampaigns.map((campaign) => (
         <View key={campaign.id} style={styles.campaignCard}>
           <View style={styles.campaignHeader}>
             <View style={styles.campaignInfo}>
               <Text style={styles.campaignIcon}>{campaign.icon}</Text>
               <View style={styles.campaignDetails}>
                 <Text style={styles.campaignTitle}>{campaign.title}</Text>
-                <View style={styles.campaignMeta}>
-                  <Text style={styles.campaignReward}>💰 {campaign.reward} USDT</Text>
-                  <Text style={styles.campaignTime}>⏱️ {campaign.daysLeft} gün kaldı</Text>
+                <View style={styles.campaignStats}>
+                  <View style={styles.statGroup}>
+                    <Icon name="people" size={14} color="#94a3b8" />
+                    <Text style={styles.statText}>{campaign.participants} katılımcı</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statGroup}>
+                    <Icon name="check-circle" size={14} color="#10b981" />
+                    <Text style={styles.statText}>%{campaign.successRate} başarı</Text>
+                  </View>
                 </View>
               </View>
             </View>
-            <TouchableOpacity style={styles.startButton} activeOpacity={0.8}>
-              <Text style={styles.startButtonText}>Başla</Text>
+            <TouchableOpacity style={styles.detailsButton} activeOpacity={0.8}>
+              <Text style={styles.detailsButtonText}>Detaylar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -334,9 +349,9 @@ const HomeScreen = ({ navigation }) => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {renderStatsCard()}
-        {renderQuickActions()}
-        {renderActiveCampaigns()}
+        {renderKPICards()}
+        {renderPerformanceChart()}
+        {renderRecentCampaigns()}
         
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -368,7 +383,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  welcomeText: {
+  companyName: {
     fontSize: Math.min(18, width * 0.04),
     fontWeight: '600',
     color: '#ffffff',
@@ -399,91 +414,113 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Stats Card Styles
-  statsCard: {
+  // KPI Cards
+  kpiSection: {
+    padding: 20,
+  },
+  kpiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  kpiCard: {
+    width: (width - 50) / 2,
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderLeftWidth: 4,
+  },
+  kpiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  kpiTitle: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  kpiValue: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  kpiNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  kpiUnit: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+
+  // Performance Section
+  performanceSection: {
     margin: 20,
+    marginTop: 0,
     padding: 20,
     backgroundColor: '#1e293b',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#334155',
   },
-  statsHeader: {
-    marginBottom: 16,
-  },
-  statsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  statsGrid: {
+  performanceHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  statItem: {
-    flex: 1,
     alignItems: 'center',
-    padding: 12,
-  },
-  statIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  statValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#ffffff',
-    textAlign: 'center',
-  },
-
-  // Quick Actions Styles
-  quickActionsSection: {
-    paddingHorizontal: 20,
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
+    marginLeft: 8,
+  },
+  chartPlaceholder: {
+    height: 120,
     marginBottom: 16,
   },
-  quickActionsGrid: {
+  chartBars: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
+    height: 80,
+    paddingHorizontal: 10,
   },
-  quickActionItem: {
-    width: (width - 60) / 2,
-    backgroundColor: '#1e293b',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 1,
+  chartBar: {
+    width: 20,
+    borderRadius: 4,
+    minHeight: 20,
   },
-  quickActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
+  chartLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    marginTop: 8,
   },
-  quickActionTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#ffffff',
+  chartLabel: {
+    fontSize: 12,
+    color: '#64748b',
     textAlign: 'center',
+    width: 20,
+  },
+  performanceMetric: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  performanceText: {
+    fontSize: 14,
+    color: '#10b981',
+    fontWeight: '600',
+    marginLeft: 4,
   },
 
-  // Campaigns Styles
+  // Campaigns Section
   campaignsSection: {
     paddingHorizontal: 20,
     marginBottom: 20,
@@ -507,7 +544,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   campaignIcon: {
-    fontSize: 24,
+    fontSize: 20,
     marginRight: 12,
   },
   campaignDetails: {
@@ -519,33 +556,39 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginBottom: 8,
   },
-  campaignMeta: {
+  campaignStats: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  campaignReward: {
-    fontSize: 14,
-    color: '#10b981',
+  statGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: '#334155',
+    marginHorizontal: 12,
+  },
+  statText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginLeft: 4,
     fontWeight: '500',
   },
-  campaignTime: {
-    fontSize: 14,
-    color: '#f59e0b',
-    fontWeight: '500',
-  },
-  startButton: {
+  detailsButton: {
     backgroundColor: '#6366f1',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 8,
   },
-  startButtonText: {
+  detailsButtonText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
 
-  // Bottom Navigation Styles
+  // Bottom Navigation
   bottomNavigation: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -571,7 +614,7 @@ const styles = StyleSheet.create({
     height: 20,
   },
 
-  // Switch Button Styles
+  // Switch Button
   switchButton: {
     width: 36,
     height: 36,
@@ -579,17 +622,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#6366f1',
+    borderColor: '#10b981',
     marginRight: 12,
   },
   switchText: {
+    color: '#10b981',
     fontSize: 12,
-    fontWeight: '500',
-    color: '#6366f1',
+    fontWeight: '600',
     marginLeft: 4,
   },
 
-  // Settings Modal Styles
+  // Settings Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -599,9 +642,9 @@ const styles = StyleSheet.create({
   settingsModal: {
     backgroundColor: '#1e293b',
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 12,
     width: '80%',
-    maxWidth: 400,
+    maxHeight: '80%',
   },
   settingsItem: {
     flexDirection: 'row',
@@ -612,11 +655,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   settingsText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#ffffff',
     marginLeft: 12,
   },
 });
 
-export default HomeScreen;
+export default CustomerDashboard; 

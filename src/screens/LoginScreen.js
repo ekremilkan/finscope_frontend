@@ -116,14 +116,14 @@ const LoginScreen = ({ navigation }) => {
           {/* Header Section */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-  <View style={styles.logo}>
-    <Image 
-      source={require('../../assets/logo/logo.png')}
-      style={styles.logoImage}
-      resizeMode="contain"
-    />
-  </View>
-</View>
+              <View style={styles.logo}>
+                <Image 
+                  source={require('../../assets/logo/logo.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>
               Sign in to your account to continue
