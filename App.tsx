@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
 import RootNavigator from './src/navigators/RootNavigator';
 
 const App = () => {
@@ -23,12 +23,26 @@ const App = () => {
   if (!isAppReady) {
     return (
       <View style={styles.loadingScreen}>
+        <StatusBar 
+          barStyle="light-content" 
+          backgroundColor="#000000" 
+          translucent={false}
+        />
         <ActivityIndicator size="large" color="#6854dd" />
       </View>
     );
   }
 
-  return <RootNavigator />;
+  return (
+    <>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="#000000" 
+        translucent={false}
+      />
+      <RootNavigator />
+    </>
+  );
 };
 
 const styles = StyleSheet.create({
