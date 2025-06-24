@@ -8,289 +8,415 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
+  Dimensions,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authService } from './services/authService';
 import { storageService } from './services/AsyncStorage';
+
+const { width, height } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleLogin = async () => {
-    // Basit validasyon
-    if (!email || !password) {
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
+    // Enhanced validation
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Validation Error', 'Please fill in all fields');
       return;
     }
 
-    if (!email.includes('@')) {
-      Alert.alert('Hata', 'Geçerli bir email adresi girin');
+    if (!validateEmail(email)) {
+      Alert.alert('Validation Error', 'Please enter a valid email address');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Validation Error', 'Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await authService.login(email, password);
-
-      console.log('Backend cevabı:', response);
-
+      const response = await authService.login(email.trim(), password);
       const { token, user, refreshToken } = response.data;
 
       if (!token) {
-        Alert.alert('Hata', 'Token alınamadı, lütfen tekrar deneyin.');
-        setLoading(false);
+        Alert.alert('Error', 'Authentication failed. Please try again.');
         return;
       }
 
-      console.log('Token geldi mi?', token);
-
-      // Token ve kullanıcı bilgilerini kaydet
-      await storageService.saveToken(token);
-      await storageService.saveUser(user);
-      
-      // Refresh token varsa kaydet
-      if (refreshToken) {
-        await storageService.saveRefreshToken(refreshToken);
-      }
-
-      Alert.alert('Başarılı', 'Giriş yapıldı!', [
-        { text: 'Tamam', onPress: () => navigation.navigate('Home') },
+      // Save authentication data
+      await Promise.all([
+        storageService.saveToken(token),
+        storageService.saveUser(user),
+        refreshToken && storageService.saveRefreshToken(refreshToken),
       ]);
+
+      // Navigate to home with success feedback
+      navigation.replace('Home');
     } catch (error) {
-      // Hata mesajını farklı tiplerde yakalamak için güncel kontrol
-      let errorMessage = 'Giriş yapılırken bir hata oluştu';
-
-      if (typeof error === 'string') {
-        errorMessage = error;
-      } else if (error && typeof error === 'object') {
-        errorMessage = error.message || error.error || JSON.stringify(error);
-      }
-
-      Alert.alert('Hata', errorMessage);
-      console.error('Login hatası:', error);
+      const errorMessage = error?.response?.data?.message || 
+                          error?.message || 
+                          'Login failed. Please check your credentials.';
+      Alert.alert('Login Failed', errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSocialLogin = (provider) => {
+    Alert.alert('Coming Soon', `${provider} login will be available soon!`);
+  };
+
   return (
-    <View style={styles.background}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to continue</Text>
-        </View>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <SafeAreaView style={styles.safeArea}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logo}>
+                <Icon name="lock" size={32} color="#6366f1" />
+              </View>
+            </View>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>
+              Sign in to your account to continue
+            </Text>
+          </View>
 
-        <View style={styles.card}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#999"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={!loading}
-          />
+          {/* Form Section */}
+          <View style={styles.formContainer}>
+            {/* Email Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email Address</Text>
+              <View style={[
+                styles.inputWrapper,
+                emailFocused && styles.inputWrapperFocused,
+                !validateEmail(email) && email.length > 0 && styles.inputWrapperError
+              ]}>
+                <Icon name="email" size={20} color="#6b7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your email"
+                  placeholderTextColor="#9ca3af"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!loading}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                />
+              </View>
+            </View>
 
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[styles.input, styles.passwordInput]}
-              placeholder="Password"
-              placeholderTextColor="#999"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-              disabled={loading}
+            {/* Password Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <View style={[
+                styles.inputWrapper,
+                passwordFocused && styles.inputWrapperFocused
+              ]}>
+                <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#9ca3af"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  editable={!loading}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                  activeOpacity={0.7}
+                >
+                  <Icon
+                    name={showPassword ? 'visibility-off' : 'visibility'}
+                    size={20}
+                    color="#6b7280"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Forgot Password */}
+            <TouchableOpacity 
+              style={styles.forgotPasswordContainer}
+              onPress={() => navigation.navigate('ForgotPassword')}
+              activeOpacity={0.7}
             >
-              <Icon
-                name={showPassword ? 'visibility-off' : 'visibility'}
-                size={24}
-                color="#666"
-              />
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            {/* Login Button */}
+            <TouchableOpacity
+              style={[
+                styles.loginButton,
+                loading && styles.loginButtonDisabled
+              ]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator color="#ffffff" size="small" />
+                  <Text style={styles.loadingText}>Signing in...</Text>
+                </View>
+              ) : (
+                <Text style={styles.loginButtonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or continue with</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social Login Buttons */}
+            <View style={styles.socialContainer}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => handleSocialLogin('Google')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.googleIcon}>G</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Register')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.signUpText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.loginButtonText}>Login</Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.socialLoginContainer}>
-            <TouchableOpacity style={styles.socialButton}>
-              <Text style={styles.googleText}>G</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.signUpText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </View>
+        </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: '#000000',  // Splash ile aynı siyah arka plan
-  },
   container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    minHeight: height,
+  },
+  safeArea: {
+    flex: 1,
+    paddingHorizontal: width * 0.05,
   },
   header: {
-    marginBottom: 30,
     alignItems: 'center',
+    paddingTop: height * 0.08,
+    paddingBottom: height * 0.04,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',  // Beyaz
-    marginBottom: 8,
+  logoContainer: {
+    marginBottom: 24,
   },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.7)', // Beyaz yarı saydam
-  },
-  card: {
-    backgroundColor: '#121212',  // Koyu gri kart arka planı
-    borderRadius: 20,
-    padding: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  input: {
-    height: 50,
-    backgroundColor: '#1f1f1f',  // Koyu input arka planı
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    fontSize: 16,
-    color: '#fff',  // Beyaz yazı
-  },
-  passwordContainer: {
-    position: 'relative',
-  },
-  passwordInput: {
-    paddingRight: 50,
-    color: '#fff',
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: 15,
-    top: 13,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 25,
-  },
-  forgotPasswordText: {
-    color: '#4a90e2',  // Mavi ton, vurgulu
-    fontSize: 14,
-  },
-  loginButton: {
-    backgroundColor: '#4a90e2',  // Vurgu mavi buton
-    borderRadius: 12,
-    height: 50,
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  title: {
+    fontSize: width * 0.08,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: width * 0.04,
+    color: '#94a3b8',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  formContainer: {
+    flex: 1,
+    paddingTop: 20,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#e2e8f0',
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1e293b',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+    paddingHorizontal: 16,
+    height: 56,
+  },
+  inputWrapperFocused: {
+    borderColor: '#6366f1',
+    backgroundColor: '#1e293b',
+  },
+  inputWrapperError: {
+    borderColor: '#ef4444',
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#ffffff',
+    paddingVertical: 0,
+  },
+  passwordInput: {
+    paddingRight: 12,
+  },
+  eyeButton: {
+    padding: 4,
+  },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: 32,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: '#6366f1',
+    fontWeight: '500',
+  },
+  loginButton: {
+    backgroundColor: '#6366f1',
+    borderRadius: 16,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   loginButtonDisabled: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
   loginButtonText: {
-    color: '#fff',
+    color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 25,
+    marginBottom: 32,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#333333',
+    backgroundColor: '#334155',
   },
   dividerText: {
-    paddingHorizontal: 10,
-    color: '#999999',
+    paddingHorizontal: 16,
     fontSize: 14,
+    color: '#64748b',
   },
-  socialLoginContainer: {
+  socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 20,
+    gap: 16,
+    marginBottom: 32,
   },
   socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#1f1f1f',
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#333333',
+  },
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ea4335',
+  },
+  facebookIcon: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1877f2',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 30,
-    gap: 5,
+    alignItems: 'center',
+    paddingBottom: 32,
   },
   footerText: {
-    color: '#ffffff',
     fontSize: 16,
+    color: '#94a3b8',
   },
   signUpText: {
-    color: '#4a90e2',
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  googleText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#DB4437',  
+    color: '#6366f1',
+    fontWeight: '600',
   },
 });
-
 
 export default LoginScreen;
