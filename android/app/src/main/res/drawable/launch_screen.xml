@@ -5,7 +5,7 @@
   <item android:drawable="@color/splash_background" />
 
   <!-- Responsive ortalanmış logo -->
-  <item android:width="220dp" android:height="330dp" android:gravity="center">
+  <item android:width="200dp" android:height="300dp" android:gravity="center">
     <bitmap
       android:gravity="center"
       android:src="@drawable/splashlogo" />
