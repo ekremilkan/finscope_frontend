@@ -1,0 +1,274 @@
+# Finscope Frontend - Modüler Geliştirme Kuralları
+
+Bu React Native finans uygulaması için modüler yaklaşım kuralları ve best practice'leri.
+
+## 🏗️ Proje Yapısı ve Organizasyon
+
+### Dosya Struktur Standardı
+```
+src/
+├── components/
+│   ├── [ScreenName]/          # Her ekran için ayrı klasör
+│   │   ├── [ScreenName]Header.js
+│   │   ├── [ScreenName]Card.js
+│   │   ├── [ScreenName]Modal.js
+│   │   └── ...
+├── data/
+│   ├── [screenName]Data.js    # Static data ve configuration
+├── utils/
+│   ├── [screenName]Utils.js   # Business logic ve helper functions
+└── screens/
+    └── [ScreenName]/
+        └── [ScreenName].js    # Ana ekran component'i
+```
+
+### Naming Conventions
+- **Components:** PascalCase (HomeHeader.js, CustomerKPICards.js)
+- **Data files:** camelCase + Data (homeData.js, customerDashboardData.js)
+- **Utils files:** camelCase + Utils (homeUtils.js, quizUtils.js)
+- **Screen folders:** PascalCase (Home/, Customer/, Campaign/)
+
+## 📦 Modülerleştirme Prensipleri
+
+### 1. Component Separation Strategy
+Her ekran şu bileşenlere ayrılmalı:
+- **Header Component:** Navigation, user info, settings
+- **Content Components:** Ana içerik bölümleri (Cards, Lists, etc.)
+- **Navigation Component:** Bottom navigation, tabs
+- **Modal Components:** Popup'lar, settings modals
+
+### 2. Data Extraction Rules
+```javascript
+// ✅ DOĞRU: Data dosyası örneği
+export const SCREEN_DATA = {
+  staticValues: 'değerler',
+  configuration: {}
+};
+
+export const DYNAMIC_ITEMS = [
+  { id: 1, title: 'Item 1' },
+  { id: 2, title: 'Item 2' }
+];
+
+// Helper functions for data processing
+export const getProcessedData = (rawData) => {
+  return rawData.map(item => ({ ...item, processed: true }));
+};
+```
+
+### 3. Utils File Structure
+```javascript
+// ✅ DOĞRU: Utils dosyası örneği
+import { Alert } from 'react-native';
+import { storageService } from '../services/AsyncStorage';
+
+// Navigation handlers
+export const handleNavigation = (navigation, route, params) => {
+  navigation.navigate(route, params);
+};
+
+// Business logic functions
+export const processUserData = async (userId) => {
+  // Implementation
+};
+
+// Alert handlers
+export const showConfirmAlert = (title, message, onConfirm) => {
+  Alert.alert(title, message, [
+    { text: 'İptal', style: 'cancel' },
+    { text: 'Tamam', onPress: onConfirm }
+  ]);
+};
+```
+
+## 🎨 Tasarım Sistemı ve Styling
+
+### Responsive Design Rules
+```javascript
+const { width } = Dimensions.get('window');
+
+// ✅ DOĞRU: Responsive boyutlandırma
+fontSize: Math.max(16, Math.min(22, width * 0.055))
+padding: Math.max(20, width * 0.05)
+marginHorizontal: Math.max(16, width * 0.04)
+
+// ✅ DOĞRU: Minimum ve maksimum değerler
+minHeight: Math.max(70, width * 0.18)
+```
+
+### Color Palette Standards
+```javascript
+const COLORS = {
+  background: '#0a0f1c',
+  cardBackground: 'rgba(30, 41, 59, 0.8)',
+  primary: '#6366f1',
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  text: '#ffffff',
+  textSecondary: '#94a3b8'
+};
+```
+
+### Glass Morphism Effects
+```javascript
+// ✅ DOĞRU: Glass morphism style pattern
+backgroundColor: 'rgba(30, 41, 59, 0.8)',
+borderRadius: 24,
+borderWidth: 1,
+borderColor: 'rgba(148, 163, 184, 0.2)',
+shadowColor: '#000',
+shadowOffset: { width: 0, height: 8 },
+shadowOpacity: 0.3,
+shadowRadius: 16,
+elevation: 8,
+backdropFilter: 'blur(20px)'
+```
+
+## 🔧 Yeni Ekran Ekleme Süreci
+
+### Adım 1: Analiz ve Planlama
+1. Mevcut ekranı bileşenlerine ayır
+2. Hangi data'ların static olduğunu belirle
+3. Business logic'i tespit et
+4. Component hierarchy'sini planla
+
+### Adım 2: Dosya Oluşturma (Paralel)
+```bash
+# Aynı anda oluşturulacak dosyalar:
+src/data/newScreenData.js
+src/utils/newScreenUtils.js
+src/components/NewScreen/NewScreenHeader.js
+src/components/NewScreen/NewScreenContent.js
+src/components/NewScreen/NewScreenModal.js
+```
+
+### Adım 3: Implementation Pattern
+```javascript
+// ✅ Ana ekran component yapısı
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Data imports
+import { SCREEN_DATA, SCREEN_ITEMS } from '../../data/screenData';
+
+// Utils imports
+import { handleAction, loadData } from '../../utils/screenUtils';
+
+// Component imports
+import ScreenHeader from '../../components/Screen/ScreenHeader';
+import ScreenContent from '../../components/Screen/ScreenContent';
+
+const NewScreen = ({ navigation }) => {
+  const [state, setState] = useState(SCREEN_DATA);
+
+  useEffect(() => {
+    loadData(setState);
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScreenHeader onAction={handleAction} />
+      <ScrollView style={styles.scrollView}>
+        <ScreenContent data={state} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+```
+
+## 📊 Performans ve Optimizasyon
+
+### Code Splitting Benefits
+- **Önceki Durum:** 788 satır tek dosya
+- **Sonrası:** 89 satır ana dosya + 6 modüler component
+- **Kazanım:** %88 azalma, daha iyi maintainability
+
+### Best Practices
+1. **Single Responsibility:** Her component tek görev
+2. **Reusability:** Component'ler yeniden kullanılabilir
+3. **Performance:** Lazy loading, memo kullanımı
+4. **Accessibility:** Focus states, proper contrast
+
+## 🧪 Test ve Validation
+
+### Component Testing
+```javascript
+// Her component için test dosyası
+__tests__/
+├── components/
+│   ├── NewScreen/
+│   │   ├── NewScreenHeader.test.js
+│   │   └── NewScreenContent.test.js
+└── utils/
+    └── newScreenUtils.test.js
+```
+
+### Validation Checklist
+- [ ] Component tek sorumluluk prensibine uyuyor
+- [ ] Responsive design doğru implement edilmiş
+- [ ] Props proper olarak tanımlanmış
+- [ ] Error handling mevcut
+- [ ] Loading states var
+- [ ] Accessibility özellikleri eklenmiş
+
+## 🔄 Refactoring Guidelines
+
+### Existing Screen'leri Modülerleştirme
+1. **İlk olarak data extraction:** Static değerleri çıkar
+2. **Component separation:** UI parçalarını ayır
+3. **Logic extraction:** Business logic'i utils'e taşı
+4. **Parallel implementation:** Aynı anda birden fazla dosya oluştur
+5. **Testing:** Her component'i test et
+
+### Migration Strategy
+```javascript
+// ✅ DOĞRU: Aşamalı migration
+// 1. Data extraction
+export const LEGACY_SCREEN_DATA = { /* extracted data */ };
+
+// 2. Utils extraction  
+export const legacyScreenUtils = { /* extracted logic */ };
+
+// 3. Component creation
+const LegacyScreenHeader = ({ data, onAction }) => { /* component */ };
+
+// 4. Main screen update
+import { LEGACY_SCREEN_DATA } from '../../data/legacyScreenData';
+```
+
+## 📋 Code Review Standards
+
+### PR Checklist
+- [ ] Dosya organizasyonu kurallara uygun
+- [ ] Naming conventions doğru
+- [ ] Responsive design implemented
+- [ ] Glass morphism effects consistent
+- [ ] Error handling mevcut
+- [ ] Performance optimizations applied
+- [ ] Documentation updated
+
+### Quality Metrics
+- **Component Size:** Max 150 satır per component
+- **Function Complexity:** Max 20 satır per function
+- **Import Organization:** Data → Utils → Components
+- **Style Consistency:** Design system compliance
+
+## 🚀 Future Development
+
+### Scalability Considerations
+1. **Component Library:** Shared component'ler için ayrı klasör
+2. **Design Tokens:** Color, spacing, typography constants
+3. **Custom Hooks:** Reusable logic için hooks
+4. **State Management:** Redux/Context implementation
+
+### Next Steps
+1. Shared component library oluştur
+2. Design tokens centralize et
+3. Custom hooks implement et
+4. Comprehensive testing suite ekle
+
+---
+
+**Not:** Bu kurallar Finscope Frontend projesinin başarılı modülerleştirme deneyiminden çıkarılmıştır. Yeni özellikler eklerken bu pattern'lere sıkı sıkıya uyulması önerilir. 
