@@ -14,7 +14,7 @@ const HomeHeader = ({ userName, onSettingsPress, onNotificationPress, onSwitchPr
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          Hoş geldin, {userName}!
+          Welcome, {userName}!
         </Text>
       </View>
       <View style={styles.headerRight}>

@@ -19,7 +19,7 @@ import CustomerCampaignCreateModal from '../components/CustomerCampaign/Customer
 
 // Data and utils
 import { CUSTOMER_CAMPAIGN_DATA } from '../data/customerCampaignData';
-import { CATEGORIES, STATUS_FILTERS, DIFFICULTIES } from '../constants/campaignConstants';
+import { CATEGORIES, CAMPAIGN_STATUSES, DIFFICULTIES } from '../constants/campaignConstants';
 import { filterCampaigns } from '../utils/campaignUtils';
 
 const { width } = Dimensions.get('window');
@@ -74,8 +74,8 @@ const CustomerCampaignsScreen = ({ navigation }) => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Icon name="campaign" size={64} color="#94a3b8" />
-      <Text style={styles.emptyText}>Henüz kampanya yok</Text>
-      <Text style={styles.emptySubtext}>İlk kampanyanızı oluşturun</Text>
+      <Text style={styles.emptyText}>No campaigns yet</Text>
+      <Text style={styles.emptySubtext}>Create your first campaign</Text>
     </View>
   );
 
@@ -104,7 +104,7 @@ const CustomerCampaignsScreen = ({ navigation }) => {
       
       <CustomerCampaignFilters
         categories={CATEGORIES}
-        statusFilters={STATUS_FILTERS}
+        statusFilters={CAMPAIGN_STATUSES}
         selectedFilter={selectedFilter}
         onFilterChange={setSelectedFilter}
       />

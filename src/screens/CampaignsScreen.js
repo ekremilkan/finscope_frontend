@@ -46,8 +46,8 @@ const CampaignsScreen = ({ navigation }) => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Icon name="campaign" size={64} color="#94a3b8" />
-      <Text style={styles.emptyText}>Kampanya bulunamadı</Text>
-      <Text style={styles.emptySubtext}>Arama kriterlerinizi değiştirin</Text>
+      <Text style={styles.emptyText}>No campaigns found</Text>
+      <Text style={styles.emptySubtext}>Try changing your search criteria</Text>
     </View>
   );
 

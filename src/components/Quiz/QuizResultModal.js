@@ -26,7 +26,7 @@ const QuizResultModal = ({
       <View style={styles.modalOverlay}>
         <View style={styles.resultModal}>
           <View style={styles.resultHeader}>
-            <Text style={styles.resultTitle}>Quiz Tamamlandı! 🎉</Text>
+            <Text style={styles.resultTitle}>Quiz Completed! 🎉</Text>
             <Text style={styles.resultSubtitle}>{campaignTitle}</Text>
           </View>
 
@@ -34,7 +34,7 @@ const QuizResultModal = ({
             <View style={styles.scoreCircle}>
               <Text style={styles.scorePercentage}>{score.percentage}%</Text>
               <Text style={styles.scoreText}>
-                {score.correct}/{score.total} Doğru
+                {score.correct}/{score.total} Correct
               </Text>
             </View>
           </View>
@@ -43,14 +43,14 @@ const QuizResultModal = ({
             {passed ? (
               <>
                 <Icon name="verified" size={48} color="#10b981" />
-                <Text style={styles.successText}>Tebrikler! Ödülünüzü kazandınız</Text>
+                <Text style={styles.successText}>Congratulations! You earned your reward</Text>
                 <Text style={styles.rewardAmount}>+{reward} USDT</Text>
               </>
             ) : (
               <>
                 <Icon name="cancel" size={48} color="#ef4444" />
-                <Text style={styles.failText}>Başarısız! En az %{passPercentage} puan gerekli</Text>
-                <Text style={styles.tryAgainText}>Tekrar deneyebilirsiniz</Text>
+                <Text style={styles.failText}>Failed! At least {passPercentage}% score required</Text>
+                <Text style={styles.tryAgainText}>You can try again</Text>
               </>
             )}
           </View>
@@ -62,7 +62,7 @@ const QuizResultModal = ({
                 onPress={onRetry}
               >
                 <Icon name="refresh" size={20} color="#ffffff" />
-                <Text style={styles.resultButtonText}>Tekrar Dene</Text>
+                <Text style={styles.resultButtonText}>Try Again</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -70,7 +70,7 @@ const QuizResultModal = ({
               onPress={onHome}
             >
               <Icon name="home" size={20} color="#ffffff" />
-              <Text style={styles.resultButtonText}>Ana Sayfa</Text>
+              <Text style={styles.resultButtonText}>Home</Text>
             </TouchableOpacity>
           </View>
         </View>

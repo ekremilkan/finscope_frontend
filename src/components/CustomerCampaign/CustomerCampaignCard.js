@@ -8,12 +8,12 @@ const { width } = Dimensions.get('window');
 const CustomerCampaignCard = ({ campaign, onDelete, onToggleStatus }) => {
   const handleDelete = () => {
     Alert.alert(
-      'Kampanyayı Sil',
-      'Bu kampanyayı silmek istediğinizden emin misiniz?',
+      'Delete Campaign',
+      'Are you sure you want to delete this campaign?',
       [
-        { text: 'İptal', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Sil',
+          text: 'Delete',
           style: 'destructive',
           onPress: () => onDelete(campaign.id)
         }
@@ -42,29 +42,29 @@ const CustomerCampaignCard = ({ campaign, onDelete, onToggleStatus }) => {
           <View style={styles.metric}>
             <Icon name="people" size={16} color="#6366f1" />
             <Text style={styles.metricValue}>{campaign.participants}</Text>
-            <Text style={styles.metricLabel}>Katılımcı</Text>
+            <Text style={styles.metricLabel}>Participant</Text>
           </View>
           <View style={styles.metric}>
             <Icon name="monetization-on" size={16} color="#10b981" />
             <Text style={styles.metricValue}>{campaign.reward}</Text>
-            <Text style={styles.metricLabel}>USDT Ödül</Text>
+            <Text style={styles.metricLabel}>USDT Reward</Text>
           </View>
           <View style={styles.metric}>
             <Icon name="trending-up" size={16} color="#f59e0b" />
             <Text style={styles.metricValue}>%{campaign.conversionRate}</Text>
-            <Text style={styles.metricLabel}>Başarı</Text>
+            <Text style={styles.metricLabel}>Success</Text>
           </View>
           <View style={styles.metric}>
             <Icon name="payments" size={16} color="#8b5cf6" />
             <Text style={styles.metricValue}>{campaign.totalSpent}</Text>
-            <Text style={styles.metricLabel}>Harcama</Text>
+            <Text style={styles.metricLabel}>Spent</Text>
           </View>
         </View>
       </View>
 
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
-        <Text style={styles.progressLabel}>Doluluk Oranı</Text>
+        <Text style={styles.progressLabel}>Fill Rate</Text>
         <View style={styles.progressBar}>
           <View 
             style={[
@@ -100,18 +100,18 @@ const CustomerCampaignCard = ({ campaign, onDelete, onToggleStatus }) => {
             color="#6366f1" 
           />
           <Text style={styles.actionText}>
-            {campaign.status === 'active' ? 'Duraklat' : 'Başlat'}
+            {campaign.status === 'active' ? 'Pause' : 'Start'}
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.actionButton}>
           <Icon name="edit" size={16} color="#10b981" />
-          <Text style={styles.actionText}>Düzenle</Text>
+          <Text style={styles.actionText}>Edit</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.actionButton}>
           <Icon name="analytics" size={16} color="#f59e0b" />
-          <Text style={styles.actionText}>Rapor</Text>
+          <Text style={styles.actionText}>Report</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -119,7 +119,7 @@ const CustomerCampaignCard = ({ campaign, onDelete, onToggleStatus }) => {
           onPress={handleDelete}
         >
           <Icon name="delete" size={16} color="#ef4444" />
-          <Text style={[styles.actionText, { color: '#ef4444' }]}>Sil</Text>
+          <Text style={[styles.actionText, { color: '#ef4444' }]}>Delete</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

@@ -15,8 +15,8 @@ const CustomerCampaignHeader = ({ navigation, campaignCount, onCreatePress }) =>
       </TouchableOpacity>
       
       <View style={styles.headerCenter}>
-        <Text style={styles.headerTitle}>Kampanya Yönetimi</Text>
-        <Text style={styles.headerSubtitle}>{campaignCount} kampanya</Text>
+        <Text style={styles.headerTitle}>Campaign Management</Text>
+        <Text style={styles.headerSubtitle}>{campaignCount} campaigns</Text>
       </View>
 
       <TouchableOpacity 

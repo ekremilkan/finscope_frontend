@@ -1,7 +1,7 @@
 export const filterUserCampaigns = (campaigns, searchQuery, selectedFilter) => {
   let filtered = campaigns;
 
-  // Arama filtresi
+  // Search filter
   if (searchQuery) {
     filtered = filtered.filter(campaign =>
       campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -10,12 +10,12 @@ export const filterUserCampaigns = (campaigns, searchQuery, selectedFilter) => {
     );
   }
 
-  // Kategori filtresi
+  // Category filter
   if (selectedFilter !== 'all') {
     filtered = filtered.filter(campaign => campaign.category === selectedFilter);
   }
 
-  // En yeni kampanyalar önce
+  // Newest campaigns first
   filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return filtered;
@@ -25,7 +25,7 @@ export const handleJoinCampaign = (campaigns, setCampaigns, campaignId, navigati
   const campaign = campaigns.find(c => c.id === campaignId);
   
   if (campaign.userJoined) {
-    // Quiz'e devam et
+    // Continue to quiz
     navigation.navigate('QuizScreen', { 
       campaign: campaign,
       campaignId: campaign.id,
@@ -33,7 +33,7 @@ export const handleJoinCampaign = (campaigns, setCampaigns, campaignId, navigati
       reward: campaign.reward
     });
   } else {
-    // Kampanyaya katıl
+    // Join campaign
     setCampaigns(prev => prev.map(c => 
       c.id === campaignId 
         ? { ...c, userJoined: true, participants: c.participants + 1 }
@@ -44,10 +44,10 @@ export const handleJoinCampaign = (campaigns, setCampaigns, campaignId, navigati
 
 export const getDifficultyColor = (difficulty) => {
   switch (difficulty) {
-    case 'Başlangıç': return '#10b981';
-    case 'Orta': return '#f59e0b';
-    case 'İleri': return '#ef4444';
-    default: return '#94a3b8';
+    case 'Beginner': return '#10b981';
+    case 'Intermediate': return '#f59e0b';
+    case 'Advanced': return '#ef4444';
+    default: return '#6b7280';
   }
 };
 

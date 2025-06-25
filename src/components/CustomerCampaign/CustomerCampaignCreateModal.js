@@ -26,8 +26,8 @@ const CustomerCampaignCreateModal = ({
     description: '',
     reward: '',
     maxParticipants: '',
-    category: 'eğitim',
-    difficulty: 'Başlangıç',
+    category: 'education',
+    difficulty: 'Beginner',
     duration: '',
     questions: '',
     passRate: '70',
@@ -36,7 +36,7 @@ const CustomerCampaignCreateModal = ({
 
   const handleSubmit = () => {
     if (!formData.title || !formData.description || !formData.reward) {
-      Alert.alert('Hata', 'Lütfen zorunlu alanları doldurun.');
+      Alert.alert('Error', 'Please fill in required fields.');
       return;
     }
 
@@ -51,7 +51,7 @@ const CustomerCampaignCreateModal = ({
 
     onSubmit(processedData);
     resetForm();
-    Alert.alert('Başarılı', 'Kampanya başarıyla oluşturuldu!');
+    Alert.alert('Success', 'Campaign created successfully!');
   };
 
   const resetForm = () => {
@@ -60,8 +60,8 @@ const CustomerCampaignCreateModal = ({
       description: '',
       reward: '',
       maxParticipants: '',
-      category: 'eğitim',
-      difficulty: 'Başlangıç',
+      category: 'education',
+      difficulty: 'Beginner',
       duration: '',
       questions: '',
       passRate: '70',
@@ -89,7 +89,7 @@ const CustomerCampaignCreateModal = ({
         <View style={styles.createModal}>
           {/* Fixed Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Yeni Kampanya</Text>
+            <Text style={styles.modalTitle}>New Campaign</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <Icon name="close" size={24} color="#ffffff" />
             </TouchableOpacity>
@@ -102,10 +102,10 @@ const CustomerCampaignCreateModal = ({
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Kampanya Başlığı *</Text>
+              <Text style={styles.formLabel}>Campaign Title *</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Kampanya başlığını girin"
+                placeholder="Enter campaign title"
                 placeholderTextColor="#94a3b8"
                 value={formData.title}
                 onChangeText={(text) => updateFormData('title', text)}
@@ -114,10 +114,10 @@ const CustomerCampaignCreateModal = ({
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Açıklama *</Text>
+              <Text style={styles.formLabel}>Description *</Text>
               <TextInput
                 style={[styles.formInput, styles.textArea]}
-                placeholder="Kampanya açıklamasını girin"
+                placeholder="Enter campaign description"
                 placeholderTextColor="#94a3b8"
                 multiline
                 numberOfLines={4}
@@ -130,7 +130,7 @@ const CustomerCampaignCreateModal = ({
 
             <View style={styles.formRow}>
               <View style={styles.formGroupHalf}>
-                <Text style={styles.formLabel}>Ödül (USDT) *</Text>
+                <Text style={styles.formLabel}>Reward (USDT) *</Text>
                 <TextInput
                   style={styles.formInput}
                   placeholder="0"
@@ -142,7 +142,7 @@ const CustomerCampaignCreateModal = ({
               </View>
 
               <View style={styles.formGroupHalf}>
-                <Text style={styles.formLabel}>Max Katılımcı</Text>
+                <Text style={styles.formLabel}>Max Participants</Text>
                 <TextInput
                   style={styles.formInput}
                   placeholder="100"
@@ -155,9 +155,9 @@ const CustomerCampaignCreateModal = ({
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Kategori</Text>
+              <Text style={styles.formLabel}>Category</Text>
               <View style={styles.pickerContainer}>
-                {categories.slice(1).map((category) => (
+                {categories && categories.slice(1).map((category) => (
                   <TouchableOpacity
                     key={category.id}
                     style={[
@@ -178,9 +178,9 @@ const CustomerCampaignCreateModal = ({
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Zorluk Seviyesi</Text>
+              <Text style={styles.formLabel}>Difficulty Level</Text>
               <View style={styles.pickerContainer}>
-                {difficulties.map((difficulty) => (
+                {difficulties && difficulties.map((difficulty) => (
                   <TouchableOpacity
                     key={difficulty}
                     style={[
@@ -202,10 +202,10 @@ const CustomerCampaignCreateModal = ({
 
             <View style={styles.formRow}>
               <View style={styles.formGroupHalf}>
-                <Text style={styles.formLabel}>Süre</Text>
+                <Text style={styles.formLabel}>Duration</Text>
                 <TextInput
                   style={styles.formInput}
-                  placeholder="5 gün"
+                  placeholder="5 days"
                   placeholderTextColor="#94a3b8"
                   value={formData.duration}
                   onChangeText={(text) => updateFormData('duration', text)}
@@ -213,7 +213,7 @@ const CustomerCampaignCreateModal = ({
               </View>
 
               <View style={styles.formGroupHalf}>
-                <Text style={styles.formLabel}>Soru Sayısı</Text>
+                <Text style={styles.formLabel}>Number of Questions</Text>
                 <TextInput
                   style={styles.formInput}
                   placeholder="5"
@@ -226,7 +226,7 @@ const CustomerCampaignCreateModal = ({
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Geçme Puanı (%)</Text>
+              <Text style={styles.formLabel}>Pass Score (%)</Text>
               <TextInput
                 style={styles.formInput}
                 placeholder="70"
@@ -247,13 +247,13 @@ const CustomerCampaignCreateModal = ({
               style={[styles.modalButton, styles.cancelButton]}
               onPress={handleClose}
             >
-              <Text style={styles.cancelButtonText}>İptal</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.modalButton, styles.createButton]}
               onPress={handleSubmit}
             >
-              <Text style={styles.createButtonText}>Oluştur</Text>
+              <Text style={styles.createButtonText}>Create</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -266,15 +266,15 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center', // Modal'ı ortala
-    paddingVertical: Math.max(40, height * 0.05), // Üst ve alt boşluk
+    justifyContent: 'center', // Center modal
+    paddingVertical: Math.max(40, height * 0.05), // Top and bottom spacing
   },
   createModal: {
     backgroundColor: 'rgba(30, 41, 59, 0.98)',
     marginHorizontal: Math.max(20, width * 0.05),
     borderRadius: 24,
-    maxHeight: height * 0.9, // Maksimum yükseklik
-    minHeight: height * 0.6, // Minimum yükseklik
+    maxHeight: height * 0.9, // Maximum height
+    minHeight: height * 0.6, // Minimum height
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.3)',
     shadowColor: '#000',
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   bottomSpacing: {
-    height: 40, // Keyboard için extra alan
+    height: 40, // Extra space for keyboard
   },
   modalActions: {
     flexDirection: 'row',

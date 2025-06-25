@@ -21,7 +21,7 @@ const QuizHeader = ({ campaignTitle, reward, timeLeft, onExit }) => {
         <Text style={styles.campaignTitle} numberOfLines={1}>
           {campaignTitle}
         </Text>
-        <Text style={styles.rewardText}>💰 {reward} USDT Ödül</Text>
+        <Text style={styles.rewardText}>💰 {reward} USDT Reward</Text>
       </View>
 
       <View style={[styles.timerContainer, { borderColor: `${timerColor}30` }]}>

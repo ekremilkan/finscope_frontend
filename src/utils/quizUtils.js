@@ -22,12 +22,12 @@ export const calculateScore = (questions, selectedAnswers) => {
 
 export const handleQuizExit = (navigation) => {
   Alert.alert(
-    'Quiz\'den Çık',
-    'İlerlemeniz kaybedilecek. Çıkmak istediğinizden emin misiniz?',
+    'Exit Quiz',
+    'You will lose your progress. Are you sure you want to exit?',
     [
-      { text: 'İptal', style: 'cancel' },
+      { text: 'Cancel', style: 'cancel' },
       { 
-        text: 'Çık', 
+        text: 'Exit', 
         style: 'destructive',
         onPress: () => navigation.goBack()
       }

@@ -63,9 +63,9 @@ export const handleLogin = async (email, password, navigation, setLoading) => {
 
     // Save authentication data
     await Promise.all([
-      storageService.saveToken(token),
-      storageService.saveUser(user),
-      refreshToken && storageService.saveRefreshToken(refreshToken),
+      storageService.setToken(token),
+      storageService.setUser(user),
+      refreshToken && storageService.setRefreshToken(refreshToken),
     ]);
 
     // Navigate to home

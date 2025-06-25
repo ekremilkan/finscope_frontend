@@ -1,7 +1,9 @@
 import api from './api';
+import axios from 'axios';
+import { storageService } from './AsyncStorage';
 
 export const authService = {
-  // Giriş yap
+  // Login
   login: async (email, password) => {
     try {
       const response = await api.post('/user/login', {
@@ -14,7 +16,7 @@ export const authService = {
     }
   },
 
-  // Kayıt ol
+  // Register
   register: async userData => {
     try {
       const response = await api.post('/user/register', userData);
@@ -24,7 +26,7 @@ export const authService = {
     }
   },
 
-  // Kullanıcı bilgilerini al
+  // Get user profile
   getUserProfile: async () => {
     try {
       const response = await api.get('/user/profile');
@@ -34,7 +36,7 @@ export const authService = {
     }
   },
 
-  // Şifre sıfırlama
+  // Password reset
   forgotPassword: async email => {
     try {
       const response = await api.post('/user/forgot-password', { email });
@@ -44,7 +46,7 @@ export const authService = {
     }
   },
 
-  //çıkış yap
+  // Logout
   logoutUser: async (userId, token) => {
     try {
       const response = await api.post(
@@ -59,6 +61,19 @@ export const authService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
+    }
+  },
+
+  // Google register
+  registerWithGoogle: async (googleUser) => {
+    try {
+      const response = await axios.post('http://10.0.2.2:5000/auth/google-register', {
+        token: googleUser.idToken,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Google register error:', error);
+      throw error;
     }
   },
 };

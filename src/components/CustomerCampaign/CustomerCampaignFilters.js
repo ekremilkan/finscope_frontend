@@ -5,7 +5,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 const { width } = Dimensions.get('window');
 
 const CustomerCampaignFilters = ({ categories, statusFilters, selectedFilter, onFilterChange }) => {
-  const allFilters = [...categories, ...statusFilters.slice(1)];
+  const allFilters = [
+    ...(categories || []), 
+    ...(statusFilters && statusFilters.length > 1 ? statusFilters.slice(1) : [])
+  ];
 
   return (
     <View style={styles.filtersContainer}>

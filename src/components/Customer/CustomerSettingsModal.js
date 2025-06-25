@@ -24,7 +24,7 @@ const CustomerSettingsModal = ({ showModal, onClose, onLogout }) => {
             activeOpacity={0.7}
           >
             <Icon name="logout" size={20} color="#ef4444" />
-            <Text style={styles.settingsText}>Çıkış Yap</Text>
+            <Text style={styles.settingsText}>Logout</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>

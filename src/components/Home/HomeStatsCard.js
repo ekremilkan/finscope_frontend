@@ -7,27 +7,27 @@ const HomeStatsCard = ({ userData }) => {
   return (
     <View style={styles.statsCard}>
       <View style={styles.statsHeader}>
-        <Text style={styles.statsTitle}>Kullanıcı İstatistikleri</Text>
+        <Text style={styles.statsTitle}>User Statistics</Text>
       </View>
       
       <View style={styles.statsGrid}>
         <View style={styles.statItem}>
           <Text style={styles.statIcon}>📈</Text>
-          <Text style={styles.statLabel}>Başarı Oranı</Text>
+          <Text style={styles.statLabel}>Success Rate</Text>
           <Text style={styles.statValue}>%{userData.successRate}</Text>
         </View>
         
         <View style={styles.statItem}>
           <Text style={styles.statIcon}>🎯</Text>
-          <Text style={styles.statLabel}>Tamamlanan</Text>
-          <Text style={styles.statValue}>{userData.completedCampaigns}/{userData.totalCampaigns} kampanya</Text>
+          <Text style={styles.statLabel}>Completed</Text>
+          <Text style={styles.statValue}>{userData.completedCampaigns}/{userData.totalCampaigns} campaigns</Text>
         </View>
       </View>
 
       <View style={styles.statsGrid}>
         <View style={styles.statItem}>
           <Text style={styles.statIcon}>💰</Text>
-          <Text style={styles.statLabel}>Toplam Kazanç</Text>
+          <Text style={styles.statLabel}>Total Earnings</Text>
           <Text style={styles.statValue}>{userData.totalEarnings} USDT</Text>
         </View>
       </View>

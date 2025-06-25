@@ -11,7 +11,7 @@ const UserCampaignSearchBar = ({ searchQuery, onSearchChange }) => {
         <Icon name="search" size={20} color="#94a3b8" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Kampanya ara..."
+          placeholder="Search campaigns..."
           placeholderTextColor="#94a3b8"
           value={searchQuery}
           onChangeText={onSearchChange}

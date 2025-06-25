@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Interceptor: Her istek öncesi accessToken eklenir
+// Interceptor: Add accessToken before each request
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('accessToken');
   if (token) {
@@ -19,7 +19,7 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Interceptor: 401 durumunda refresh token ile yeni accessToken al
+// Interceptor: Get new accessToken with refresh token on 401 error
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -50,11 +50,12 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh token geçersiz: çıkış yap
+        // Refresh token invalid: logout
+        console.log('Refresh token expired, logging out user');
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
 
-        // Eğer navigation varsa burada login ekranına yönlendirilebilir
-        // örn: NavigationService.navigate('Login')
+        // If navigation is available, redirect to login screen here
+        // e.g: NavigationService.navigate('Login')
         return Promise.reject(refreshError);
       }
     }

@@ -7,7 +7,7 @@ const { width } = Dimensions.get('window');
 const HomeQuickActions = ({ quickActions }) => {
   return (
     <View style={styles.quickActionsSection}>
-      <Text style={styles.sectionTitle}>Hızlı Erişim</Text>
+      <Text style={styles.sectionTitle}>Quick Access</Text>
       <View style={styles.quickActionsGrid}>
         {quickActions.map((action) => (
           <TouchableOpacity

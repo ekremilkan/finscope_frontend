@@ -6,7 +6,7 @@ const { width } = Dimensions.get('window');
 const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart }) => {
   return (
     <View style={styles.campaignsSection}>
-      <Text style={styles.sectionTitle}>Aktif Kampanyalar</Text>
+      <Text style={styles.sectionTitle}>Active Campaigns</Text>
       {activeCampaigns.map((campaign) => (
         <View key={campaign.id} style={styles.campaignCard}>
           <View style={styles.campaignHeader}>
@@ -16,7 +16,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart }) => {
                 <Text style={styles.campaignTitle}>{campaign.title}</Text>
                 <View style={styles.campaignMeta}>
                   <Text style={styles.campaignReward}>💰 {campaign.reward} USDT</Text>
-                  <Text style={styles.campaignTime}>⏱️ {campaign.daysLeft} gün kaldı</Text>
+                  <Text style={styles.campaignTime}>⏱️ {campaign.daysLeft} days left</Text>
                 </View>
               </View>
             </View>
@@ -25,7 +25,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart }) => {
               activeOpacity={0.8}
               onPress={() => onCampaignStart(campaign)}
             >
-              <Text style={styles.startButtonText}>Başla</Text>
+              <Text style={styles.startButtonText}>Start</Text>
             </TouchableOpacity>
           </View>
         </View>

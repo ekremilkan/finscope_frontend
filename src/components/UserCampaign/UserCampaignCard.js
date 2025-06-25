@@ -33,7 +33,7 @@ const UserCampaignCard = ({ campaign, onJoinCampaign }) => {
         </View>
         <View style={styles.statItem}>
           <Icon name="quiz" size={16} color="#8b5cf6" />
-          <Text style={styles.statText}>{campaign.questions} soru</Text>
+          <Text style={styles.statText}>{campaign.questions} questions</Text>
         </View>
         <View style={styles.statItem}>
           <Icon name="monetization-on" size={16} color="#10b981" />
@@ -43,7 +43,7 @@ const UserCampaignCard = ({ campaign, onJoinCampaign }) => {
 
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
-        <Text style={styles.progressLabel}>Katılım: %{getProgressPercentage(campaign.participants, campaign.maxParticipants)}</Text>
+        <Text style={styles.progressLabel}>Participation: {getProgressPercentage(campaign.participants, campaign.maxParticipants)}%</Text>
         <View style={styles.progressBar}>
           <View 
             style={[
@@ -67,9 +67,9 @@ const UserCampaignCard = ({ campaign, onJoinCampaign }) => {
 
       <View style={styles.campaignFooter}>
         <View style={styles.footerInfo}>
-          <Text style={styles.passRateText}>Geçme puanı: %{campaign.passRate}</Text>
+          <Text style={styles.passRateText}>Pass score: {campaign.passRate}%</Text>
           <Text style={styles.createdDate}>
-            {new Date(campaign.createdAt).toLocaleDateString('tr-TR')}
+            {new Date(campaign.createdAt).toLocaleDateString('en-US')}
           </Text>
         </View>
         <TouchableOpacity 
@@ -85,7 +85,7 @@ const UserCampaignCard = ({ campaign, onJoinCampaign }) => {
             color="#ffffff" 
           />
           <Text style={styles.joinButtonText}>
-            {campaign.userJoined ? 'Quiz\'e Devam Et' : 'Kampanyaya Katıl'}
+            {campaign.userJoined ? 'Continue Quiz' : 'Join Campaign'}
           </Text>
         </TouchableOpacity>
       </View>

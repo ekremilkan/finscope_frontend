@@ -7,7 +7,7 @@ const { width } = Dimensions.get('window');
 const CustomerKPICards = ({ kpiCards }) => {
   return (
     <View style={styles.kpiSection}>
-      <Text style={styles.sectionTitle}>Performans Özeti</Text>
+      <Text style={styles.sectionTitle}>Performance Summary</Text>
       <View style={styles.kpiGrid}>
         {kpiCards.map((kpi) => (
           <View key={kpi.id} style={[styles.kpiCard, { borderLeftColor: kpi.color }]}>

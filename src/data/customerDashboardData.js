@@ -27,15 +27,15 @@ export const CUSTOMER_RECENT_CAMPAIGNS = [
 
 export const CUSTOMER_BOTTOM_NAV_ITEMS = [
   { id: 'dashboard', title: 'Dashboard', icon: 'dashboard' },
-  { id: 'campaigns', title: 'Kampanyalar', icon: 'campaign' },
-  { id: 'segments', title: 'Segmentler', icon: 'group' },
-  { id: 'reports', title: 'Raporlar', icon: 'analytics' }
+  { id: 'campaigns', title: 'Campaigns', icon: 'campaign' },
+  { id: 'segments', title: 'Segments', icon: 'group' },
+  { id: 'reports', title: 'Reports', icon: 'analytics' }
 ];
 
 export const getKPICards = (dashboardData) => [
   {
     id: 1,
-    title: 'Aktif Kampanyalar',
+    title: 'Active Campaigns',
     value: dashboardData.activeCampaigns,
     unit: '',
     color: '#6366f1',
@@ -43,7 +43,7 @@ export const getKPICards = (dashboardData) => [
   },
   {
     id: 2,
-    title: 'Harcama',
+    title: 'Spending',
     value: dashboardData.totalSpend.toLocaleString(),
     unit: 'USDT',
     color: '#f59e0b',
@@ -51,7 +51,7 @@ export const getKPICards = (dashboardData) => [
   },
   {
     id: 3,
-    title: 'Ulaşılan Kullanıcı',
+    title: 'Reached Users',
     value: dashboardData.reachedUsers,
     unit: '',
     color: '#10b981',

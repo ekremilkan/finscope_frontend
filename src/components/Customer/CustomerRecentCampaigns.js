@@ -6,7 +6,7 @@ const { width } = Dimensions.get('window');
 const CustomerRecentCampaigns = ({ recentCampaigns }) => {
   return (
     <View style={styles.recentSection}>
-      <Text style={styles.sectionTitle}>Son Kampanyalar</Text>
+      <Text style={styles.sectionTitle}>Recent Campaigns</Text>
       {recentCampaigns.map((campaign) => (
         <View key={campaign.id} style={styles.campaignCard}>
           <View style={styles.campaignHeader}>
@@ -15,8 +15,8 @@ const CustomerRecentCampaigns = ({ recentCampaigns }) => {
               <View style={styles.campaignDetails}>
                 <Text style={styles.campaignTitle}>{campaign.title}</Text>
                 <View style={styles.campaignStats}>
-                  <Text style={styles.participantCount}>👥 {campaign.participants} katılımcı</Text>
-                  <Text style={styles.successRate}>✅ %{campaign.successRate} başarı</Text>
+                  <Text style={styles.participantCount}>👥 {campaign.participants} participants</Text>
+                  <Text style={styles.successRate}>✅ {campaign.successRate}% success</Text>
                 </View>
               </View>
             </View>
@@ -34,7 +34,7 @@ const CustomerRecentCampaigns = ({ recentCampaigns }) => {
                   color: campaign.status === 'active' ? '#10b981' : '#94a3b8'
                 }
               ]}>
-                {campaign.status === 'active' ? 'Aktif' : 'Tamamlandı'}
+                {campaign.status === 'active' ? 'Active' : 'Completed'}
               </Text>
             </View>
           </View>

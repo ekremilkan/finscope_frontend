@@ -1,7 +1,7 @@
 export const filterCampaigns = (campaigns, searchQuery, selectedFilter) => {
   let filtered = campaigns;
 
-  // Arama filtresi
+  // Search filter
   if (searchQuery) {
     filtered = filtered.filter(campaign =>
       campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -10,7 +10,7 @@ export const filterCampaigns = (campaigns, searchQuery, selectedFilter) => {
     );
   }
 
-  // Kategori/Status filtresi
+  // Category/Status filter
   if (selectedFilter !== 'all') {
     if (['active', 'draft', 'completed'].includes(selectedFilter)) {
       filtered = filtered.filter(campaign => campaign.status === selectedFilter);
@@ -19,7 +19,7 @@ export const filterCampaigns = (campaigns, searchQuery, selectedFilter) => {
     }
   }
 
-  // En yeni kampanyalar önce
+  // Newest campaigns first
   filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return filtered;
@@ -40,18 +40,28 @@ export const getStatusColor = (status) => {
 
 export const getStatusText = (status) => {
   switch (status) {
-    case 'active': return 'Aktif';
-    case 'draft': return 'Taslak';
-    case 'completed': return 'Tamamlandı';
-    default: return 'Bilinmiyor';
+    case 'active': return 'Active';
+    case 'draft': return 'Draft';
+    case 'completed': return 'Completed';
+    default: return 'Unknown';
   }
 };
 
 export const getDifficultyColor = (difficulty) => {
   switch (difficulty) {
-    case 'Başlangıç': return '#10b981';
-    case 'Orta': return '#f59e0b';
-    case 'İleri': return '#ef4444';
-    default: return '#94a3b8';
+    case 'Beginner': return '#10b981';
+    case 'Intermediate': return '#f59e0b';
+    case 'Advanced': return '#ef4444';
+    default: return '#6b7280';
+  }
+};
+
+export const getStatusLabel = (status) => {
+  switch (status) {
+    case 'active': return 'Active';
+    case 'completed': return 'Completed';
+    case 'draft': return 'Draft';
+    case 'paused': return 'Paused';
+    default: return 'Unknown';
   }
 }; 

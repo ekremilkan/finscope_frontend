@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Data and Utils
-import { QUIZ_QUESTIONS, QUIZ_CONFIG } from '../data/quizData';
+import { QUIZ_DATA, QUIZ_CONFIG } from '../data/quizData';
 import { calculateScore, handleQuizExit } from '../utils/quizUtils';
 
 // Components
@@ -25,10 +25,10 @@ const { width } = Dimensions.get('window');
 const QuizScreen = ({ navigation, route }) => {
   const { campaign, campaignId, campaignTitle, reward } = route.params;
 
-  const [questions] = useState(QUIZ_QUESTIONS);
+  const [questions] = useState(QUIZ_DATA);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(QUIZ_CONFIG.defaultTime);
+  const [timeLeft, setTimeLeft] = useState(QUIZ_CONFIG.timeLimit);
   const [showResult, setShowResult] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [progress] = useState(new Animated.Value(0));
@@ -83,7 +83,7 @@ const QuizScreen = ({ navigation, route }) => {
   const handleRestartQuiz = () => {
     setCurrentQuestionIndex(0);
     setSelectedAnswers({});
-    setTimeLeft(QUIZ_CONFIG.defaultTime);
+    setTimeLeft(QUIZ_CONFIG.timeLimit);
     setShowResult(false);
     setQuizCompleted(false);
     progress.setValue(0);
@@ -142,7 +142,7 @@ const QuizScreen = ({ navigation, route }) => {
         reward={reward}
         onRetry={handleRestartQuiz}
         onHome={() => navigation.goBack()}
-        passPercentage={QUIZ_CONFIG.passPercentage}
+        passPercentage={QUIZ_CONFIG.passingScore}
       />
     </SafeAreaView>
   );

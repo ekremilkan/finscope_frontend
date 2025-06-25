@@ -15,8 +15,8 @@ const UserCampaignHeader = ({ navigation, campaignCount }) => {
       </TouchableOpacity>
       
       <View style={styles.headerCenter}>
-        <Text style={styles.headerTitle}>Kampanyalar</Text>
-        <Text style={styles.headerSubtitle}>{campaignCount} aktif kampanya</Text>
+        <Text style={styles.headerTitle}>Campaigns</Text>
+        <Text style={styles.headerSubtitle}>{campaignCount} active campaign</Text>
       </View>
 
       <View style={styles.headerRight}>

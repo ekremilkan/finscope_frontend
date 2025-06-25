@@ -23,7 +23,7 @@ const QuizNavigation = ({
         activeOpacity={0.8}
       >
         <Icon name="chevron-left" size={24} color="#ffffff" />
-        <Text style={styles.navButtonText}>Önceki</Text>
+        <Text style={styles.navButtonText}>Previous</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
