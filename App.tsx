@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './src/navigators/RootNavigator';
 
 const App = () => {
@@ -9,7 +10,7 @@ const App = () => {
     const prepareApp = async () => {
       try {
         // Async işlemler (veri yükleme, token kontrol, font yükleme vb.)
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2500));
       } catch (e) {
         console.warn(e);
       } finally {
@@ -20,38 +21,18 @@ const App = () => {
     prepareApp();
   }, []);
 
-  if (!isAppReady) {
-    return (
-      <View style={styles.loadingScreen}>
-        <StatusBar 
-          barStyle="light-content" 
-          backgroundColor="#000000" 
-          translucent={false}
-        />
-        <ActivityIndicator size="large" color="#6854dd" />
-      </View>
-    );
-  }
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar 
         barStyle="light-content" 
-        backgroundColor="#000000" 
+        backgroundColor="#0f172a" 
         translucent={false}
       />
       <RootNavigator />
-    </>
+    </SafeAreaProvider>
   );
 };
 
-const styles = StyleSheet.create({
-  loadingScreen: {
-    flex: 1,
-    backgroundColor: '#000', 
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 export default App;

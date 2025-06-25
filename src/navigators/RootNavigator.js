@@ -14,7 +14,7 @@ const RootNavigator = () => {
 
   useEffect(() => {
   const checkSession = async () => {
-    // await AsyncStorage.removeItem('onboardingSeen');//test için bu kod var silmeyi unutmayın !!!!!!!!!!!!!!
+    await AsyncStorage.removeItem('onboardingSeen');//test için bu kod var silmeyi unutmayın !!!!!!!!!!!!!!
     try {
       const onboardingSeen = await AsyncStorage.getItem('onboardingSeen');
       const token = await AsyncStorage.getItem('accessToken');
@@ -37,8 +37,8 @@ const RootNavigator = () => {
 
   if (!initialScreen) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <ActivityIndicator size="large" color="#6854dd" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}>
+        <ActivityIndicator size="large" color="#0f172a" />
       </View>
     );
   }
@@ -50,7 +50,7 @@ const RootNavigator = () => {
       screenOptions={{
         headerShown: false,
         animationEnabled: false,
-        cardStyle: { backgroundColor: '#000' },
+        cardStyle: { backgroundColor: '#0f172a' },
       }}
     >
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />

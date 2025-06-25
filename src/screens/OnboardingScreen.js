@@ -21,10 +21,10 @@ const OnboardingScreen = ({ navigation }) => {
       doneLabel={<Text style={{ color: '#fff', fontWeight: 'bold' }}>Start</Text>}
       pages={[
         {
-          backgroundColor: '#000',
+          backgroundColor: '#0f172a',
           image: (
             <Image
-              source={require('../../assets/onboard/onboard.png')}
+              source={require('../../assets/onboard/onboard1.png')}
               style={{ width: 200, height: 200 }}
             />
           ),
@@ -40,10 +40,10 @@ const OnboardingScreen = ({ navigation }) => {
           ),
         },
         {
-          backgroundColor: '#000',
+          backgroundColor: '#0f172a',
           image: (
             <Image
-              source={require('../../assets/onboard/onboard.png')}
+              source={require('../../assets/onboard/onboard2.png')}
               style={{ width: 200, height: 200 }}
             />
           ),
@@ -59,10 +59,10 @@ const OnboardingScreen = ({ navigation }) => {
           ),
         },
         {
-          backgroundColor: '#000',
+          backgroundColor: '#0f172a',
           image: (
             <Image
-              source={require('../../assets/onboard/onboard.png')}
+              source={require('../../assets/onboard/onboard3.png')}
               style={{ width: 200, height: 200 }}
             />
           ),

@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   Dimensions,
   Modal,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { storageService } from '../../services/AsyncStorage';
 import { authService } from '../../services/authService';
@@ -348,24 +348,24 @@ const CustomerDashboard = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {renderHeader()}
-      
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {renderKPICards()}
-        {renderPerformanceChart()}
-        {renderRecentCampaigns()}
-        
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
-      
-      {renderBottomNavigation()}
-      {renderSettingsModal()}
-    </SafeAreaView>
-  );
+  <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    {renderHeader()}
+
+    <ScrollView
+      style={styles.scrollView}
+      showsVerticalScrollIndicator={false}
+    >
+      {renderKPICards()}
+      {renderPerformanceChart()}
+      {renderRecentCampaigns()}
+
+      <View style={styles.bottomSpacing} />
+    </ScrollView>
+
+    {renderBottomNavigation()}
+    {renderSettingsModal()}
+  </SafeAreaView>
+);
 };
 
 const styles = StyleSheet.create({
