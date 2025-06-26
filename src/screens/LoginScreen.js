@@ -59,7 +59,7 @@ const LoginScreen = ({ navigation }) => {
       const testResponse = {
         "user": {
             "_id": "6859b53559ffe4155f5e0623",
-            "name": "osmanAdmin",
+            "name": "Bilal",
             "email": "cnosman14043@gmail.com",
             "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU5YjUzNTU5ZmZlNDE1NWY1ZTA2MjMiLCJlbWFpbCI6ImNub3NtYW4xNDA0M0BnbWFpbC5jb20iLCJpYXQiOjE3NTA3OTg1MDgsImV4cCI6MTc1MzM5MDUwOH0.tT3ySZ9HEBRQja2haDsTzvklUPYD35jGZailJ-RWZLI",
             "tokenCreatedAt": "2025-06-24T20:55:08.844Z",
