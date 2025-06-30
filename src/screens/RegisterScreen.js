@@ -14,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { authService } from './services/authService';
+import { authService } from '../services/authService';
 
 const { width, height } = Dimensions.get('window');
 

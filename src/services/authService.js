@@ -50,8 +50,8 @@ export const authService = {
   logoutUser: async (userId, token) => {
     try {
       const response = await api.post(
-        `/user/logout/${userId}`, 
-        {}, 
+        `/user/logout/${userId}`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -65,11 +65,14 @@ export const authService = {
   },
 
   // Google register
-  registerWithGoogle: async (googleUser) => {
+  registerWithGoogle: async googleUser => {
     try {
-      const response = await axios.post('http://10.0.2.2:5000/auth/google-register', {
-        token: googleUser.idToken,
-      });
+      const response = await axios.post(
+        'http://10.0.2.2:5000/auth/google-register',
+        {
+          token: googleUser.idToken,
+        },
+      );
       return response.data;
     } catch (error) {
       console.error('Google register error:', error);

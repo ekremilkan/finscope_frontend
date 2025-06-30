@@ -53,8 +53,8 @@ export const handleLogin = async (email, password, navigation, setLoading) => {
 
   try {
     // Use mock data for now (uncomment real API call when ready)
-    // const response = await authService.login(email.trim(), password);
-    const { token, user, refreshToken } = MOCK_AUTH_DATA;
+    const response = await authService.login(email.trim(), password);
+    const { token, user, refreshToken } = response.data;
 
     if (!token) {
       Alert.alert('Error', AUTH_CONFIG.errors.authFailed);

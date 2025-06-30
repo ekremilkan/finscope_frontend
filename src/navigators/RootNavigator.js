@@ -3,63 +3,75 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator } from 'react-native';
+import EmailVerificationScreen from '../screens/EmailVerification/EmailVerificationScreen';
 
+import OnboardingScreen from '../screens/OnboardingScreen';
 import AuthStack from './StackNavigation/AuthStack';
-import OnboardingScreen from '../screens/OnboardingScreen'; 
+import AppStack from './StackNavigation/AppStack';
 
 const Stack = createStackNavigator();
 
 const RootNavigator = () => {
   const [initialScreen, setInitialScreen] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
   const checkSession = async () => {
-    await AsyncStorage.removeItem('onboardingSeen');//test için bu kod var silmeyi unutmayın !!!!!!!!!!!!!!
+    //  await AsyncStorage.removeItem('onboardingSeen'); // test icin unutma ❗️
     try {
       const onboardingSeen = await AsyncStorage.getItem('onboardingSeen');
-      const token = await AsyncStorage.getItem('accessToken');
+      const token = await AsyncStorage.getItem('userToken');
       const refreshToken = await AsyncStorage.getItem('refreshToken');
-
+      
+      // Add explicit token validation
+      const isAuthenticated = !!(token || refreshToken);
+      
       if (!onboardingSeen) {
         setInitialScreen('Onboarding');
-      } else if (token || refreshToken) {
-        setInitialScreen('Home');
+      } else if (isAuthenticated) {
+        setInitialScreen('App');
       } else {
-        setInitialScreen('Login');
+        setInitialScreen('Auth');
       }
-    } catch (error) {
-      setInitialScreen('Login');
+    } catch (e) {
+      setInitialScreen('Auth');
     }
   };
-
+  
   checkSession();
 }, []);
 
   if (!initialScreen) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}>
-        <ActivityIndicator size="large" color="#0f172a" />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#0f172a',
+        }}
+      >
+        <ActivityIndicator size="large" color="#fff" />
       </View>
     );
   }
 
   return (
-  <NavigationContainer>
-    <Stack.Navigator
-      initialRouteName={initialScreen === 'Onboarding' ? 'Onboarding' : 'Auth'}
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: false,
-        cardStyle: { backgroundColor: '#0f172a' },
-      }}
-    >
-      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="Auth">
-        {() => <AuthStack initialRoute={initialScreen === 'Home' ? 'Home' : 'Login'} />}
-      </Stack.Screen>
-    </Stack.Navigator>
-  </NavigationContainer>
-);
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName={initialScreen}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="Auth" component={AuthStack} />
+        <Stack.Screen name="App" component={AppStack} />
+        <Stack.Screen
+          name="EmailVerification"
+          component={EmailVerificationScreen}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 };
 
 export default RootNavigator;

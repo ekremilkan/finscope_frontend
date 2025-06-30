@@ -28,231 +28,235 @@ const LoginScreen = ({ navigation }) => {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
-  const validateEmail = (email) => {
+  const validateEmail = email => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleLogin = async () => {
-    // Enhanced validation
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Validation Error', 'Please fill in all fields');
+const handleLogin = async () => {
+  if (!email.trim() || !password.trim()) {
+    Alert.alert('Validation Error', 'Please fill in all fields');
+    return;
+  }
+
+  if (!validateEmail(email)) {
+    Alert.alert('Validation Error', 'Please enter a valid email address');
+    return;
+  }
+
+  if (password.length < 6) {
+    Alert.alert('Validation Error', 'Password must be at least 6 characters');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await authService.login(email.trim(), password);
+
+    console.log('Login yanıtı:', JSON.stringify(response, null, 2)); // Yanıtı görmek için
+
+    const fullMessage =
+      response?.data?.data?.message ||
+      response?.data?.message ||
+      '';
+
+    if (fullMessage.toLowerCase().includes('doğrulama kodu')) {
+      navigation.replace('EmailVerification', {
+        email: email.trim(),
+        expiresIn: 600, // veya response.data?.expiresIn
+      });
       return;
     }
 
-    if (!validateEmail(email)) {
-      Alert.alert('Validation Error', 'Please enter a valid email address');
-      return;
-    }
+    // Token da yok, doğrulama mesajı da yok → garip bir durum
+    Alert.alert('Login Error', 'Giriş başarılı ama doğrulama gerekebilir.');
+  } catch (error) {
+    console.log('Login error:', error);
+    const errorMessage =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Login failed. Please check your credentials.';
+    Alert.alert('Login Failed', errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
-    if (password.length < 6) {
-      Alert.alert('Validation Error', 'Password must be at least 6 characters');
-      return;
-    }
 
-    setLoading(true);
 
-    try {
-      // Test data for development - remove when going live
-      
-      // const response = await authService.login(email.trim(), password);
-      const testResponse = {
-        "user": {
-            "_id": "6859b53559ffe4155f5e0623",
-            "name": "Bilal",
-            "email": "cnosman14043@gmail.com",
-            "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU5YjUzNTU5ZmZlNDE1NWY1ZTA2MjMiLCJlbWFpbCI6ImNub3NtYW4xNDA0M0BnbWFpbC5jb20iLCJpYXQiOjE3NTA3OTg1MDgsImV4cCI6MTc1MzM5MDUwOH0.tT3ySZ9HEBRQja2haDsTzvklUPYD35jGZailJ-RWZLI",
-            "tokenCreatedAt": "2025-06-24T20:55:08.844Z",
-            "loginAttempts": 3,
-            "passwordChangedAt": "2025-06-23T20:12:37.882Z",
-            "createdAt": "2025-06-23T20:12:37.882Z",
-            "updatedAt": "2025-06-24T20:55:08.844Z",
-            "__v": 0
-        },
-        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU5YjUzNTU5ZmZlNDE1NWY1ZTA2MjMiLCJlbWFpbCI6ImNub3NtYW4xNDA0M0BnbWFpbC5jb20iLCJuYW1lIjoib3NtYW5BZG1pbiIsImlhdCI6MTc1MDc5ODUwOCwiZXhwIjoxNzUwODAyMTA4fQ.63CCWeYE0pdvJTrDPjpVKAN7pCH9QCF_qHG106i204A",
-        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU5YjUzNTU5ZmZlNDE1NWY1ZTA2MjMiLCJlbWFpbCI6ImNub3NtYW4xNDA0M0BnbWFpbC5jb20iLCJpYXQiOjE3NTA3OTg1MDgsImV4cCI6MTc1MzM5MDUwOH0.tT3ySZ9HEBRQja2haDsTzvklUPYD35jGZailJ-RWZLI"
-      };
 
-      const { token, user, refreshToken } = testResponse;
-
-      if (!token) {
-        Alert.alert('Error', 'Authentication failed. Please try again.');
-        return;
-      }
-
-      // Save authentication data using correct method names
-      await Promise.all([
-        storageService.setToken(token),
-        storageService.setUser(user),
-        refreshToken && storageService.setRefreshToken(refreshToken),
-      ]);
-
-      // Navigate to home with success feedback
-      navigation.replace('Home');
-    } catch (error) {
-      console.log('Login error:', error);
-      const errorMessage = 'Login failed. Please check your credentials.';
-      Alert.alert('Login Failed', errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSocialLogin = (provider) => {
+  const handleSocialLogin = provider => {
     Alert.alert('Coming Soon', `${provider} login will be available soon!`);
   };
 
   return (
-  <KeyboardAvoidingView 
-    style={styles.container} 
-    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-  >
-    <ScrollView 
-      contentContainerStyle={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logo}>
-              <Image 
-                source={require('../../assets/logo/logo.png')}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logo}>
+                <Image
+                  source={require('../../assets/logo/logo.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </View>
             </View>
-          </View>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>
-            Sign in to your account to continue
-          </Text>
-        </View>
-
-        {/* Form Section */}
-        <View style={styles.formContainer}>
-          {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email Address</Text>
-            <View style={[
-              styles.inputWrapper,
-              emailFocused && styles.inputWrapperFocused,
-              !validateEmail(email) && email.length > 0 && styles.inputWrapperError
-            ]}>
-              <Icon name="email" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your email"
-                placeholderTextColor="#9ca3af"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                onFocus={() => setEmailFocused(true)}
-                onBlur={() => setEmailFocused(false)}
-              />
-            </View>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>
+              Sign in to your account to continue
+            </Text>
           </View>
 
-          {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <View style={[
-              styles.inputWrapper,
-              passwordFocused && styles.inputWrapperFocused
-            ]}>
-              <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Enter your password"
-                placeholderTextColor="#9ca3af"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                editable={!loading}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-                disabled={loading}
-                activeOpacity={0.7}
+          {/* Form Section */}
+          <View style={styles.formContainer}>
+            {/* Email Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email Address</Text>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  emailFocused && styles.inputWrapperFocused,
+                  !validateEmail(email) &&
+                    email.length > 0 &&
+                    styles.inputWrapperError,
+                ]}
               >
                 <Icon
-                  name={showPassword ? 'visibility-off' : 'visibility'}
+                  name="email"
                   size={20}
                   color="#6b7280"
+                  style={styles.inputIcon}
                 />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your email"
+                  placeholderTextColor="#9ca3af"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!loading}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                />
+              </View>
+            </View>
+
+            {/* Password Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  passwordFocused && styles.inputWrapperFocused,
+                ]}
+              >
+                <Icon
+                  name="lock"
+                  size={20}
+                  color="#6b7280"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#9ca3af"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  editable={!loading}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                  activeOpacity={0.7}
+                >
+                  <Icon
+                    name={showPassword ? 'visibility-off' : 'visibility'}
+                    size={20}
+                    color="#6b7280"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Forgot Password */}
+            <TouchableOpacity
+              style={styles.forgotPasswordContainer}
+              onPress={() => navigation.navigate('ForgotPassword')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            {/* Login Button */}
+            <TouchableOpacity
+              style={[
+                styles.loginButton,
+                loading && styles.loginButtonDisabled,
+              ]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator color="#ffffff" size="small" />
+                  <Text style={styles.loadingText}>Signing in...</Text>
+                </View>
+              ) : (
+                <Text style={styles.loginButtonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or continue with</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social Login Buttons */}
+            <View style={styles.socialContainer}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => handleSocialLogin('Google')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.googleIcon}>G</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Forgot Password */}
-          <TouchableOpacity 
-            style={styles.forgotPasswordContainer}
-            onPress={() => navigation.navigate('ForgotPassword')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          {/* Login Button */}
-          <TouchableOpacity
-            style={[
-              styles.loginButton,
-              loading && styles.loginButtonDisabled
-            ]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator color="#ffffff" size="small" />
-                <Text style={styles.loadingText}>Signing in...</Text>
-              </View>
-            ) : (
-              <Text style={styles.loginButtonText}>Sign In</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Social Login Buttons */}
-          <View style={styles.socialContainer}>
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity
-              style={styles.socialButton}
-              onPress={() => handleSocialLogin('Google')}
+              onPress={() => navigation.navigate('Register')}
               activeOpacity={0.7}
             >
-              <Text style={styles.googleIcon}>G</Text>
+              <Text style={styles.signUpText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Register')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.signUpText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </ScrollView>
-  </KeyboardAvoidingView>
-);
+        </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -276,9 +280,9 @@ const styles = StyleSheet.create({
   logoContainer: {
     marginBottom: 24,
   },
-   logo: {
+  logo: {
     width: 80,
-    height: 80, 
+    height: 80,
     borderRadius: 12,
     backgroundColor: 'rgba(99, 102, 241, 0.1)',
     justifyContent: 'center',
@@ -293,7 +297,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: 'center',
     marginTop: 12,
-  
   },
   title: {
     fontSize: width * 0.08,

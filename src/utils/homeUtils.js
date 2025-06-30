@@ -1,14 +1,15 @@
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storageService } from '../services/AsyncStorage';
 import { authService } from '../services/authService';
 
-export const loadUserData = async (setUserData) => {
+export const loadUserData = async setUserData => {
   try {
     const user = await storageService.getUser();
     if (user) {
       setUserData(prev => ({
         ...prev,
-        name: user.name || 'Ali'
+        name: user.name || 'Ali',
       }));
     }
   } catch (error) {
@@ -17,10 +18,10 @@ export const loadUserData = async (setUserData) => {
 };
 
 export const handleLogout = async (navigation, setShowSettingsModal) => {
-  console.log("Logout function triggered");
+  console.log('Logout function triggered');
   try {
     // Get token and userId
-    const token = await storageService.getToken();
+    const token = await storageService.getItem('userToken');
     const userId = await storageService.getItem('userId');
 
     console.log('Token:', token);
@@ -38,8 +39,13 @@ export const handleLogout = async (navigation, setShowSettingsModal) => {
     }
 
     // AsyncStorage cleanup
-    await storageService.multiRemove(['userToken', 'refreshToken', 'userId', 'userData']);
-    
+    await storageService.multiRemove([
+      'userToken',
+      'refreshToken',
+      'userId',
+      'userData',
+    ]);
+
     // Clear global token
     global.userToken = null;
 
@@ -51,14 +57,13 @@ export const handleLogout = async (navigation, setShowSettingsModal) => {
     // Navigate to login screen
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Login' }],
+      routes: [{ name: 'Auth', state: { routes: [{ name: 'Login' }] } }],
     });
 
     console.log('Redirected to login screen');
-
   } catch (error) {
     console.log('Logout error:', error);
-    
+
     // Log out user even if error occurs
     Alert.alert(
       'Warning',
@@ -68,7 +73,12 @@ export const handleLogout = async (navigation, setShowSettingsModal) => {
           text: 'OK',
           onPress: async () => {
             try {
-              await storageService.multiRemove(['userToken', 'refreshToken', 'userId', 'userData']);
+              await storageService.multiRemove([
+                'userToken',
+                'refreshToken',
+                'userId',
+                'userData',
+              ]);
               global.userToken = null;
               setShowSettingsModal(false);
               navigation.reset({
@@ -80,30 +90,51 @@ export const handleLogout = async (navigation, setShowSettingsModal) => {
             }
           },
         },
-      ]
+      ],
     );
   }
 };
 
 export const confirmLogout = (navigation, setShowSettingsModal) => {
-  Alert.alert(
-    'Logout',
-    'Are you sure you want to logout from your account?',
-    [
-      {
-        text: 'Cancel',
-        style: 'cancel',
+  Alert.alert('Logout', 'Are you sure you want to logout?', [
+    {
+      text: 'Cancel',
+      onPress: () => setShowSettingsModal(false),
+      style: 'cancel',
+    },
+    {
+      text: 'Logout',
+      onPress: async () => {
+        try {
+          // Clear tokens from storage
+          await AsyncStorage.multiRemove(['userToken', 'refreshToken']);
+        } catch (e) {
+          console.error('Logout error:', e);
+        }
+
+        setShowSettingsModal(false);
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'Auth',
+              state: {
+                routes: [{ name: 'Login' }],
+              },
+            },
+          ],
+        });
       },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => handleLogout(navigation, setShowSettingsModal),
-      },
-    ]
-  );
+    },
+  ]);
 };
 
-export const handleTabNavigation = (itemId, activeTab, setActiveTab, navigation) => {
+export const handleTabNavigation = (
+  itemId,
+  activeTab,
+  setActiveTab,
+  navigation,
+) => {
   setActiveTab(itemId);
   if (itemId === 'campaigns') {
     navigation.navigate('CampaignsScreen');
@@ -111,10 +142,10 @@ export const handleTabNavigation = (itemId, activeTab, setActiveTab, navigation)
 };
 
 export const handleCampaignStart = (campaign, navigation) => {
-  navigation.navigate('QuizScreen', { 
+  navigation.navigate('QuizScreen', {
     campaign: campaign,
     campaignId: campaign.id,
     campaignTitle: campaign.title,
-    reward: campaign.reward
+    reward: campaign.reward,
   });
-}; 
+};

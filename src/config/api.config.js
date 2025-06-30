@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
 // .env dosyasından kopyalanan değerler
 // Bu değerleri .env dosyasındaki ile aynı tutun
 const ENV_VALUES = {
-  DEVELOPMENT_HOST: '192.168.1.21', // .env dosyasından kopyalayın
+  DEVELOPMENT_HOST: '10.0.2.2', // .env dosyasından kopyalayın
   API_PORT: '5005',
   PRODUCTION_API_URL: 'https://your-production-api.com/api/v1',
   NODE_ENV: 'development'
