@@ -100,7 +100,6 @@ export const resetAttemptCount = async () => {
 // API Calls with axios api service
 export const verifyEmailCode = async (email, verificationCode) => {
   try {
-    // Backend'de /auth/verify-email POST endpoint'ini kullanıyoruz
     const response = await api.post('/user/verify-login', {
       email,
       verificationCode,
