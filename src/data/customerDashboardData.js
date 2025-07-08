@@ -26,10 +26,10 @@ export const CUSTOMER_RECENT_CAMPAIGNS = [
 ];
 
 export const CUSTOMER_BOTTOM_NAV_ITEMS = [
-  { id: 'dashboard', title: 'Dashboard', icon: 'dashboard' },
-  { id: 'campaigns', title: 'Campaigns', icon: 'campaign' },
-  { id: 'segments', title: 'Segments', icon: 'group' },
-  { id: 'reports', title: 'Reports', icon: 'analytics' }
+  { id: 'dashboard', title: 'Dashboard', icon: 'grid-outline' },
+  { id: 'campaigns', title: 'Campaigns', icon: 'megaphone-outline' },
+  { id: 'segments', title: 'Segments', icon: 'people-outline' },
+  { id: 'reports', title: 'Reports', icon: 'analytics-outline' },
 ];
 
 export const getKPICards = (dashboardData) => [

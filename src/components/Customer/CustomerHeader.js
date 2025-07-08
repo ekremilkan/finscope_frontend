@@ -52,10 +52,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(148, 163, 184, 0.1)',
     minHeight: Math.max(70, width * 0.18),
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
@@ -116,14 +113,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16, 185, 129, 0.4)',
     marginRight: Math.max(12, width * 0.03),
     shadowColor: '#10b981',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
 });
 
-export default CustomerHeader; 
+export default CustomerHeader;

@@ -41,6 +41,9 @@ const HomeHeader = ({ userName, onSettingsPress, onNotificationPress, onSwitchPr
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

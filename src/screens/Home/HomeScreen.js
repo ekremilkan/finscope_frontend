@@ -13,10 +13,9 @@ import HomeHeader from '../../components/Home/HomeHeader';
 import HomeStatsCard from '../../components/Home/HomeStatsCard';
 import HomeQuickActions from '../../components/Home/HomeQuickActions';
 import HomeActiveCampaigns from '../../components/Home/HomeActiveCampaigns';
-import HomeBottomNavigation from '../../components/Home/HomeBottomNavigation';
 import HomeSettingsModal from '../../components/Home/HomeSettingsModal';
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation,onSwitchPress  }) => {
   const [userData, setUserData] = useState(HOME_USER_DATA);
   const [activeTab, setActiveTab] = useState('home');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -43,7 +42,7 @@ const HomeScreen = ({ navigation }) => {
         userName={userData.name}
         onSettingsPress={() => setShowSettingsModal(true)}
         onNotificationPress={() => {}}
-        onSwitchPress={() => navigation.navigate('CustomerDashboard')}
+        onSwitchPress={onSwitchPress}
       />
       
       <ScrollView
@@ -59,11 +58,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.bottomSpacing} />
       </ScrollView>
 
-      <HomeBottomNavigation 
-        bottomNavItems={BOTTOM_NAV_ITEMS}
-        activeTab={activeTab}
-        onTabPress={handleTabPress}
-      />
+      
       
       <HomeSettingsModal 
         showModal={showSettingsModal}

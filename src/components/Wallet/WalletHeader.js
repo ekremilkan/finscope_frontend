@@ -1,28 +1,34 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width } = Dimensions.get('window');
 
-const UserCampaignHeader = ({ navigation, campaignCount }) => {
+const WalletHeader = ({ onBackPress, onSettingsPress, walletCount, maxWallets }) => {
   return (
     <View style={styles.header}>
       <TouchableOpacity 
         style={styles.backButton}
-        onPress={() => navigation.goBack()}
+        onPress={onBackPress}
         activeOpacity={0.7}
       >
         <Icon name="arrow-back" size={Math.max(20, Math.min(28, width * 0.06))} color="#6366f1" />
       </TouchableOpacity>
       
       <View style={styles.headerCenter}>
-        <Text style={styles.headerTitle}>Campaigns</Text>
-        <Text style={styles.headerSubtitle}>{campaignCount} active campaign</Text>
+        <Text style={styles.title}>My Wallets</Text>
+        <Text style={styles.subtitle}>
+          {walletCount}/{maxWallets} Wallets Connected
+        </Text>
       </View>
-
-      <View style={styles.headerRight}>
-        <Icon name="campaign" size={Math.max(20, Math.min(28, width * 0.06))} color="#6366f1" />
-      </View>
+      
+      <TouchableOpacity 
+        style={styles.settingsButton}
+        onPress={onSettingsPress}
+        activeOpacity={0.7}
+      >
+        <Icon name="settings" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -64,7 +70,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: Math.max(16, width * 0.04),
   },
-  headerTitle: {
+  title: {
     fontSize: Math.max(16, Math.min(22, width * 0.055)),
     fontWeight: '700',
     color: '#ffffff',
@@ -73,18 +79,21 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  headerSubtitle: {
+  subtitle: {
     fontSize: Math.max(12, Math.min(16, width * 0.035)),
     color: '#94a3b8',
-    marginTop: 2,
     textAlign: 'center',
+    marginTop: 2,
   },
-  headerRight: {
+  settingsButton: {
     width: Math.max(40, width * 0.1),
     height: Math.max(40, width * 0.1),
+    borderRadius: Math.max(20, width * 0.05),
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: Math.max(8, width * 0.02),
   },
 });
 
-export default UserCampaignHeader;
+export default WalletHeader;

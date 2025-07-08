@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   CUSTOMER_DASHBOARD_DATA, 
   CUSTOMER_RECENT_CAMPAIGNS, 
-  CUSTOMER_BOTTOM_NAV_ITEMS,
   getKPICards
 } from '../../data/customerDashboardData';
 
@@ -14,14 +13,13 @@ import {
 import { confirmCustomerLogout, handleTabNavigation } from '../../utils/customerDashboardUtils';
 
 // Component imports
-import CustomerHeader from '../../components/Customer/CustomerHeader';
 import CustomerKPICards from '../../components/Customer/CustomerKPICards';
 import CustomerRecentCampaigns from '../../components/Customer/CustomerRecentCampaigns';
-import CustomerBottomNavigation from '../../components/Customer/CustomerBottomNavigation';
 import CustomerSettingsModal from '../../components/Customer/CustomerSettingsModal';
+import CustomerHeader from '../../components/Customer/CustomerHeader';
 
-const CustomerDashboard = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+const CustomerDashboard = ({ navigation, route, onSwitchPress }) => {
+  const [activeTab, setActiveTab] = useState(route?.params?.activeTab || 'dashboard');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const kpiCards = getKPICards(CUSTOMER_DASHBOARD_DATA);
@@ -35,13 +33,17 @@ const CustomerDashboard = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <CustomerHeader 
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom','top']}>
+      <CustomerHeader
+        activeTab="Dashboard"
         onSettingsPress={() => setShowSettingsModal(true)}
-        onNotificationPress={() => {}}
-        onSwitchPress={() => navigation.navigate('Home')}
+        onNotificationPress={() => {/* Notification handler */}}
+        onSwitchPress={() => {
+          console.log('CustomerDashboard: Switch button pressed');
+          onSwitchPress && onSwitchPress();
+        }}
       />
-      
+
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -51,12 +53,6 @@ const CustomerDashboard = ({ navigation }) => {
         <View style={styles.bottomSpacing} />
       </ScrollView>
 
-      <CustomerBottomNavigation 
-        bottomNavItems={CUSTOMER_BOTTOM_NAV_ITEMS}
-        activeTab={activeTab}
-        onTabPress={handleTabPress}
-      />
-      
       <CustomerSettingsModal 
         showModal={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
@@ -79,4 +75,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomerDashboard; 
+export default CustomerDashboard;

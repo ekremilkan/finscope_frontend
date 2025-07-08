@@ -31,8 +31,8 @@ export const QUICK_ACTIONS = [
 ];
 
 export const BOTTOM_NAV_ITEMS = [
-  { id: 'home', title: 'Home', icon: 'home' },
-  { id: 'campaigns', title: 'Campaigns', icon: 'campaign' },
-  { id: 'wallet', title: 'Wallet', icon: 'account-balance-wallet' },
-  { id: 'profile', title: 'Profile', icon: 'person' }
-]; 
+  { id: 'home', title: 'Home', icon: 'home-outline' },
+  { id: 'campaigns', title: 'Campaigns', icon: 'megaphone-outline' },
+  { id: 'wallet', title: 'Wallet', icon: 'wallet-outline' },
+  { id: 'profile', title: 'Profile', icon: 'person-outline' }
+];
