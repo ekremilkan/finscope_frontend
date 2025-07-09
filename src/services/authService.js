@@ -1,6 +1,7 @@
 import api from './api';
 import axios from 'axios';
 import { storageService } from './AsyncStorage';
+import { refreshAuthToken, logout, isAuthenticated } from './api';
 
 export const authService = {
   // Login
@@ -79,6 +80,72 @@ export const authService = {
       throw error;
     }
   },
+
+  // 🆕 YENİ TOKEN YENİLEME SİSTEMİ
+  
+  // Manual token refresh
+  refreshToken: async () => {
+    try {
+      const result = await refreshAuthToken();
+      if (result.success) {
+        console.log('✅ Token başarıyla yenilendi');
+        return {
+          success: true,
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken
+        };
+      } else {
+        console.log('❌ Token yenileme başarısız');
+        return {
+          success: false,
+          error: result.error
+        };
+      }
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  // Check authentication status
+  checkAuth: async () => {
+    try {
+      return await isAuthenticated();
+    } catch (error) {
+      console.error('Auth check error:', error);
+      return false;
+    }
+  },
+
+  // Secure logout
+  secureLogout: async () => {
+    try {
+      return await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+      return false;
+    }
+  },
+
+  // 🔄 Authenticated API call with auto-refresh
+  makeAuthenticatedCall: async (endpoint, options = {}) => {
+    try {
+      const response = await api({
+        url: endpoint,
+        method: options.method || 'GET',
+        data: options.data,
+        params: options.params,
+        headers: options.headers
+      });
+      return response.data;
+    } catch (error) {
+      // API interceptor zaten token yenileme işlemini yapacak
+      throw error.response?.data || error.message;
+    }
+  }
   
 }
 
