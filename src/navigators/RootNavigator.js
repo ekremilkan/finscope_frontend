@@ -21,16 +21,25 @@ const RootNavigator = () => {
         const token = await AsyncStorage.getItem('userToken');
         const refreshToken = await AsyncStorage.getItem('refreshToken');
 
+        console.log('🔍 Auth Debug - Onboarding:', onboardingSeen);
+        console.log('🔍 Auth Debug - Token:', token ? 'EXISTS' : 'NULL');
+        console.log('🔍 Auth Debug - RefreshToken:', refreshToken ? 'EXISTS' : 'NULL');
+
         const isAuthenticated = !!(token || refreshToken);
+        console.log('🔍 Auth Debug - isAuthenticated:', isAuthenticated);
 
         if (!onboardingSeen) {
+          console.log('🔍 Auth Debug - Redirecting to: Onboarding');
           setInitialScreen('Onboarding');
         } else if (isAuthenticated) {
+          console.log('🔍 Auth Debug - Redirecting to: App');
           setInitialScreen('App');  
         } else {
+          console.log('🔍 Auth Debug - Redirecting to: Auth');
           setInitialScreen('Auth');
         }
       } catch (e) {
+        console.log('🔍 Auth Debug - Error:', e);
         setInitialScreen('Auth');
       }
     };

@@ -10,16 +10,16 @@ const api = axios.create({
   },
 });
 
-// Interceptor: Add accessToken before each request
+// Interceptor: Add userToken before each request
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('accessToken');
+  const token = await AsyncStorage.getItem('userToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Interceptor: Get new accessToken with refresh token on 401 error
+// Interceptor: Get new userToken with refresh token on 401 error
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -44,7 +44,8 @@ api.interceptors.response.use(
 
         const { accessToken, refreshToken: newRefreshToken } = res.data;
 
-        await AsyncStorage.setItem('accessToken', accessToken);
+        // Save tokens with consistent keys
+        await AsyncStorage.setItem('userToken', accessToken);
         await AsyncStorage.setItem('refreshToken', newRefreshToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -52,7 +53,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh token invalid: logout
         console.log('Refresh token expired, logging out user');
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
+        await AsyncStorage.multiRemove(['userToken', 'refreshToken']);
 
         // If navigation is available, redirect to login screen here
         // e.g: NavigationService.navigate('Login')

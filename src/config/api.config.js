@@ -1,16 +1,18 @@
 import { Platform } from 'react-native';
+// ENV dosyası için değişkenleri import ediyoruz
+import {
+  DEVELOPMENT_HOST,
+  API_PORT,
+  PRODUCTION_API_URL,
+  NODE_ENV
+} from '@env';
 
-// ENV dosyasının bir kopyasını burada tutuyoruz
-// Her geliştirici kendi IP'sini .env dosyasına yazacak
-// NOT: .env dosyasını değiştirdikten sonra uygulamayı yeniden başlatın
-
-// .env dosyasından kopyalanan değerler
-// Bu değerleri .env dosyasındaki ile aynı tutun
+// ENV değerlerini bir kez al ve varsayılan değerlerle birleştir
 const ENV_VALUES = {
-  DEVELOPMENT_HOST: '10.0.2.2', // .env dosyasından kopyalayın
-  API_PORT: '5005',
-  PRODUCTION_API_URL: 'https://your-production-api.com/api/v1',
-  NODE_ENV: 'development'
+  DEVELOPMENT_HOST: DEVELOPMENT_HOST || '10.0.2.2', // .env dosyasından
+  API_PORT: API_PORT || '5005', // .env dosyasından  
+  PRODUCTION_API_URL: PRODUCTION_API_URL || 'https://your-production-api.com/api/v1', // .env dosyasından
+  NODE_ENV: NODE_ENV || 'development' // .env dosyasından
 };
 
 // Geliştirme/Prodüksiyon kontrolü

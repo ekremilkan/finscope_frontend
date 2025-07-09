@@ -8,6 +8,9 @@ import CustomerBottomTabNavigator from '../TabNavigation/CustomerBottomTabNaviga
 import QuizScreen from '../../screens/QuizScreen';
 import CustomerCampaignsScreen from '../../screens/CustomerCampaignsScreen';
 
+// Wallet Screens
+import AddWalletScreen from '../../screens/Wallet/AddWalletScreen';
+
 const Stack = createStackNavigator();
 
 const AppStack = () => {
@@ -29,9 +32,19 @@ const AppStack = () => {
         }
       </Stack.Screen>
 
-      {/* Diğer Stack ekranların varsa kalabilir */}
+      {/* Existing Stack screens */}
       <Stack.Screen name="QuizScreen" component={QuizScreen} />
       <Stack.Screen name="CustomerCampaignsScreen" component={CustomerCampaignsScreen} />
+      
+      {/* Wallet Stack screens */}
+      <Stack.Screen 
+        name="AddWalletScreen" 
+        component={AddWalletScreen}
+        options={{
+          gestureEnabled: true,
+          gestureDirection: 'horizontal',
+        }}
+      />
     </Stack.Navigator>
   );
 };

@@ -1,276 +1,518 @@
 // src/utils/walletUtils.js
 import { Alert } from 'react-native';
-import { storageService } from '../services/AsyncStorage';
-import { WALLET_DATA, WALLET_STATES, WALLET_ACTIONS } from '../data/walletData';
+import { 
+  ERROR_MESSAGES, 
+  SUCCESS_MESSAGES, 
+  WALLET_CONFIG,
+  VALIDATION_RULES,
+  ETHEREUM_NETWORK 
+} from '../data/walletData';
+import walletService from '../services/walletService';
 
-// API Base URL - Add your backend URL here
-const API_BASE_URL = 'https://your-backend-api.com/api/v1';
+/**
+ * Wallet Utils - Business logic ve helper fonksiyonları
+ * Cüzdan işlemleri için gerekli yardımcı fonksiyonlar
+ */
 
-// Navigation handlers
-export const handleNavigation = (navigation, route, params) => {
-  navigation.navigate(route, params);
+/**
+ * Ethereum adres formatını doğrula
+ * @param {string} address - Doğrulanacak adres
+ * @returns {boolean} Geçerliliği
+ */
+export const isValidEthereumAddress = (address) => {
+  if (!address || typeof address !== 'string') return false;
+  return VALIDATION_RULES.address.ethereumRegex.test(address.trim());
 };
 
-// Wallet Connection Logic
-export const connectWallet = async (walletType, address) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/wallets/connect`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${await getAuthToken()}`
-      },
-      body: JSON.stringify({
-        walletType,
-        address,
-        timestamp: new Date().toISOString()
-      })
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      await storageService.setItem(`wallet_${walletType}`, {
-        address,
-        connectedAt: new Date().toISOString(),
-        status: WALLET_STATES.CONNECTED
-      });
-      return { success: true, data };
-    } else {
-      throw new Error(data.message || 'Wallet connection failed');
-    }
-  } catch (error) {
-    console.error('Wallet connection error:', error);
-    return { success: false, error: error.message };
-  }
+/**
+ * Adresi normalize et (temizle ve formatla)
+ * @param {string} address - Ham adres
+ * @returns {string} Temizlenmiş adres
+ */
+export const normalizeAddress = (address) => {
+  if (!address) return '';
+  return address.trim();
 };
 
-// Wallet Disconnection
-export const disconnectWallet = async (walletId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/wallets/${walletId}/disconnect`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${await getAuthToken()}`
-      }
-    });
-
-    if (response.ok) {
-      await storageService.removeItem(`wallet_${walletId}`);
-      return { success: true };
-    } else {
-      throw new Error('Failed to disconnect the wallet');
-    }
-  } catch (error) {
-    console.error('Wallet disconnect error:', error);
-    return { success: false, error: error.message };
-  }
+/**
+ * Adresi kısalt gösterim için formatla
+ * @param {string} address - Tam adres
+ * @param {number} prefixLength - Başlangıç karakter sayısı
+ * @param {number} suffixLength - Son karakter sayısı
+ * @returns {string} Kısaltılmış adres
+ */
+export const formatAddressShort = (address, prefixLength = 6, suffixLength = 4) => {
+  if (!address || address.length < prefixLength + suffixLength) return address;
+  return `${address.slice(0, prefixLength)}...${address.slice(-suffixLength)}`;
 };
 
-// Get Connected Wallets
-export const getConnectedWallets = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/wallets`, {
-      headers: {
-        'Authorization': `Bearer ${await getAuthToken()}`
-      }
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      return { success: true, wallets: data.wallets || [] };
-    } else {
-      throw new Error(data.message || 'Failed to load wallets');
-    }
-  } catch (error) {
-    console.error('Get wallets error:', error);
-    return { success: false, error: error.message };
-  }
+/**
+ * Network için maksimum cüzdan kontrolü
+ * @param {Array} wallets - Mevcut cüzdanlar
+ * @param {string} network - Kontrol edilecek network
+ * @returns {boolean} Ekleme yapılabilir mi
+ */
+export const canAddWalletToNetwork = (wallets, network) => {
+  if (!Array.isArray(wallets)) return true;
+  const networkWallets = wallets.filter(wallet => wallet.network === network);
+  return networkWallets.length < WALLET_CONFIG.maxWalletsPerNetwork;
 };
 
-// Get Wallet Balance
-export const getWalletBalance = async (walletId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/wallets/${walletId}/balance`, {
-      headers: {
-        'Authorization': `Bearer ${await getAuthToken()}`
-      }
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      return { success: true, balance: data.balance };
-    } else {
-      throw new Error(data.message || 'Failed to load balance');
-    }
-  } catch (error) {
-    console.error('Get balance error:', error);
-    return { success: false, error: error.message };
-  }
+/**
+ * Airdrop cüzdanını bul
+ * @param {Array} wallets - Cüzdan listesi
+ * @returns {Object|null} Airdrop cüzdanı
+ */
+export const getAirdropWallet = (wallets) => {
+  if (!Array.isArray(wallets)) return null;
+  return wallets.find(wallet => wallet.isAirdropAddress) || null;
 };
 
-// MetaMask Integration
-export const connectMetaMask = async () => {
-  try {
-    // MetaMask connection logic
-    if (typeof window !== 'undefined' && window.ethereum) {
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      });
-      
-      const chainId = await window.ethereum.request({
-        method: 'eth_chainId'
-      });
-
-      const address = accounts[0];
-      
-      // Save to backend
-      const result = await connectWallet('metamask', address);
-      
-      if (result.success) {
-        return { success: true, address, chainId };
-      } else {
-        throw new Error(result.error);
-      }
-    } else {
-      throw new Error('MetaMask not found');
-    }
-  } catch (error) {
-    console.error('MetaMask connection error:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-// Wallet Action Handler
-export const handleWalletAction = async (action, walletId, navigation) => {
-  switch (action) {
-    case WALLET_ACTIONS.CONNECT:
-      return await showWalletConnectionModal();
-    
-    case WALLET_ACTIONS.DISCONNECT:
-      return await handleDisconnectWallet(walletId);
-    
-    case WALLET_ACTIONS.REFRESH:
-      return await refreshWalletData(walletId);
-    
-    case WALLET_ACTIONS.VIEW_DETAILS:
-      handleNavigation(navigation, 'WalletDetails', { walletId });
-      break;
-    
-    case WALLET_ACTIONS.SEND:
-      handleNavigation(navigation, 'SendTransaction', { walletId });
-      break;
-    
-    case WALLET_ACTIONS.RECEIVE:
-      handleNavigation(navigation, 'ReceiveTransaction', { walletId });
-      break;
-    
-    default:
-      console.warn('Unknown wallet action:', action);
-  }
-};
-
-// Wallet Connection Modal
-export const showWalletConnectionModal = () => {
-  return new Promise((resolve) => {
-    Alert.alert(
-      'Connect Wallet',
-      'Which wallet would you like to connect?',
-      [
-        { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
-        { text: 'MetaMask', onPress: () => resolve('metamask') },
-        { text: 'Trust Wallet', onPress: () => resolve('trustwallet') },
-        { text: 'Coinbase', onPress: () => resolve('coinbase') }
-      ]
-    );
-  });
-};
-
-// Disconnect Confirmation
-export const handleDisconnectWallet = async (walletId) => {
-  return new Promise((resolve) => {
-    Alert.alert(
-      'Disconnect Wallet',
-      'Are you sure you want to disconnect this wallet?',
-      [
-        { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-        { 
-          text: 'Yes', 
-          style: 'destructive',
-          onPress: async () => {
-            const result = await disconnectWallet(walletId);
-            resolve(result.success);
-          }
-        }
-      ]
-    );
-  });
-};
-
-// Refresh Wallet Data
-export const refreshWalletData = async (walletId) => {
-  try {
-    const balanceResult = await getWalletBalance(walletId);
-    if (balanceResult.success) {
-      return { success: true, balance: balanceResult.balance };
-    } else {
-      throw new Error(balanceResult.error);
-    }
-  } catch (error) {
-    console.error('Refresh wallet error:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-// Validation Functions
-export const validateWalletLimit = (currentWallets) => {
-  return currentWallets.length < WALLET_DATA.maxWallets;
-};
-
-export const isWalletSupported = (walletType) => {
-  return WALLET_DATA.supportedWallets.some(
-    wallet => wallet.id === walletType && wallet.isSupported
+/**
+ * Cüzdan adresinin zaten var olup olmadığını kontrol et
+ * @param {Array} wallets - Mevcut cüzdanlar
+ * @param {string} address - Kontrol edilecek adres
+ * @returns {boolean} Adres var mı
+ */
+export const isAddressExists = (wallets, address) => {
+  if (!Array.isArray(wallets) || !address) return false;
+  const normalizedAddress = normalizeAddress(address).toLowerCase();
+  return wallets.some(wallet => 
+    wallet.address.toLowerCase() === normalizedAddress
   );
 };
 
-export const formatWalletAddress = (address) => {
-  if (!address) return '';
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+/**
+ * Cüzdan bağlama öncesi validasyon
+ * @param {Array} wallets - Mevcut cüzdanlar
+ * @param {string} network - Network
+ * @param {string} address - Adres
+ * @returns {Object} Validasyon sonucu
+ */
+export const validateWalletConnection = (wallets, network, address) => {
+  // Adres format kontrolü
+  if (!isValidEthereumAddress(address)) {
+    return {
+      isValid: false,
+      error: ERROR_MESSAGES.invalidAddress
+    };
+  }
+
+  // Adres daha önce eklenmiş mi kontrolü
+  if (isAddressExists(wallets, address)) {
+    return {
+      isValid: false,
+      error: ERROR_MESSAGES.addressExists
+    };
+  }
+
+  // Network limit kontrolü
+  if (!canAddWalletToNetwork(wallets, network)) {
+    return {
+      isValid: false,
+      error: ERROR_MESSAGES.maxWalletsReached
+    };
+  }
+
+  return {
+    isValid: true,
+    error: null
+  };
 };
 
-export const formatBalance = (balance, symbol) => {
-  if (!balance) return '0';
-  return `${parseFloat(balance).toFixed(2)} ${symbol}`;
+/**
+ * API hata mesajını kullanıcı dostu mesaja çevir
+ * @param {Object} error - API error objesi
+ * @returns {string} Kullanıcı dostu hata mesajı
+ */
+export const getErrorMessage = (error) => {
+  if (!error) return ERROR_MESSAGES.unknownError;
+
+  // API'den gelen error response kontrol et
+  if (error.response && error.response.data) {
+    const apiError = error.response.data;
+    
+    // Spesifik API hata mesajları
+    if (apiError.message) {
+      return apiError.message;
+    }
+    
+    // HTTP status kodlarına göre
+    switch (error.response.status) {
+      case 400:
+        return apiError.error || ERROR_MESSAGES.invalidAddress;
+      case 401:
+        return ERROR_MESSAGES.unauthorized;
+      case 404:
+        return 'Kaynak bulunamadı';
+      case 500:
+        return ERROR_MESSAGES.serverError;
+      default:
+        return ERROR_MESSAGES.unknownError;
+    }
+  }
+
+  // Network errors
+  if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+    return ERROR_MESSAGES.networkError;
+  }
+
+  // Timeout errors
+  if (error.code === 'ECONNABORTED') {
+    return 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.';
+  }
+
+  return error.message || ERROR_MESSAGES.unknownError;
 };
 
-// Error Handlers
-export const showErrorAlert = (title, message) => {
-  Alert.alert(title, message, [{ text: 'OK' }]);
+/**
+ * Başarı mesajı göster
+ * @param {string} message - Gösterilecek mesaj
+ * @param {Function} onPress - Tamam butonuna basılınca çalışacak fonksiyon
+ */
+export const showSuccessAlert = (message, onPress = null) => {
+  Alert.alert(
+    'Başarılı',
+    message,
+    [
+      {
+        text: 'Tamam',
+        onPress: onPress,
+        style: 'default'
+      }
+    ]
+  );
 };
 
-export const showSuccessAlert = (title, message) => {
-  Alert.alert(title, message, [{ text: 'OK' }]);
+/**
+ * Hata mesajı göster
+ * @param {string} message - Gösterilecek hata mesajı
+ * @param {Function} onPress - Tamam butonuna basılınca çalışacak fonksiyon
+ */
+export const showErrorAlert = (message, onPress = null) => {
+  Alert.alert(
+    'Hata',
+    message,
+    [
+      {
+        text: 'Tamam',
+        onPress: onPress,
+        style: 'default'
+      }
+    ]
+  );
 };
 
-// Storage and Auth Helpers
-const getAuthToken = async () => {
-  return await storageService.getItem('auth_token');
+/**
+ * Onay dialog'u göster
+ * @param {string} title - Dialog başlığı
+ * @param {string} message - Dialog mesajı
+ * @param {Function} onConfirm - Onay butonuna basılınca çalışacak fonksiyon
+ * @param {Function} onCancel - İptal butonuna basılınca çalışacak fonksiyon
+ */
+export const showConfirmAlert = (title, message, onConfirm, onCancel = null) => {
+  Alert.alert(
+    title,
+    message,
+    [
+      {
+        text: 'İptal',
+        onPress: onCancel,
+        style: 'cancel'
+      },
+      {
+        text: 'Tamam',
+        onPress: onConfirm,
+        style: 'destructive'
+      }
+    ]
+  );
 };
 
-export const loadWalletData = async (setWallets, setLoading) => {
-  setLoading(true);
+/**
+ * Airdrop wallet removal confirmation
+ * @param {Object} wallet - Wallet to remove from airdrop
+ * @param {Function} onConfirm - Confirmation function
+ */
+export const confirmRemoveAirdropWallet = (wallet, onConfirm) => {
+  const shortAddress = formatAddressShort(wallet.address);
+  
+  showConfirmAlert(
+    'Remove Airdrop Wallet',
+    `Are you sure you want to remove ${shortAddress} from airdrop selection?`,
+    onConfirm
+  );
+};
+
+/**
+ * Wallet deletion confirmation
+ * @param {Object} wallet - Wallet to delete
+ * @param {Function} onConfirm - Confirmation function
+ */
+export const confirmDeleteWallet = (wallet, onConfirm) => {
+  const shortAddress = formatAddressShort(wallet.address);
+  const title = wallet.isAirdropAddress ? 'Cannot Delete Airdrop Wallet' : 'Delete Wallet';
+  
+  if (wallet.isAirdropAddress) {
+    showErrorAlert('Please remove this wallet from airdrop selection before deleting it.');
+    return;
+  }
+
+  showConfirmAlert(
+    title,
+    `Are you sure you want to delete the wallet ${shortAddress}?`,
+    onConfirm
+  );
+};
+
+/**
+ * Airdrop wallet change confirmation
+ * @param {Object} wallet - Wallet to set as airdrop
+ * @param {Function} onConfirm - Confirmation function
+ */
+export const confirmSetAirdropWallet = (wallet, onConfirm) => {
+  const shortAddress = formatAddressShort(wallet.address);
+  
+  showConfirmAlert(
+    'Set Airdrop Wallet',
+    `Are you sure you want to set ${shortAddress} as your airdrop wallet?`,
+    onConfirm
+  );
+};
+
+/**
+ * Navigation helper - Cüzdan ekleme sayfasına git
+ * @param {Object} navigation - React Navigation objesi
+ */
+export const navigateToAddWallet = (navigation) => {
+  navigation.navigate('AddWalletScreen');
+};
+
+/**
+ * Navigation helper - Cüzdan detay sayfasına git
+ * @param {Object} navigation - React Navigation objesi
+ * @param {Object} wallet - Cüzdan objesi
+ */
+export const navigateToWalletDetail = (navigation, wallet) => {
+  navigation.navigate('WalletDetailScreen', { wallet });
+};
+
+/**
+ * Loading state yönetimi
+ * @param {Function} setLoading - Loading state setter
+ * @param {Function} operation - Async operasyon
+ * @param {Function} onSuccess - Başarı callback'i
+ * @param {Function} onError - Hata callback'i
+ */
+export const handleAsyncOperation = async (setLoading, operation, onSuccess = null, onError = null) => {
   try {
-    const result = await getConnectedWallets();
+    setLoading(true);
+    const result = await operation();
+    
     if (result.success) {
-      setWallets(result.wallets);
+      onSuccess && onSuccess(result.data);
+      return result.data;
     } else {
-      showErrorAlert('Error', result.error);
+      const errorMessage = getErrorMessage(result.error);
+      onError ? onError(errorMessage) : showErrorAlert(errorMessage);
+      return null;
     }
   } catch (error) {
-    showErrorAlert('Error', 'An error occurred while loading wallet data');
+    const errorMessage = getErrorMessage(error);
+    onError ? onError(errorMessage) : showErrorAlert(errorMessage);
+    return null;
   } finally {
     setLoading(false);
   }
+};
+
+/**
+ * Cüzdan listesini yenile
+ * @param {Function} setWallets - Wallet state setter
+ * @param {Function} setLoading - Loading state setter
+ * @param {Function} setError - Error state setter
+ */
+export const refreshWallets = async (setWallets, setLoading, setError = null) => {
+  await handleAsyncOperation(
+    setLoading,
+    () => walletService.getWallets(),
+    (data) => {
+      setWallets(data.data.wallets || []);
+      setError && setError(null);
+    },
+    (error) => {
+      setError && setError(error);
+    }
+  );
+};
+
+/**
+ * Adres doğrulama (real-time)
+ * @param {string} address - Doğrulanacak adres
+ * @param {string} network - Network
+ * @param {Function} setAddressValid - Validation state setter
+ * @param {Function} setValidationMessage - Message setter
+ */
+export const validateAddressRealTime = async (address, network, setAddressValid, setValidationMessage) => {
+  // Boş adres kontrolü
+  if (!address || address.length < 10) {
+    setAddressValid(null);
+    setValidationMessage('');
+    return;
+  }
+
+  // Format kontrolü
+  if (!isValidEthereumAddress(address)) {
+    setAddressValid(false);
+    setValidationMessage('Geçersiz Ethereum adresi formatı');
+    return;
+  }
+
+  // API ile doğrulama
+  try {
+    const result = await walletService.validateAddress(network, address);
+    
+    if (result.success && result.data.data.valid) {
+      setAddressValid(true);
+      setValidationMessage('Adres geçerli');
+    } else {
+      setAddressValid(false);
+      setValidationMessage(result.data.data.error || 'Adres geçersiz');
+    }
+  } catch (error) {
+    setAddressValid(false);
+    setValidationMessage('Adres doğrulanamadı');
+  }
+};
+
+/**
+ * Cüzdan kartı için durum rengi
+ * @param {Object} wallet - Cüzdan objesi
+ * @returns {string} Renk kodu
+ */
+export const getWalletStatusColor = (wallet) => {
+  if (wallet.isAirdropAddress) return '#f59e0b'; // Airdrop - amber
+  return '#10b981'; // Normal - green
+};
+
+/**
+ * Cüzdan için network ikonunu getir
+ * @param {string} network - Network adı
+ * @returns {string} Icon emoji
+ */
+export const getNetworkIcon = (network) => {
+  switch (network.toLowerCase()) {
+    case 'ethereum':
+      return '⟠';
+    default:
+      return '🔗';
+  }
+};
+
+/**
+ * Para birimini formatla
+ * @param {string} amount - Miktar
+ * @param {string} currency - Para birimi
+ * @returns {string} Formatlanmış miktar
+ */
+export const formatCurrency = (amount, currency) => {
+  if (!amount || isNaN(amount)) return '0';
+  
+  const numAmount = parseFloat(amount);
+  
+  // Büyük sayılar için kısaltma
+  if (numAmount >= 1000000) {
+    return `${(numAmount / 1000000).toFixed(2)}M ${currency}`;
+  } else if (numAmount >= 1000) {
+    return `${(numAmount / 1000).toFixed(2)}K ${currency}`;
+  } else if (numAmount >= 1) {
+    return `${numAmount.toFixed(4)} ${currency}`;
+  } else {
+    return `${numAmount.toFixed(6)} ${currency}`;
+  }
+};
+
+/**
+ * USD değerini formatla
+ * @param {string} usdValue - USD değeri
+ * @returns {string} Formatlanmış USD değeri
+ */
+export const formatUSDValue = (usdValue) => {
+  if (!usdValue || isNaN(usdValue)) return '$0.00';
+  
+  const numValue = parseFloat(usdValue);
+  
+  if (numValue >= 1000000) {
+    return `$${(numValue / 1000000).toFixed(2)}M`;
+  } else if (numValue >= 1000) {
+    return `$${(numValue / 1000).toFixed(2)}K`;
+  } else {
+    return `$${numValue.toFixed(2)}`;
+  }
+};
+
+/**
+ * Bakiye güncelleme zamanını formatla
+ * @param {string} lastUpdated - Son güncelleme tarihi
+ * @returns {string} Formatlanmış zaman
+ */
+export const formatLastUpdated = (lastUpdated) => {
+  if (!lastUpdated) return 'Never updated';
+  
+  try {
+    const date = new Date(lastUpdated);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: '2-digit'
+    });
+  } catch (error) {
+    return 'Unknown';
+  }
+};
+
+/**
+ * Cüzdan bakiyelerinin toplam USD değerini hesapla
+ * @param {Array} balances - Bakiye array'i
+ * @returns {string} Toplam USD değeri
+ */
+export const calculateTotalUSDValue = (balances) => {
+  if (!Array.isArray(balances) || balances.length === 0) return '0';
+  
+  const total = balances.reduce((sum, balance) => {
+    const usdValue = parseFloat(balance.usdValue || 0);
+    return sum + usdValue;
+  }, 0);
+  
+  return total.toFixed(2);
+};
+
+/**
+ * Bakiye yenileme handler
+ * @param {string} walletId - Cüzdan ID'si  
+ * @param {Function} setLoading - Loading state setter
+ * @param {Function} onSuccess - Başarı callback'i
+ * @param {Function} onError - Hata callback'i
+ */
+export const handleRefreshBalance = async (walletId, setLoading, onSuccess = null, onError = null) => {
+  await handleAsyncOperation(
+    setLoading,
+    () => walletService.refreshWalletBalance(walletId),
+    (data) => {
+      onSuccess && onSuccess(data.data.wallet);
+    },
+    (error) => {
+      onError ? onError(error) : showErrorAlert(error);
+    }
+  );
 };

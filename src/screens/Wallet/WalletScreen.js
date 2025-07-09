@@ -1,226 +1,267 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Data imports
-import { WALLET_DATA, MOCK_CONNECTED_WALLETS } from '../../data/walletData';
+import { DEFAULT_WALLET_DATA, WALLET_CONFIG, WALLET_COLORS } from '../../data/walletData';
 
 // Utils imports
-import {
-  handleNavigation,
-  loadWalletData,
-  handleWalletAction,
-  handleDisconnectWallet,
-  refreshWalletData,
-  validateWalletLimit,
-  showErrorAlert,
+import { 
+  refreshWallets, 
+  confirmDeleteWallet, 
+  confirmSetAirdropWallet,
+  confirmRemoveAirdropWallet,
   showSuccessAlert,
+  showErrorAlert,
+  handleAsyncOperation
 } from '../../utils/walletUtils';
+
+// Service imports
+import walletService from '../../services/walletService';
 
 // Component imports
 import WalletHeader from '../../components/Wallet/WalletHeader';
-import WalletCard from '../../components/Wallet/WalletCard';
-import WalletEmptyState from '../../components/Wallet/WalletEmptyState';
-import WalletConnectionModal from '../../components/Wallet/WalletConnectionModal';
+import WalletList from '../../components/Wallet/WalletList';
+import WalletActionModal from '../../components/Wallet/WalletActionModal';
 
 const WalletScreen = ({ navigation }) => {
-  const [wallets, setWallets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [connectionModalVisible, setConnectionModalVisible] = useState(false);
+  // State management
+  const [wallets, setWallets] = useState(DEFAULT_WALLET_DATA.wallets);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedWallet, setSelectedWallet] = useState(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(null); // null: checking, false: not auth, true: authenticated
 
-  // Load wallet data on component mount
+  // Authentication check
   useEffect(() => {
-    loadInitialData();
+    checkAuthentication();
   }, []);
 
-  const loadInitialData = async () => {
-    setLoading(true);
+  // Load wallets (only if authenticated)
+  useEffect(() => {
+    if (isAuthenticated === true) {
+      loadWallets();
+    }
+  }, [isAuthenticated]);
+
+  // Authentication check
+  const checkAuthentication = async () => {
     try {
-      // For mock data - use loadWalletData in real app
-      setTimeout(() => {
-        setWallets(MOCK_CONNECTED_WALLETS);
-        setLoading(false);
-      }, 1000);
+      const token = await AsyncStorage.getItem('userToken');
+      const refreshToken = await AsyncStorage.getItem('refreshToken');
       
-      // Real API call:
-      // await loadWalletData(setWallets, setLoading);
+      const authenticated = !!(token || refreshToken);
+      setIsAuthenticated(authenticated);
     } catch (error) {
-      showErrorAlert('Error', 'An error occurred while loading wallet data');
-      setLoading(false);
+      console.log('Auth check error:', error);
+      setIsAuthenticated(false);
     }
   };
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await loadInitialData();
-    } finally {
-      setRefreshing(false);
-    }
+  // Redirect to login page
+  const handleGoToLogin = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Auth', state: { routes: [{ name: 'Login' }] } }],
+    });
   };
 
-  const handleBackPress = () => {
-    navigation.goBack();
+  // Authentication required component
+  const AuthRequiredComponent = () => (
+    <View style={styles.authContainer}>
+      <View style={styles.authContent}>
+        <Icon name="account-balance-wallet" size={80} color={WALLET_COLORS.primary} />
+        <Text style={styles.authTitle}>Wallet Features</Text>
+        <Text style={styles.authSubtitle}>
+          You need to log in to access wallet features
+        </Text>
+        <Text style={styles.authDescription}>
+          • Connect your Ethereum wallet{'\n'}
+          • Select airdrop wallet{'\n'}
+          • View transaction history
+        </Text>
+        
+        <TouchableOpacity 
+          style={styles.loginButton}
+          onPress={handleGoToLogin}
+          activeOpacity={0.8}
+        >
+          <Icon name="login" size={20} color="#ffffff" />
+          <Text style={styles.loginButtonText}>Log In</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  // Loading component
+  const LoadingComponent = () => (
+    <View style={styles.authContainer}>
+      <Text style={styles.authSubtitle}>Loading...</Text>
+    </View>
+  );
+
+  // Authenticated user functions
+  const loadWallets = async () => {
+    await refreshWallets(setWallets, setLoading, setError);
   };
 
-  const handleSettingsPress = () => {
-    handleNavigation(navigation, 'WalletSettings');
+  const handleRefresh = () => {
+    loadWallets();
   };
 
-  const handleConnectWallet = () => {
-    if (!validateWalletLimit(wallets)) {
-      showErrorAlert(
-        'Limit Exceeded',
-        `You can connect up to ${WALLET_DATA.maxWallets} wallets`
-      );
-      return;
-    }
-    setConnectionModalVisible(true);
+  const handleAddWallet = () => {
+    navigation.navigate('AddWalletScreen');
   };
 
-  const handleWalletConnected = (walletData) => {
-    // Add new wallet
-    const newWallet = {
-      id: `wallet_${Date.now()}`,
-      address: walletData.address,
-      walletType: walletData.walletType || 'metamask',
-      balance: '0.00 ETH',
-      usdValue: '$0.00',
-      network: 'ethereum',
-      status: 'connected',
-      connectedAt: new Date().toISOString(),
-    };
-
-    setWallets(prev => [...prev, newWallet]);
-    showSuccessAlert('Success', 'Wallet connected successfully!');
+  const handleWalletPress = (wallet) => {
+    console.log('Wallet details:', wallet);
   };
 
-  const handleDisconnectWalletPress = async (walletId) => {
-    Alert.alert(
-      'Disconnect Wallet',
-      'Are you sure you want to disconnect this wallet?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes',
-          style: 'destructive',
-          onPress: async () => {
-            const result = await handleDisconnectWallet(walletId);
-            if (result) {
-              setWallets(prev => prev.filter(w => w.id !== walletId));
-              showSuccessAlert('Success', 'Wallet disconnected');
-            }
-          },
+  const handleWalletMenu = (wallet) => {
+    setSelectedWallet(wallet);
+    setShowActionModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowActionModal(false);
+    setSelectedWallet(null);
+  };
+
+  const handleSetAirdrop = async (wallet) => {
+    confirmSetAirdropWallet(wallet, async () => {
+      await handleAsyncOperation(
+        setLoading,
+        () => walletService.setAirdropWallet(wallet.address),
+        (data) => {
+          setWallets(data.data.wallets || []);
+          showSuccessAlert('Airdrop wallet set successfully');
         },
-      ]
+        (error) => {
+          showErrorAlert(error);
+        }
+      );
+    });
+  };
+
+  const handleRemoveAirdrop = async (wallet) => {
+    confirmRemoveAirdropWallet(wallet, async () => {
+      await handleAsyncOperation(
+        setLoading,
+        () => walletService.removeAirdropWallet(),
+        (data) => {
+          // Refresh wallet list after removing airdrop
+          loadWallets();
+          showSuccessAlert('Airdrop wallet removed successfully');
+        },
+        (error) => {
+          showErrorAlert(error);
+        }
+      );
+    });
+  };
+
+  const handleDeleteWallet = async (wallet) => {
+    confirmDeleteWallet(wallet, async () => {
+      await handleAsyncOperation(
+        setLoading,
+        () => walletService.deleteWallet(wallet._id),
+        () => {
+          loadWallets();
+          showSuccessAlert('Wallet deleted successfully');
+        },
+        (error) => {
+          showErrorAlert(error);
+        }
+      );
+    });
+  };
+
+  const handleViewTransactions = (wallet) => {
+    console.log('Transaction history:', wallet);
+  };
+
+  const handleBalanceRefresh = (updatedWallet) => {
+    // Cüzdan listesindeki ilgili cüzdanı güncelle
+    setWallets(prevWallets => 
+      prevWallets.map(wallet => 
+        wallet._id === updatedWallet._id ? updatedWallet : wallet
+      )
     );
   };
 
-  const handleWalletPress = (walletId) => {
-    handleNavigation(navigation, 'WalletDetails', { walletId });
-  };
-
-  const handleRefreshWallet = async (walletId) => {
-    try {
-      const result = await refreshWalletData(walletId);
-      if (result.success) {
-        // Update wallet data
-        setWallets(prev => 
-          prev.map(w => 
-            w.id === walletId 
-              ? { ...w, balance: result.balance }
-              : w
-          )
-        );
-        showSuccessAlert('Success', 'Wallet data updated');
-      } else {
-        showErrorAlert('Error', result.error);
+  const handleRefreshAllBalances = async () => {
+    await handleAsyncOperation(
+      setLoading,
+      () => walletService.refreshAllWalletBalances(),
+      (data) => {
+        // Tüm cüzdan listesini yenile
+        loadWallets();
+        showSuccessAlert(`${data.data.updatedCount} wallet balances updated`);
+      },
+      (error) => {
+        showErrorAlert(error);
       }
-    } catch (error) {
-      showErrorAlert('Error', 'An error occurred while updating wallet data');
-    }
+    );
   };
 
-  if (loading) {
+  const handleSettings = () => {
+    console.log('Wallet settings');
+  };
+
+  // Main render
+  if (isAuthenticated === null) {
     return (
-      <SafeAreaView style={styles.container}>
-        <WalletHeader
-          onBackPress={handleBackPress}
-          onSettingsPress={handleSettingsPress}
-          walletCount={0}
-          maxWallets={WALLET_DATA.maxWallets}
-        />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366f1" />
-        </View>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <LoadingComponent />
       </SafeAreaView>
     );
   }
 
+  if (isAuthenticated === false) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <AuthRequiredComponent />
+      </SafeAreaView>
+    );
+  }
+
+  // Authenticated user - normal wallet interface
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      {/* Header */}
       <WalletHeader
-        onBackPress={handleBackPress}
-        onSettingsPress={handleSettingsPress}
         walletCount={wallets.length}
-        maxWallets={WALLET_DATA.maxWallets}
+        maxWallets={WALLET_CONFIG.maxWalletsPerNetwork}
+        onAddPress={handleAddWallet}
+        onSettingsPress={handleSettings}
+        onRefreshAllPress={handleRefreshAllBalances}
+        showSettings={false}
       />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={['#6366f1']}
-            tintColor="#6366f1"
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {wallets.length === 0 ? (
-          <WalletEmptyState onConnectWallet={handleConnectWallet} />
-        ) : (
-          <View style={styles.walletsContainer}>
-            {wallets.map((wallet) => (
-              <WalletCard
-                key={wallet.id}
-                wallet={wallet}
-                onPress={handleWalletPress}
-                onDisconnect={handleDisconnectWalletPress}
-                onRefresh={handleRefreshWallet}
-              />
-            ))}
-            
-            {validateWalletLimit(wallets) && (
-              <TouchableOpacity
-                style={styles.addWalletButton}
-                onPress={handleConnectWallet}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.addWalletIcon}>+</Text>
-                <Text style={styles.addWalletText}>Connect New Wallet</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </ScrollView>
+      {/* Wallet List */}
+      <WalletList
+        wallets={wallets}
+        loading={loading}
+        onRefresh={handleRefresh}
+        onWalletPress={handleWalletPress}
+        onWalletMenuPress={handleWalletMenu}
+        onViewTransactions={handleViewTransactions}
+        onSetAirdrop={handleSetAirdrop}
+        onBalanceRefresh={handleBalanceRefresh}
+      />
 
-      <WalletConnectionModal
-        visible={connectionModalVisible}
-        onClose={() => setConnectionModalVisible(false)}
-        onWalletConnected={handleWalletConnected}
+      {/* Action Modal */}
+      <WalletActionModal
+        visible={showActionModal}
+        wallet={selectedWallet}
+        onClose={handleCloseModal}
+        onSetAirdrop={handleSetAirdrop}
+        onRemoveAirdrop={handleRemoveAirdrop}
+        onDeleteWallet={handleDeleteWallet}
+        onViewTransactions={handleViewTransactions}
       />
     </SafeAreaView>
   );
@@ -231,43 +272,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0a0f1c',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 32,
-  },
-  loadingContainer: {
+  // Auth Required Styles
+  authContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 32,
   },
-  walletsContainer: {
-    flex: 1,
-    paddingTop: 16,
-  },
-  addWalletButton: {
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
-    borderStyle: 'dashed',
-    padding: 32,
-    marginHorizontal: 16,
-    marginVertical: 8,
+  authContent: {
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 120,
+    maxWidth: 300,
   },
-  addWalletIcon: {
-    fontSize: 32,
-    color: '#6366f1',
-    marginBottom: 8,
+  authTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: WALLET_COLORS.text,
+    marginTop: 24,
+    marginBottom: 12,
+    textAlign: 'center',
   },
-  addWalletText: {
+  authSubtitle: {
     fontSize: 16,
-    color: '#6366f1',
+    color: WALLET_COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  authDescription: {
+    fontSize: 14,
+    color: WALLET_COLORS.textSecondary,
+    textAlign: 'left',
+    marginBottom: 32,
+    lineHeight: 20,
+  },
+  loginButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: WALLET_COLORS.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 24,
+    shadowColor: WALLET_COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    gap: 8,
+  },
+  loginButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

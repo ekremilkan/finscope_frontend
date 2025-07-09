@@ -1,93 +1,274 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { formatWalletAddress, formatBalance } from '../../utils/walletUtils';
-import { WALLET_DATA } from '../../data/walletData';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { 
+  formatAddressShort, 
+  getWalletStatusColor, 
+  getNetworkIcon,
+  formatCurrency,
+  formatUSDValue,
+  formatLastUpdated,
+  calculateTotalUSDValue,
+  handleRefreshBalance
+} from '../../utils/walletUtils';
+import { WALLET_COLORS } from '../../data/walletData';
 
 const { width } = Dimensions.get('window');
 
-const WalletCard = ({ wallet, onPress, onDisconnect, onRefresh }) => {
-  const walletInfo = WALLET_DATA.supportedWallets.find(w => w.id === wallet.walletType);
+const WalletCard = ({ 
+  wallet, 
+  onPress, 
+  onMenuPress, 
+  onViewTransactions,
+  onSetAirdrop,
+  onBalanceRefresh,
+  showMenu = true 
+}) => {
+  const [refreshing, setRefreshing] = useState(false);
   
+  const statusColor = getWalletStatusColor(wallet);
+  const networkIcon = getNetworkIcon(wallet.network);
+  const shortAddress = formatAddressShort(wallet.address);
+  
+  // Bakiye bilgileri
+  const hasBalances = wallet.balances && wallet.balances.length > 0;
+  const totalUsdValue = wallet.totalUsdValue || calculateTotalUSDValue(wallet.balances || []);
+  const primaryBalance = hasBalances ? wallet.balances[0] : null;
+
+  // Bakiye yenileme handler
+  const handleRefreshBalanceClick = async () => {
+    if (refreshing) return;
+    
+    await handleRefreshBalance(
+      wallet._id,
+      setRefreshing,
+      (updatedWallet) => {
+        // Parent'e güncellenmiş wallet'ı gönder
+        onBalanceRefresh && onBalanceRefresh(updatedWallet);
+      }
+    );
+  };
+
+  // Transaction history handler
+  const handleViewTransactions = () => {
+    if (onViewTransactions) {
+      onViewTransactions(wallet);
+    } else {
+      console.log('Transaction History:', wallet._id);
+    }
+  };
+
+  // Airdrop selection handler
+  const handleSetAirdrop = () => {
+    if (onSetAirdrop && !wallet.isAirdropAddress) {
+      onSetAirdrop(wallet);
+    }
+  };
+
   return (
     <TouchableOpacity 
       style={styles.container}
-      onPress={() => onPress(wallet.id)}
+      onPress={() => onPress && onPress(wallet)}
       activeOpacity={0.8}
     >
+      {/* Airdrop Badge */}
+      {wallet.isAirdropAddress && (
+        <View style={styles.airdropBadge}>
+          <Icon name="star" size={12} color="#ffffff" />
+          <Text style={styles.airdropText}>Airdrop</Text>
+        </View>
+      )}
+
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.walletInfo}>
-          <View style={[styles.iconContainer, { backgroundColor: walletInfo?.color || '#6366f1' }]}>
-            <Text style={styles.walletIcon}>{walletInfo?.icon || '💰'}</Text>
+        <View style={styles.headerLeft}>
+          <View style={[styles.networkIcon, { backgroundColor: statusColor }]}>
+            <Text style={styles.networkEmoji}>{networkIcon}</Text>
           </View>
-          <View style={styles.walletDetails}>
-            <Text style={styles.walletName}>{walletInfo?.name || 'Unknown Wallet'}</Text>
-            <Text style={styles.walletAddress}>{formatWalletAddress(wallet.address)}</Text>
+          <View style={styles.networkInfo}>
+            <Text style={styles.networkName}>{wallet.network}</Text>
+            <Text style={styles.walletAddress}>{shortAddress}</Text>
           </View>
         </View>
-        
-        <TouchableOpacity 
-          style={styles.disconnectButton}
-          onPress={() => onDisconnect(wallet.id)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.disconnectIcon}>×</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.balanceContainer}>
-        <Text style={styles.balanceLabel}>Balance</Text>
-        <Text style={styles.balanceAmount}>{wallet.balance || '0.00'}</Text>
-        <Text style={styles.balanceUsd}>{wallet.usdValue || '$0.00'}</Text>
-      </View>
-      
-      <View style={styles.networkContainer}>
-        <View style={styles.networkBadge}>
-          <Text style={styles.networkText}>{wallet.network?.toUpperCase() || 'ETH'}</Text>
+
+        <View style={styles.headerRight}>
+          {/* Bakiye yenileme butonu */}
+          <TouchableOpacity 
+            style={styles.refreshButton}
+            onPress={handleRefreshBalanceClick}
+            disabled={refreshing}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            {refreshing ? (
+              <ActivityIndicator size="small" color={WALLET_COLORS.primary} />
+            ) : (
+              <Icon name="refresh" size={18} color={WALLET_COLORS.primary} />
+            )}
+          </TouchableOpacity>
+
+          {showMenu && (
+            <TouchableOpacity 
+              style={styles.menuButton}
+              onPress={() => onMenuPress && onMenuPress(wallet)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Icon name="more-vert" size={20} color={WALLET_COLORS.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
-        <View style={styles.statusContainer}>
-          <View style={[styles.statusDot, { backgroundColor: '#10b981' }]} />
-          <Text style={styles.statusText}>Connected</Text>
-        </View>
       </View>
-      
-      <View style={styles.actionsContainer}>
-        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-          <Text style={styles.actionIcon}>📤</Text>
-          <Text style={styles.actionText}>Send</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-          <Text style={styles.actionIcon}>📥</Text>
-          <Text style={styles.actionText}>Receive</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.actionButton} 
-          onPress={() => onRefresh(wallet.id)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.actionIcon}>🔄</Text>
-          <Text style={styles.actionText}>Refresh</Text>
-        </TouchableOpacity>
+
+      {/* Balance Section */}
+      <View style={styles.balanceSection}>
+        <View style={styles.totalBalance}>
+          <Text style={styles.totalLabel}>Total Balance</Text>
+          <Text style={styles.totalValue}>
+            {formatUSDValue(totalUsdValue)}
+          </Text>
+        </View>
+
+        {hasBalances && primaryBalance && (
+          <View style={styles.primaryCurrency}>
+            <Text style={styles.currencyAmount}>
+              {formatCurrency(primaryBalance.amount, primaryBalance.currency)}
+            </Text>
+            <Text style={styles.currencyUsd}>
+              {formatUSDValue(primaryBalance.usdValue)}
+            </Text>
+          </View>
+        )}
+
+        {!hasBalances && (
+          <View style={styles.noBalance}>
+            <Text style={styles.noBalanceText}>No balance data</Text>
+            <Text style={styles.noBalanceSubtext}>Tap refresh to load balance</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Content */}
+      <View style={styles.content}>
+        <View style={styles.infoRow}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Status</Text>
+            <View style={styles.statusContainer}>
+              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+              <Text style={[styles.infoValue, { color: statusColor }]}>
+                {wallet.isAirdropAddress ? 'Airdrop Wallet' : 'Active'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Last Updated</Text>
+            <Text style={styles.infoValue}>
+              {formatLastUpdated(wallet.lastBalanceCheck)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Multiple currencies display */}
+        {hasBalances && wallet.balances.length > 1 && (
+          <View style={styles.currencyList}>
+            <Text style={styles.currencyListTitle}>
+              +{wallet.balances.length - 1} more currencies
+            </Text>
+            <View style={styles.currencyRow}>
+              {wallet.balances.slice(1, 3).map((balance, index) => (
+                <Text key={index} style={styles.currencyItem}>
+                  {balance.currency}: {formatCurrency(balance.amount, balance.currency)}
+                </Text>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Actions */}
+        <View style={styles.actions}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.primaryAction]}
+            onPress={handleViewTransactions}
+            activeOpacity={0.7}
+          >
+            <Icon name="history" size={16} color="#ffffff" />
+            <Text style={styles.actionText}>History</Text>
+          </TouchableOpacity>
+
+          {!wallet.isAirdropAddress && (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.secondaryAction]}
+              onPress={handleSetAirdrop}
+              activeOpacity={0.7}
+            >
+              <Icon name="star-border" size={16} color={WALLET_COLORS.warning} />
+              <Text style={[styles.actionText, { color: WALLET_COLORS.warning }]}>
+                Set Airdrop
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
 };
 
+// Helper function - format date
+const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown';
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    return 'Unknown';
+  }
+};
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    borderRadius: 24,
+    backgroundColor: WALLET_COLORS.cardBackground,
+    borderRadius: Math.max(20, width * 0.05),
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
-    padding: Math.max(20, width * 0.05),
+    borderColor: WALLET_COLORS.border,
     marginHorizontal: Math.max(16, width * 0.04),
     marginVertical: Math.max(8, width * 0.02),
+    padding: Math.max(16, width * 0.04),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 6,
+    position: 'relative',
+  },
+  airdropBadge: {
+    position: 'absolute',
+    top: -8,
+    right: Math.max(16, width * 0.04),
+    backgroundColor: WALLET_COLORS.warning,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: WALLET_COLORS.warning,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 4,
+    zIndex: 1,
+  },
+  airdropText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '600',
+    marginLeft: 4,
   },
   header: {
     flexDirection: 'row',
@@ -95,93 +276,152 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Math.max(16, width * 0.04),
   },
-  walletInfo: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  iconContainer: {
-    width: Math.max(48, width * 0.12),
-    height: Math.max(48, width * 0.12),
-    borderRadius: Math.max(24, width * 0.06),
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  networkIcon: {
+    width: Math.max(40, width * 0.1),
+    height: Math.max(40, width * 0.1),
+    borderRadius: Math.max(20, width * 0.05),
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Math.max(12, width * 0.03),
   },
-  walletIcon: {
-    fontSize: Math.max(24, width * 0.06),
+  networkEmoji: {
+    fontSize: Math.max(18, width * 0.045),
   },
-  walletDetails: {
+  networkInfo: {
     flex: 1,
   },
-  walletName: {
-    fontSize: Math.max(16, Math.min(20, width * 0.045)),
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 4,
+  networkName: {
+    color: WALLET_COLORS.text,
+    fontSize: Math.max(16, width * 0.04),
+    fontWeight: '600',
+    marginBottom: 2,
   },
   walletAddress: {
-    fontSize: Math.max(12, Math.min(14, width * 0.035)),
-    color: '#94a3b8',
+    color: WALLET_COLORS.textSecondary,
+    fontSize: Math.max(13, width * 0.033),
     fontFamily: 'monospace',
   },
-  disconnectButton: {
-    width: Math.max(32, width * 0.08),
-    height: Math.max(32, width * 0.08),
-    borderRadius: Math.max(16, width * 0.04),
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  menuButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  refreshButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginRight: Math.max(8, width * 0.02),
+  },
+  balanceSection: {
+    backgroundColor: WALLET_COLORS.cardBackground,
+    borderRadius: Math.max(12, width * 0.03),
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    justifyContent: 'center',
+    borderColor: WALLET_COLORS.border,
+    padding: Math.max(12, width * 0.03),
+    marginBottom: Math.max(16, width * 0.04),
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  totalBalance: {
     alignItems: 'center',
+    marginBottom: Math.max(12, width * 0.03),
   },
-  disconnectIcon: {
-    fontSize: Math.max(18, width * 0.045),
-    color: '#ef4444',
-    fontWeight: '600',
+  totalLabel: {
+    color: WALLET_COLORS.textSecondary,
+    fontSize: Math.max(12, width * 0.03),
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  balanceContainer: {
-    alignItems: 'center',
-    marginVertical: Math.max(16, width * 0.04),
-    paddingVertical: Math.max(16, width * 0.04),
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.1)',
-  },
-  balanceLabel: {
-    fontSize: Math.max(12, Math.min(14, width * 0.035)),
-    color: '#94a3b8',
-    marginBottom: 4,
-  },
-  balanceAmount: {
-    fontSize: Math.max(24, Math.min(32, width * 0.07)),
+  totalValue: {
+    color: WALLET_COLORS.text,
+    fontSize: Math.max(24, width * 0.06),
     fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 4,
+    marginTop: 4,
   },
-  balanceUsd: {
-    fontSize: Math.max(14, Math.min(18, width * 0.04)),
-    color: '#10b981',
-    fontWeight: '600',
-  },
-  networkContainer: {
+  primaryCurrency: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Math.max(16, width * 0.04),
+    marginBottom: Math.max(12, width * 0.03),
   },
-  networkBadge: {
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-    borderRadius: 12,
-    paddingHorizontal: Math.max(12, width * 0.03),
-    paddingVertical: Math.max(6, width * 0.015),
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.4)',
-  },
-  networkText: {
-    fontSize: Math.max(10, Math.min(12, width * 0.03)),
-    color: '#6366f1',
+  currencyAmount: {
+    color: WALLET_COLORS.text,
+    fontSize: Math.max(18, width * 0.045),
     fontWeight: '600',
+  },
+  currencyUsd: {
+    color: WALLET_COLORS.textSecondary,
+    fontSize: Math.max(14, width * 0.035),
+  },
+  noBalance: {
+    alignItems: 'center',
+    paddingVertical: Math.max(16, width * 0.04),
+  },
+  noBalanceText: {
+    color: WALLET_COLORS.textSecondary,
+    fontSize: Math.max(14, width * 0.035),
+    marginBottom: 4,
+  },
+  noBalanceSubtext: {
+    color: WALLET_COLORS.textSecondary,
+    fontSize: Math.max(12, width * 0.03),
+  },
+  currencyList: {
+    marginTop: Math.max(12, width * 0.03),
+  },
+  currencyListTitle: {
+    color: WALLET_COLORS.textSecondary,
+    fontSize: Math.max(12, width * 0.03),
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  currencyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  currencyItem: {
+    color: WALLET_COLORS.textSecondary,
+    fontSize: Math.max(13, width * 0.033),
+    fontWeight: '500',
+  },
+  content: {
+    gap: Math.max(16, width * 0.04),
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  infoItem: {
+    flex: 1,
+  },
+  infoLabel: {
+    color: WALLET_COLORS.textSecondary,
+    fontSize: Math.max(12, width * 0.03),
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  infoValue: {
+    color: WALLET_COLORS.text,
+    fontSize: Math.max(14, width * 0.035),
+    fontWeight: '500',
   },
   statusContainer: {
     flexDirection: 'row',
@@ -193,34 +433,35 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 6,
   },
-  statusText: {
-    fontSize: Math.max(12, Math.min(14, width * 0.035)),
-    color: '#10b981',
-    fontWeight: '500',
-  },
-  actionsContainer: {
+  actions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: Math.max(12, width * 0.03),
   },
   actionButton: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Math.max(12, width * 0.03),
-    marginHorizontal: Math.max(4, width * 0.01),
-    backgroundColor: 'rgba(148, 163, 184, 0.1)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
+    justifyContent: 'center',
+    paddingVertical: Math.max(10, width * 0.025),
+    paddingHorizontal: Math.max(16, width * 0.04),
+    borderRadius: Math.max(12, width * 0.03),
+    gap: 6,
   },
-  actionIcon: {
-    fontSize: Math.max(16, width * 0.04),
-    marginBottom: 4,
+  primaryAction: {
+    backgroundColor: WALLET_COLORS.primary,
+  },
+  secondaryAction: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   actionText: {
-    fontSize: Math.max(10, Math.min(12, width * 0.03)),
-    color: '#94a3b8',
+    color: '#ffffff',
+    fontSize: Math.max(12, width * 0.03),
     fontWeight: '500',
   },
 });
 
 export default WalletCard;
+
+
