@@ -5,15 +5,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { CUSTOMER_BOTTOM_NAV_ITEMS } from '../../data/customerDashboardData';
 
 import CustomerDashboard from '../../screens/Home/CustomerDashboard';
-import CampaignsScreen from '../../screens/CampaignsScreen';
 import SegmentsScreen from '../../screens/Segments/SegmentsScreen';
 import ReportsScreen from '../../screens/Reports/ReportsScreen';
+import CustomerCampaignsScreen from '../../screens/CustomerCampaignsScreen';
 
 const Tab = createBottomTabNavigator();
 
 const SCREEN_COMPONENTS = {
   dashboard: CustomerDashboard,
-  campaigns: CampaignsScreen,
+  campaigns: CustomerCampaignsScreen,
   segments: SegmentsScreen,
   reports: ReportsScreen,
 };

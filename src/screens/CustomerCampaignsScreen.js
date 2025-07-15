@@ -150,10 +150,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#6366f1',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
     elevation: 8,
   },
   emptyContainer: {

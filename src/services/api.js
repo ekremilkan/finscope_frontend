@@ -10,8 +10,13 @@ const api = axios.create({
   },
 });
 
-// Interceptor: Add userToken before each request
+// Interceptor: Add userToken before each request, except /health
 api.interceptors.request.use(async (config) => {
+  if (config.url === '/health') {
+    // /health endpoint için Authorization ekleme
+    return config;
+  }
+
   const token = await AsyncStorage.getItem('userToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -40,38 +45,29 @@ api.interceptors.response.use(
 
         console.log('🔄 Attempting token refresh...');
 
-        // YENİ ENDPOINT: /api/v1/user/refresh-token
         const res = await axios.post(`${API_CONFIG.BASE_URL}/api/v1/user/refresh-token`, {
           refreshToken,
         });
 
-        // YENİ RESPONSE FORMAT
         if (res.data.success) {
           const { token: newAccessToken, refreshToken: newRefreshToken } = res.data.data;
 
-          // YENİ TOKEN'LARI KAYDET - Token Rotation
           await AsyncStorage.setItem('userToken', newAccessToken);
           await AsyncStorage.setItem('refreshToken', newRefreshToken);
 
           console.log('✅ Token refresh successful');
 
-          // Original request'i yeni token ile tekrar dene
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return api(originalRequest);
         } else {
           throw new Error(res.data.message || 'Token refresh failed');
         }
       } catch (refreshError) {
-        // Refresh token invalid: logout
         console.log('❌ Refresh token expired, logging out user');
         console.error('Refresh error:', refreshError.response?.data || refreshError.message);
-        
+
         await AsyncStorage.multiRemove(['userToken', 'refreshToken']);
 
-        // Kullanıcıyı login ekranına yönlendir
-        // NavigationService varsa burada kullanabiliriz
-        // NavigationService.navigate('Login')
-        
         return Promise.reject(refreshError);
       }
     }
@@ -84,7 +80,7 @@ api.interceptors.response.use(
 export const refreshAuthToken = async () => {
   try {
     const refreshToken = await AsyncStorage.getItem('refreshToken');
-    
+
     if (!refreshToken) {
       throw new Error('No refresh token found');
     }
@@ -105,7 +101,7 @@ export const refreshAuthToken = async () => {
       return {
         success: true,
         accessToken: newAccessToken,
-        refreshToken: newRefreshToken
+        refreshToken: newRefreshToken,
       };
     } else {
       throw new Error(response.data.message || 'Token refresh failed');
@@ -114,7 +110,7 @@ export const refreshAuthToken = async () => {
     console.error('❌ Manual token refresh failed:', error.response?.data || error.message);
     return {
       success: false,
-      error: error.response?.data || error.message
+      error: error.response?.data || error.message,
     };
   }
 };
@@ -137,7 +133,7 @@ export const isAuthenticated = async () => {
   try {
     const accessToken = await AsyncStorage.getItem('userToken');
     const refreshToken = await AsyncStorage.getItem('refreshToken');
-    
+
     return !!(accessToken || refreshToken);
   } catch (error) {
     console.error('Auth check error:', error);

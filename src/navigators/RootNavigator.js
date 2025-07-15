@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import SplashScreen from 'react-native-splash-screen';
+
+import api, { isAuthenticated } from '../services/api';
 
 import EmailVerificationScreen from '../screens/EmailVerification/EmailVerificationScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
@@ -13,50 +16,68 @@ const Stack = createStackNavigator();
 
 const RootNavigator = () => {
   const [initialScreen, setInitialScreen] = useState(null);
+  const [backendOnline, setBackendOnline] = useState(null);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const onboardingSeen = await AsyncStorage.getItem('onboardingSeen');
-        const token = await AsyncStorage.getItem('userToken');
-        const refreshToken = await AsyncStorage.getItem('refreshToken');
+  const checkBackendHealth = async () => {
+    try {
+      await api.get('/health'); // Authorization header eklenmiyor, timeout ayarlı
+      setBackendOnline(true);
+    } catch (e) {
+      console.log('❌ Backend offline:', e.message);
+      setBackendOnline(false);
+    }
+  };
 
-        console.log('🔍 Auth Debug - Onboarding:', onboardingSeen);
-        console.log('🔍 Auth Debug - Token:', token ? 'EXISTS' : 'NULL');
-        console.log('🔍 Auth Debug - RefreshToken:', refreshToken ? 'EXISTS' : 'NULL');
+  const checkSession = async () => {
+    try {
+      const onboardingSeen = await AsyncStorage.getItem('onboardingSeen');
+      const authenticated = await isAuthenticated();
 
-        const isAuthenticated = !!(token || refreshToken);
-        console.log('🔍 Auth Debug - isAuthenticated:', isAuthenticated);
-
-        if (!onboardingSeen) {
-          console.log('🔍 Auth Debug - Redirecting to: Onboarding');
-          setInitialScreen('Onboarding');
-        } else if (isAuthenticated) {
-          console.log('🔍 Auth Debug - Redirecting to: App');
-          setInitialScreen('App');  
-        } else {
-          console.log('🔍 Auth Debug - Redirecting to: Auth');
-          setInitialScreen('Auth');
-        }
-      } catch (e) {
-        console.log('🔍 Auth Debug - Error:', e);
+      if (!onboardingSeen) {
+        setInitialScreen('Onboarding');
+      } else if (authenticated) {
+        setInitialScreen('App');
+      } else {
         setInitialScreen('Auth');
       }
-    };
+    } catch (e) {
+      console.log('Auth check error:', e.message);
+      setInitialScreen('Auth');
+    }
+  };
 
-    checkSession();
+  useEffect(() => {
+    checkBackendHealth();
   }, []);
+
+  useEffect(() => {
+    if (backendOnline === true) {
+      checkSession();
+      SplashScreen.hide(); // Backend canlıysa splash kapat
+    }
+  }, [backendOnline]);
+
+  if (backendOnline === null) {
+    // Splash açık kalır
+    return null;
+  }
+
+  if (backendOnline === false) {
+  // Backend is offline, show error to user
+  return (
+    <View style={styles.center}>
+      <Text style={styles.errorText}>Server is offline 🚫</Text>
+      <Text style={styles.subText}>Please check your internet connection.</Text>
+      <TouchableOpacity onPress={checkBackendHealth} style={styles.retryButton}>
+        <Text style={styles.retryText}>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
   if (!initialScreen) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#0f172a',
-        }}
-      >
+      <View style={styles.loading}>
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -76,5 +97,39 @@ const RootNavigator = () => {
     </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'white',
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  subText: {
+    color: '#ccc',
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    backgroundColor: '#1e293b',
+    borderRadius: 8,
+  },
+  retryText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  loading: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default RootNavigator;
