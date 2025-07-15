@@ -14,13 +14,15 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get('window');
 
-const CustomerCampaignCreateModal = ({ 
-  visible, 
-  onClose, 
-  onSubmit, 
-  categories, 
-  difficulties 
+const CustomerCampaignCreateModal = ({
+  visible,
+  onClose,
+  onSubmit,
+  categories,
+  difficulties,
 }) => {
+  const [step, setStep] = useState(1);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,30 +31,11 @@ const CustomerCampaignCreateModal = ({
     category: 'education',
     difficulty: 'Beginner',
     duration: '',
-    questions: '',
     passRate: '70',
-    tags: []
+    tags: [],
   });
 
-  const handleSubmit = () => {
-    if (!formData.title || !formData.description || !formData.reward) {
-      Alert.alert('Error', 'Please fill in required fields.');
-      return;
-    }
-
-    const processedData = {
-      ...formData,
-      reward: parseInt(formData.reward),
-      maxParticipants: parseInt(formData.maxParticipants) || 100,
-      questions: parseInt(formData.questions) || 5,
-      passRate: parseInt(formData.passRate),
-      tags: formData.tags.length > 0 ? formData.tags : [formData.category]
-    };
-
-    onSubmit(processedData);
-    resetForm();
-    Alert.alert('Success', 'Campaign created successfully!');
-  };
+  const [questionsList, setQuestionsList] = useState([]);
 
   const resetForm = () => {
     setFormData({
@@ -63,10 +46,11 @@ const CustomerCampaignCreateModal = ({
       category: 'education',
       difficulty: 'Beginner',
       duration: '',
-      questions: '',
       passRate: '70',
-      tags: []
+      tags: [],
     });
+    setQuestionsList([]);
+    setStep(1);
   };
 
   const handleClose = () => {
@@ -76,6 +60,150 @@ const CustomerCampaignCreateModal = ({
 
   const updateFormData = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    if (step === 1) {
+      // Step 1: kampanya formu validasyonu
+      if (!formData.title || !formData.description || !formData.reward) {
+        Alert.alert('Error', 'Please fill in required fields.');
+        return;
+      }
+      setStep(2);
+    } else {
+      // Step 2: sorular kontrolü ve form submit
+      if (questionsList.length === 0) {
+        Alert.alert('Error', 'Please add at least one question.');
+        return;
+      }
+
+      const processedData = {
+        ...formData,
+        reward: parseInt(formData.reward),
+        maxParticipants: parseInt(formData.maxParticipants) || 100,
+        questions: questionsList.length,
+        passRate: parseInt(formData.passRate),
+        tags: formData.tags.length > 0 ? formData.tags : [formData.category],
+        questionsList: questionsList,
+      };
+
+      onSubmit(processedData);
+      Alert.alert('Success', 'Campaign created successfully!');
+      handleClose();
+    }
+  };
+
+  // QuestionForm component
+  const QuestionForm = ({ onAddQuestion }) => {
+    const [question, setQuestion] = useState('');
+    const [options, setOptions] = useState(['', '', '', '']);
+    const [correctAnswerIndex, setCorrectAnswerIndex] = useState(null);
+
+    const handleOptionChange = (text, index) => {
+      const newOptions = [...options];
+      newOptions[index] = text;
+      setOptions(newOptions);
+    };
+
+    const handleAdd = () => {
+      if (!question.trim()) {
+        Alert.alert('Error', 'Question cannot be empty');
+        return;
+      }
+      if (options.some(opt => !opt.trim())) {
+        Alert.alert('Error', 'All 4 options must be filled');
+        return;
+      }
+      if (correctAnswerIndex === null) {
+        Alert.alert('Error', 'Please select the correct answer');
+        return;
+      }
+
+      onAddQuestion({
+        question,
+        options,
+        correctAnswerIndex,
+      });
+
+      setQuestion('');
+      setOptions(['', '', '', '']);
+      setCorrectAnswerIndex(null);
+    };
+
+    return (
+      <View style={{ marginTop: 20, marginBottom: 40 }}>
+        <TextInput
+          style={styles.formInput}
+          placeholder="Enter question"
+          placeholderTextColor="#94a3b8"
+          value={question}
+          onChangeText={setQuestion}
+        />
+        {options.map((opt, i) => (
+          <TouchableOpacity
+            key={i}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 10,
+              backgroundColor: 'rgba(15, 23, 42, 0.8)',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor:
+                correctAnswerIndex === i
+                  ? '#4ade80'
+                  : 'rgba(148, 163, 184, 0.3)',
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+            onPress={() => setCorrectAnswerIndex(i)}
+            activeOpacity={0.7}
+          >
+            <View
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: correctAnswerIndex === i ? '#4ade80' : '#94a3b8',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 12,
+              }}
+            >
+              {correctAnswerIndex === i && (
+                <View
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: 6,
+                    backgroundColor: '#4ade80',
+                  }}
+                />
+              )}
+            </View>
+            <TextInput
+              style={{
+                flex: 1,
+                color: '#fff',
+                fontSize: Math.max(16, width * 0.04),
+              }}
+              placeholder={`Option ${String.fromCharCode(65 + i)}`}
+              placeholderTextColor="#94a3b8"
+              value={opt}
+              onChangeText={text => handleOptionChange(text, i)}
+            />
+          </TouchableOpacity>
+        ))}
+
+        <TouchableOpacity
+          style={[styles.modalButton, { marginTop: 20, backgroundColor: '#4ade80' }]}
+          onPress={handleAdd}
+        >
+          <Text style={[styles.createButtonText, { color: '#0f172a' }]}>Add Question</Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   return (
@@ -89,171 +217,230 @@ const CustomerCampaignCreateModal = ({
         <View style={styles.createModal}>
           {/* Fixed Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>New Campaign</Text>
+            <Text style={styles.modalTitle}>
+              {step === 1 ? 'New Campaign' : 'Add Questions'}
+            </Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <Icon name="close" size={24} color="#ffffff" />
             </TouchableOpacity>
           </View>
 
           {/* Scrollable Content */}
-          <ScrollView 
-            style={styles.modalContent} 
+          <ScrollView
+            style={styles.modalContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Campaign Title *</Text>
-              <TextInput
-                style={styles.formInput}
-                placeholder="Enter campaign title"
-                placeholderTextColor="#94a3b8"
-                value={formData.title}
-                onChangeText={(text) => updateFormData('title', text)}
-                maxLength={100}
-              />
-            </View>
+            {step === 1 && (
+              <>
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Campaign Title *</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="Enter campaign title"
+                    placeholderTextColor="#94a3b8"
+                    value={formData.title}
+                    onChangeText={text => updateFormData('title', text)}
+                    maxLength={100}
+                  />
+                </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Description *</Text>
-              <TextInput
-                style={[styles.formInput, styles.textArea]}
-                placeholder="Enter campaign description"
-                placeholderTextColor="#94a3b8"
-                multiline
-                numberOfLines={4}
-                value={formData.description}
-                onChangeText={(text) => updateFormData('description', text)}
-                maxLength={500}
-                textAlignVertical="top"
-              />
-            </View>
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Description *</Text>
+                  <TextInput
+                    style={[styles.formInput, styles.textArea]}
+                    placeholder="Enter campaign description"
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    numberOfLines={4}
+                    value={formData.description}
+                    onChangeText={text => updateFormData('description', text)}
+                    maxLength={500}
+                    textAlignVertical="top"
+                  />
+                </View>
 
-            <View style={styles.formRow}>
-              <View style={styles.formGroupHalf}>
-                <Text style={styles.formLabel}>Reward (USDT) *</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="0"
-                  placeholderTextColor="#94a3b8"
-                  keyboardType="numeric"
-                  value={formData.reward}
-                  onChangeText={(text) => updateFormData('reward', text)}
-                />
-              </View>
+                <View style={styles.formRow}>
+                  <View style={styles.formGroupHalf}>
+                    <Text style={styles.formLabel}>Reward (USDT) *</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="0"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="numeric"
+                      value={formData.reward}
+                      onChangeText={text => updateFormData('reward', text)}
+                    />
+                  </View>
 
-              <View style={styles.formGroupHalf}>
-                <Text style={styles.formLabel}>Max Participants</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="100"
-                  placeholderTextColor="#94a3b8"
-                  keyboardType="numeric"
-                  value={formData.maxParticipants}
-                  onChangeText={(text) => updateFormData('maxParticipants', text)}
-                />
-              </View>
-            </View>
+                  <View style={styles.formGroupHalf}>
+                    <Text style={styles.formLabel}>Max Participants</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="100"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="numeric"
+                      value={formData.maxParticipants}
+                      onChangeText={text => updateFormData('maxParticipants', text)}
+                    />
+                  </View>
+                </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Category</Text>
-              <View style={styles.pickerContainer}>
-                {categories && categories.slice(1).map((category) => (
-                  <TouchableOpacity
-                    key={category.id}
-                    style={[
-                      styles.pickerOption,
-                      formData.category === category.id && styles.selectedOption
-                    ]}
-                    onPress={() => updateFormData('category', category.id)}
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Category</Text>
+                  <View style={styles.pickerContainer}>
+                    {categories &&
+                      categories.slice(1).map(category => (
+                        <TouchableOpacity
+                          key={category.id}
+                          style={[
+                            styles.pickerOption,
+                            formData.category === category.id && styles.selectedOption,
+                          ]}
+                          onPress={() => updateFormData('category', category.id)}
+                        >
+                          <Text
+                            style={[
+                              styles.pickerText,
+                              formData.category === category.id && styles.selectedText,
+                            ]}
+                          >
+                            {category.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Difficulty Level</Text>
+                  <View style={styles.pickerContainer}>
+                    {difficulties &&
+                      difficulties.map(difficulty => (
+                        <TouchableOpacity
+                          key={difficulty}
+                          style={[
+                            styles.pickerOption,
+                            formData.difficulty === difficulty && styles.selectedOption,
+                          ]}
+                          onPress={() => updateFormData('difficulty', difficulty)}
+                        >
+                          <Text
+                            style={[
+                              styles.pickerText,
+                              formData.difficulty === difficulty && styles.selectedText,
+                            ]}
+                          >
+                            {difficulty}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                  </View>
+                </View>
+
+                <View style={styles.formRow}>
+                  <View style={styles.formGroupHalf}>
+                    <Text style={styles.formLabel}>Duration</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="5 days"
+                      placeholderTextColor="#94a3b8"
+                      value={formData.duration}
+                      onChangeText={text => updateFormData('duration', text)}
+                    />
+                  </View>
+
+                  <View style={styles.formGroupHalf}>
+                    <Text style={styles.formLabel}>Pass Score (%)</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="70"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="numeric"
+                      value={formData.passRate}
+                      onChangeText={text => updateFormData('passRate', text)}
+                    />
+                  </View>
+                </View>
+
+                {/* Bottom spacing for keyboard */}
+                <View style={styles.bottomSpacing} />
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <Text style={[styles.formLabel, { marginBottom: 12 }]}>Add Questions</Text>
+
+                {questionsList.length === 0 && (
+                  <Text style={{ color: '#94a3b8', marginBottom: 10 }}>
+                    No questions added yet.
+                  </Text>
+                )}
+
+                {questionsList.map((q, idx) => (
+                  <View
+                    key={idx}
+                    style={{
+                      marginBottom: 20,
+                      backgroundColor: 'rgba(15,23,42,0.8)',
+                      borderRadius: 12,
+                      padding: 12,
+                    }}
                   >
-                    <Text style={[
-                      styles.pickerText,
-                      formData.category === category.id && styles.selectedText
-                    ]}>
-                      {category.name}
+                    <Text
+                      style={{ color: '#fff', fontWeight: '700', marginBottom: 6 }}
+                    >
+                      Question {idx + 1}:
                     </Text>
-                  </TouchableOpacity>
+                    <Text style={{ color: '#d1d5db', marginBottom: 8 }}>{q.question}</Text>
+                    {q.options.map((opt, i) => (
+                      <Text
+                        key={i}
+                        style={{
+                          color: i === q.correctAnswerIndex ? '#4ade80' : '#94a3b8',
+                          fontWeight: i === q.correctAnswerIndex ? '700' : '400',
+                        }}
+                      >
+                        {String.fromCharCode(65 + i)}. {opt}
+                      </Text>
+                    ))}
+                  </View>
                 ))}
-              </View>
-            </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Difficulty Level</Text>
-              <View style={styles.pickerContainer}>
-                {difficulties && difficulties.map((difficulty) => (
-                  <TouchableOpacity
-                    key={difficulty}
-                    style={[
-                      styles.pickerOption,
-                      formData.difficulty === difficulty && styles.selectedOption
-                    ]}
-                    onPress={() => updateFormData('difficulty', difficulty)}
-                  >
-                    <Text style={[
-                      styles.pickerText,
-                      formData.difficulty === difficulty && styles.selectedText
-                    ]}>
-                      {difficulty}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.formRow}>
-              <View style={styles.formGroupHalf}>
-                <Text style={styles.formLabel}>Duration</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="5 days"
-                  placeholderTextColor="#94a3b8"
-                  value={formData.duration}
-                  onChangeText={(text) => updateFormData('duration', text)}
+                <QuestionForm
+                  onAddQuestion={newQuestion => {
+                    setQuestionsList(prev => [...prev, newQuestion]);
+                  }}
                 />
-              </View>
-
-              <View style={styles.formGroupHalf}>
-                <Text style={styles.formLabel}>Number of Questions</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="5"
-                  placeholderTextColor="#94a3b8"
-                  keyboardType="numeric"
-                  value={formData.questions}
-                  onChangeText={(text) => updateFormData('questions', text)}
-                />
-              </View>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Pass Score (%)</Text>
-              <TextInput
-                style={styles.formInput}
-                placeholder="70"
-                placeholderTextColor="#94a3b8"
-                keyboardType="numeric"
-                value={formData.passRate}
-                onChangeText={(text) => updateFormData('passRate', text)}
-              />
-            </View>
-
-            {/* Bottom spacing for keyboard */}
-            <View style={styles.bottomSpacing} />
+                <View style={styles.bottomSpacing} />
+              </>
+            )}
           </ScrollView>
 
           {/* Fixed Bottom Actions */}
           <View style={styles.modalActions}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.modalButton, styles.cancelButton]}
-              onPress={handleClose}
+              onPress={() => {
+                if (step === 2) {
+                  setStep(1);
+                } else {
+                  handleClose();
+                }
+              }}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>
+                {step === 2 ? 'Back' : 'Cancel'}
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.modalButton, styles.createButton]}
               onPress={handleSubmit}
             >
-              <Text style={styles.createButtonText}>Create</Text>
+              <Text style={styles.createButtonText}>
+                {step === 1 ? 'Next' : 'Submit'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -411,4 +598,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomerCampaignCreateModal; 
+export default CustomerCampaignCreateModal;
