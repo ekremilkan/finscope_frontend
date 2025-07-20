@@ -1,3 +1,13 @@
+//onboard 5 sayfa (zorunlu)
+//yanlış cevap +20 saniye doğru olmadan sonraki soruya geçilmiyor 
+//test sonunda doğruluk yüzdesi olmayacak
+//quiz tamamlandı ekranında geçip geçmediği (limite göre quiz anıında veya öncesinde pop-up açılacak(websocket))
+//try again butonu kalkacak
+//süre=person
+//advanced yerine kampanya status bilgisi
+//search yoruma al
+//
+
 import React, { useState, useEffect } from 'react';
 import {
   View,

@@ -1,3 +1,5 @@
+//her kategoride kullanıcı segmentleri (kaçar tane) görüntülenebilir (nansen apiye bağlı)
+//
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,7 +8,7 @@ const SegmentsScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.inner}>
-        <Text style={styles.text}>Segments Screen</Text>
+        <Text style={styles.text}>Coming Soon...</Text>
       </View>
     </SafeAreaView>
   );

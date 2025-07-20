@@ -1,3 +1,6 @@
+//community=social links
+//ayarlar ikonu yerine logout ikonu gelecek
+
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -48,13 +51,13 @@ const HomeScreen = ({ navigation,onSwitchPress  }) => {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-      >
-        <HomeStatsCard userData={userData} />
-        <HomeQuickActions quickActions={QUICK_ACTIONS} />
-        <HomeActiveCampaigns 
+      > <HomeActiveCampaigns 
           activeCampaigns={ACTIVE_CAMPAIGNS}
           onCampaignStart={handleCampaignPress}
         />
+        <HomeStatsCard userData={userData} />
+        <HomeQuickActions quickActions={QUICK_ACTIONS} /> //3 lü swiper 
+       
         <View style={styles.bottomSpacing} />
       </ScrollView>
 

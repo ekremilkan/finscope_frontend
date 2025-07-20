@@ -1,3 +1,4 @@
+//misafir kullanıcı ?
 import React, { useState } from 'react';
 import {
   View,

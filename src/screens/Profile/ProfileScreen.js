@@ -1,3 +1,12 @@
+//kullanıcı istatistikleri
+//terms of service
+//privicy policy
+//theme ? 
+//notif ? 
+//account delete
+//contact us(müşteri)
+//earn rewards (status)
+
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 

@@ -1,3 +1,8 @@
+//kampanya oluşturma web sitesi üzerinden olacak (link ile yönlendirme)
+//ROI kaldrılacak
+//start edit delete kalkıcak (report kalacak (kullanıcı segmentleri))
+//deFi-meme-rwa(real word asset)-ai
+
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
