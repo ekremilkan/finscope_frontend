@@ -34,72 +34,70 @@ const LoginScreen = ({ navigation }) => {
     return emailRegex.test(email);
   };
 
-const handleLogin = async () => {
-  if (!email.trim() || !password.trim()) {
-    Alert.alert('Validation Error', 'Please fill in all fields');
-    return;
-  }
-
-  if (!validateEmail(email)) {
-    Alert.alert('Validation Error', 'Please enter a valid email address');
-    return;
-  }
-
-  if (password.length < 6) {
-    Alert.alert('Validation Error', 'Password must be at least 6 characters');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const response = await authService.login(email.trim(), password);
-
-    console.log('Login yanıtı:', JSON.stringify(response, null, 2)); // Yanıtı görmek için
-
-    const fullMessage =
-      response?.data?.data?.message ||
-      response?.data?.message ||
-      '';
-
-    if (fullMessage.toLowerCase().includes('doğrulama kodu')) {
-      navigation.replace('EmailVerification', {
-        email: email.trim(),
-        expiresIn: 600, // veya response.data?.expiresIn
-      });
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Validation Error', 'Please fill in all fields');
       return;
     }
 
-    // Token da yok, doğrulama mesajı da yok → garip bir durum
-    Alert.alert('Login Error', 'Giriş başarılı ama doğrulama gerekebilir.');
-  } catch (error) {
-    console.log('Login error:', error);
-    const errorMessage =
-      error?.response?.data?.message ||
-      error?.message ||
-      'Login failed. Please check your credentials.';
-    Alert.alert('Login Failed', errorMessage);
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!validateEmail(email)) {
+      Alert.alert('Validation Error', 'Please enter a valid email address');
+      return;
+    }
 
+    if (password.length < 6) {
+      Alert.alert('Validation Error', 'Password must be at least 6 characters');
+      return;
+    }
 
+    setLoading(true);
 
+    try {
+      const response = await authService.login(email.trim(), password);
+
+      console.log('Login yanıtı:', JSON.stringify(response, null, 2));
+
+      const fullMessage =
+        response?.data?.data?.message ||
+        response?.data?.message ||
+        '';
+
+      if (fullMessage.toLowerCase().includes('doğrulama kodu')) {
+        navigation.replace('EmailVerification', {
+          email: email.trim(),
+          expiresIn: 600,
+        });
+        return;
+      }
+
+      Alert.alert('Login Error', 'Giriş başarılı ama doğrulama gerekebilir.');
+    } catch (error) {
+      console.log('Login error:', error);
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Login failed. Please check your credentials.';
+      Alert.alert('Login Failed', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSocialLogin = provider => {
-    Alert.alert('Coming Soon', `${provider} login will be available soon!`);
+    Alert.alert('Coming Soon', `${provider}login will be available soon!`)
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        bounces={false}
       >
         <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
           {/* Header Section */}
@@ -148,9 +146,13 @@ const handleLogin = async () => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  autoComplete="email"
+                  textContentType="emailAddress"
                   editable={!loading}
                   onFocus={() => setEmailFocused(true)}
                   onBlur={() => setEmailFocused(false)}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
                 />
               </View>
             </View>
@@ -177,9 +179,13 @@ const handleLogin = async () => {
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
+                  autoComplete="password"
+                  textContentType="password"
                   editable={!loading}
                   onFocus={() => setPasswordFocused(true)}
                   onBlur={() => setPasswordFocused(false)}
+                  returnKeyType="done"
+                  onSubmitEditing={handleLogin}
                 />
                 <TouchableOpacity
                   style={styles.eyeButton}
@@ -275,7 +281,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: height * 0.08,
+    paddingTop: Platform.OS === 'ios' ? height * 0.06 : height * 0.08,
     paddingBottom: height * 0.04,
   },
   logoContainer: {
@@ -291,6 +297,17 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(99, 102, 241, 0.2)',
     overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366f1',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   logoImage: {
     width: 120,
@@ -301,16 +318,27 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: width * 0.08,
-    fontWeight: '700',
+    fontWeight: Platform.OS === 'ios' ? '700' : 'bold',
     color: '#ffffff',
     marginBottom: 8,
     textAlign: 'center',
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+      },
+    }),
   },
   subtitle: {
     fontSize: width * 0.04,
     color: '#94a3b8',
     textAlign: 'center',
     lineHeight: 24,
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+        fontWeight: '400',
+      },
+    }),
   },
   formContainer: {
     flex: 1,
@@ -321,23 +349,50 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
     color: '#e2e8f0',
     marginBottom: 8,
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+      },
+    }),
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1e293b',
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: Platform.OS === 'ios' ? 12 : 16,
+    borderWidth: Platform.OS === 'ios' ? 1 : 1,
     borderColor: '#334155',
     paddingHorizontal: 16,
-    height: 56,
+    height: Platform.OS === 'ios' ? 52 : 56,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   inputWrapperFocused: {
     borderColor: '#6366f1',
     backgroundColor: '#1e293b',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366f1',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   inputWrapperError: {
     borderColor: '#ef4444',
@@ -349,35 +404,53 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#ffffff',
-    paddingVertical: 0,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 0,
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+      },
+    }),
   },
   passwordInput: {
     paddingRight: 12,
   },
   eyeButton: {
-    padding: 4,
+    padding: 8,
+    borderRadius: 8,
   },
   forgotPasswordContainer: {
     alignSelf: 'flex-end',
     marginBottom: 32,
+    paddingVertical: 8,
   },
   forgotPasswordText: {
     fontSize: 14,
     color: '#6366f1',
-    fontWeight: '500',
+    fontWeight: Platform.OS === 'ios' ? '500' : 'bold',
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+      },
+    }),
   },
   loginButton: {
     backgroundColor: '#6366f1',
-    borderRadius: 16,
-    height: 56,
+    borderRadius: Platform.OS === 'ios' ? 12 : 16,
+    height: Platform.OS === 'ios' ? 52 : 56,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 32,
-    // shadowColor: '#6366f1',
-    // shadowOffset: { width: 0, height: 4 },
-    // shadowOpacity: 0.3,
-    // shadowRadius: 8,
-    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366f1',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   loginButtonDisabled: {
     opacity: 0.7,
@@ -385,7 +458,12 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+      },
+    }),
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -394,8 +472,13 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
     marginLeft: 8,
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+      },
+    }),
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -411,6 +494,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 14,
     color: '#64748b',
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+        fontWeight: '400',
+      },
+    }),
   },
   socialContainer: {
     flexDirection: 'row',
@@ -419,39 +508,56 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: Platform.OS === 'ios' ? 52 : 56,
+    height: Platform.OS === 'ios' ? 52 : 56,
+    borderRadius: Platform.OS === 'ios' ? 12 : 16,
     backgroundColor: '#1e293b',
     borderWidth: 1,
     borderColor: '#334155',
     justifyContent: 'center',
     alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   googleIcon: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#ea4335',
   },
-  facebookIcon: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1877f2',
-  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 32,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 32,
   },
   footerText: {
     fontSize: 16,
     color: '#94a3b8',
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+        fontWeight: '400',
+      },
+    }),
   },
   signUpText: {
     fontSize: 16,
     color: '#6366f1',
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+    ...Platform.select({
+      ios: {
+        fontFamily: 'San Francisco',
+      },
+    }),
   },
 });
 
