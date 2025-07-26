@@ -1,3 +1,5 @@
+//multi wallet bağlantısnda bağlı cüzdanların kopmaması, güvenlik iççn imza olması lazım
+//etherium yazan kısmı diğer ağlara göre dinamik hale getirmek lazım
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Alert, BackHandler, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -349,8 +351,8 @@ const WalletScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <WebView
         ref={webViewRef}
-        source={{ uri: 'http://10.0.2.2:5173' }}
-        // iOS için: source={{ uri: 'http://localhost:5173' }}
+        source={{ uri: 'http://localhost:5173/wallet' }}
+        // iOS için: source={{ uri: 'http://192.168.1.105:5173' }}
         // Production için kendi domain'inizi kullanın
         originWhitelist={['*']}
         onMessage={handleWebViewMessage}

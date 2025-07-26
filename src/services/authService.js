@@ -37,6 +37,20 @@ export const authService = {
     }
   },
 
+  getUserById: async (userId) => {
+    try {
+      const token = await storageService.getToken();
+      const response = await api.get(`/user/getUserById/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data?.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Password reset
   forgotPassword: async email => {
     try {
