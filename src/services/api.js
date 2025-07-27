@@ -10,16 +10,39 @@ const api = axios.create({
   },
 });
 
-// Interceptor: Add userToken before each request, except /health
+// Debug: API konfigürasyonunu logla
+console.log('🔧 API Service Debug:', {
+  BASE_URL: API_CONFIG.BASE_URL,
+  TIMEOUT: API_CONFIG.TIMEOUT
+});
+
+// Interceptor: Add userToken before each request, except /health and email verification endpoints
 api.interceptors.request.use(async (config) => {
-  if (config.url === '/health') {
-    // /health endpoint için Authorization ekleme
+  // Authentication gerektirmeyen endpoint'ler
+  const publicEndpoints = [
+    '/health',
+    '/user/verify-login',
+    '/user/resend-verification-code'
+  ];
+  
+  console.log('🔧 API Request Debug:', {
+    url: config.url,
+    method: config.method,
+    isPublic: publicEndpoints.includes(config.url)
+  });
+  
+  if (publicEndpoints.includes(config.url)) {
+    // Bu endpoint'ler için Authorization ekleme
+    console.log('📡 Public endpoint, skipping Authorization header');
     return config;
   }
 
   const token = await AsyncStorage.getItem('userToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('🔑 Authorization header added');
+  } else {
+    console.log('⚠️ No token found for protected endpoint');
   }
   return config;
 });
@@ -45,7 +68,7 @@ api.interceptors.response.use(
 
         console.log('🔄 Attempting token refresh...');
 
-        const res = await axios.post(`${API_CONFIG.BASE_URL}/api/v1/user/refresh-token`, {
+        const res = await axios.post(`${API_CONFIG.BASE_URL}/user/refresh-token`, {
           refreshToken,
         });
 
@@ -87,7 +110,7 @@ export const refreshAuthToken = async () => {
 
     console.log('🔄 Manual token refresh...');
 
-    const response = await axios.post(`${API_CONFIG.BASE_URL}/api/v1/user/refresh-token`, {
+    const response = await axios.post(`${API_CONFIG.BASE_URL}/user/refresh-token`, {
       refreshToken,
     });
 

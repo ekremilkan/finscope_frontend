@@ -9,7 +9,8 @@ const QuizNavigation = ({
   totalQuestions, 
   hasSelectedAnswer, 
   onPrevious, 
-  onNext 
+  onNext,
+  disabled = false
 }) => {
   const isFirstQuestion = currentQuestionIndex === 0;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
@@ -17,9 +18,13 @@ const QuizNavigation = ({
   return (
     <View style={styles.navigationContainer}>
       <TouchableOpacity
-        style={[styles.navButton, styles.prevButton]}
+        style={[
+          styles.navButton, 
+          styles.prevButton,
+          disabled && styles.disabledButton
+        ]}
         onPress={onPrevious}
-        disabled={isFirstQuestion}
+        disabled={isFirstQuestion || disabled}
         activeOpacity={0.8}
       >
         <Icon name="chevron-left" size={24} color="#ffffff" />
@@ -30,14 +35,14 @@ const QuizNavigation = ({
         style={[
           styles.navButton, 
           styles.nextButton,
-          !hasSelectedAnswer && styles.disabledButton
+          (!hasSelectedAnswer || disabled) && styles.disabledButton
         ]}
         onPress={onNext}
-        disabled={!hasSelectedAnswer}
+        disabled={!hasSelectedAnswer || disabled}
         activeOpacity={0.8}
       >
         <Text style={styles.navButtonText}>
-          {isLastQuestion ? 'Bitir' : 'Sonraki'}
+          {isLastQuestion ? 'Finish' : 'Next'}
         </Text>
         <Icon name="chevron-right" size={24} color="#ffffff" />
       </TouchableOpacity>

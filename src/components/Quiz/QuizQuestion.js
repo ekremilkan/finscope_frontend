@@ -7,7 +7,7 @@ const QuizQuestion = ({ questionNumber, questionText }) => {
   return (
     <View style={styles.questionContainer}>
       <Text style={styles.questionNumber}>
-        Soru {questionNumber}
+        Question {questionNumber}
       </Text>
       <Text style={styles.questionText}>
         {questionText}

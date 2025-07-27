@@ -4,37 +4,57 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width } = Dimensions.get('window');
 
-const QuizOptions = ({ options, selectedAnswer, onAnswerSelect }) => {
+const QuizOptions = ({ options, selectedAnswer, onAnswerSelect, disabled = false, showCorrectAnswer = false, correctAnswerIndex = null }) => {
   return (
     <View style={styles.optionsContainer}>
-      {options.map((option, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.optionButton,
-            selectedAnswer === index && styles.selectedOption
-          ]}
-          onPress={() => onAnswerSelect(index)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.optionContent}>
-            <View style={[
-              styles.optionCircle,
-              selectedAnswer === index && styles.selectedCircle
-            ]}>
-              {selectedAnswer === index && (
-                <Icon name="check" size={16} color="#ffffff" />
-              )}
+      {options.map((option, index) => {
+        const isSelected = selectedAnswer === index;
+        const isCorrect = showCorrectAnswer && correctAnswerIndex === index && isSelected;
+        const isWrong = showCorrectAnswer && isSelected && correctAnswerIndex !== index;
+        
+        return (
+          <TouchableOpacity
+            key={option._id || index}
+            style={[
+              styles.optionButton,
+              isSelected && styles.selectedOption,
+              disabled && styles.disabledOption,
+              isCorrect && styles.correctOption,
+              isWrong && styles.wrongOption
+            ]}
+            onPress={() => !disabled && onAnswerSelect(index)}
+            activeOpacity={disabled ? 1 : 0.8}
+            disabled={disabled}
+          >
+            <View style={styles.optionContent}>
+              <View style={[
+                styles.optionCircle,
+                isSelected && styles.selectedCircle,
+                disabled && styles.disabledCircle,
+                isCorrect && styles.correctCircle,
+                isWrong && styles.wrongCircle
+              ]}>
+                {isSelected && (
+                  <Icon 
+                    name={isCorrect ? "check" : "close"} 
+                    size={16} 
+                    color="#ffffff" 
+                  />
+                )}
+              </View>
+              <Text style={[
+                styles.optionText,
+                isSelected && styles.selectedOptionText,
+                disabled && styles.disabledOptionText,
+                isCorrect && styles.correctOptionText,
+                isWrong && styles.wrongOptionText
+              ]}>
+                {option.text || option}
+              </Text>
             </View>
-            <Text style={[
-              styles.optionText,
-              selectedAnswer === index && styles.selectedOptionText
-            ]}>
-              {option}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 };
@@ -88,6 +108,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   selectedOptionText: {
+    fontWeight: '600',
+  },
+  disabledOption: {
+    opacity: 0.7,
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    borderColor: 'rgba(148, 163, 184, 0.2)',
+    shadowOpacity: 0.05,
+    elevation: 1,
+  },
+  disabledCircle: {
+    backgroundColor: 'rgba(148, 163, 184, 0.5)',
+    borderColor: 'rgba(148, 163, 184, 0.5)',
+  },
+  disabledOptionText: {
+    color: 'rgba(148, 163, 184, 0.7)',
+  },
+  correctOption: {
+    borderColor: '#22c55e',
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    shadowColor: '#22c55e',
+    shadowOpacity: 0.3,
+  },
+  correctCircle: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  wrongOption: {
+    borderColor: '#ef4444',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    shadowColor: '#ef4444',
+    shadowOpacity: 0.3,
+  },
+  wrongCircle: {
+    backgroundColor: '#ef4444',
+    borderColor: '#ef4444',
+  },
+  correctOptionText: {
+    color: '#22c55e',
+    fontWeight: '600',
+  },
+  wrongOptionText: {
+    color: '#ef4444',
     fontWeight: '600',
   },
 });

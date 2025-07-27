@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,28 +8,31 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Services
-import campaignService from '../services/campaignService';
+import campaignService from '../../services/campaignService';
 
 // Utils
-import { filterUserCampaigns, handleJoinCampaign } from '../utils/userCampaignUtils';
-import { handleApiError } from '../utils/campaignUtils';
-import { navigateToCampaignDetail, getNavigationParams, setNavigationParams } from '../utils/navigationUtils';
+import { 
+  refreshCampaigns, 
+  searchCampaigns, 
+  filterAndSortCampaigns,
+  handleApiError 
+} from '../../utils/campaignUtils';
 
 // Components
-import UserCampaignHeader from '../components/UserCampaign/UserCampaignHeader';
-import UserCampaignSearchBar from '../components/UserCampaign/UserCampaignSearchBar';
-import UserCampaignFilters from '../components/UserCampaign/UserCampaignFilters';
-import UserCampaignCard from '../components/UserCampaign/UserCampaignCard';
+import CampaignCard from '../../components/Campaign/CampaignCard';
+import CampaignHeader from '../../components/Campaign/CampaignHeader';
+import CampaignSearchBar from '../../components/Campaign/CampaignSearchBar';
+import CampaignFilters from '../../components/Campaign/CampaignFilters';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const { width } = Dimensions.get('window');
 
-const CampaignsScreen = ({ navigation, route }) => {
+const CampaignListScreen = ({ navigation }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,102 +40,115 @@ const CampaignsScreen = ({ navigation, route }) => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // Load campaigns on mount
   useEffect(() => {
     loadCampaigns();
   }, []);
 
-  // Handle navigation params for quiz completion
+  // Filter and sort campaigns when filters change
   useEffect(() => {
-    const refreshCampaigns = getNavigationParams(route, 'refreshCampaigns');
-    if (refreshCampaigns) {
-      console.log('🔄 Refreshing campaigns after quiz completion...');
-      loadCampaigns();
-      // Clear the params to prevent infinite refresh
-      setNavigationParams(navigation, { 
-        refreshCampaigns: undefined, 
-        completedCampaignId: undefined 
-      });
-    }
-  }, [route.params?.refreshCampaigns]);
-
-  // Filter campaigns when search or filter changes
-  useEffect(() => {
-    const filtered = filterUserCampaigns(campaigns, searchQuery, selectedFilter);
+    const filtered = filterAndSortCampaigns(
+      campaigns, 
+      { search: searchQuery, status: selectedFilter },
+      sortBy,
+      sortOrder
+    );
     setFilteredCampaigns(filtered);
-  }, [searchQuery, selectedFilter, campaigns]);
+  }, [campaigns, searchQuery, selectedFilter, sortBy, sortOrder]);
 
-  // Load campaigns from API using campaignService
+  // Load campaigns from API
   const loadCampaigns = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('🔄 Loading campaigns from API...');
       const campaignsData = await campaignService.getAllCampaigns();
+      setCampaigns(campaignsData);
       
-      if (campaignsData && campaignsData.length > 0) {
-        setCampaigns(campaignsData);
-        console.log('✅ Campaigns loaded successfully:', campaignsData.length);
-      } else {
-        console.log('⚠️ No campaigns found');
-        setCampaigns([]);
-      }
+      console.log('✅ Campaigns loaded successfully:', campaignsData.length);
     } catch (error) {
       console.error('❌ Load campaigns error:', error);
       setError('Kampanyalar yüklenirken bir hata oluştu');
-      handleApiError(error);
-      setCampaigns([]);
+      handleApiError(error, []);
     } finally {
       setLoading(false);
     }
   };
 
-  // Refresh campaigns using campaignService
+  // Refresh campaigns
   const handleRefresh = async () => {
     setRefreshing(true);
+    await refreshCampaigns(campaignService, setCampaigns, setLoading, setError);
+    setRefreshing(false);
+  };
+
+  // Handle campaign join
+  const handleJoinCampaign = async (campaign) => {
     try {
-      console.log('🔄 Refreshing campaigns...');
-      const campaignsData = await campaignService.getAllCampaigns();
+      const success = await campaignService.joinCampaign(campaign.id);
       
-      if (campaignsData && campaignsData.length > 0) {
-        setCampaigns(campaignsData);
-        setError(null);
-        console.log('✅ Campaigns refreshed successfully');
-      } else {
-        console.log('⚠️ No campaigns found during refresh');
-        setCampaigns([]);
+      if (success) {
+        // Update local state
+        setCampaigns(prev => prev.map(c => 
+          c.id === campaign.id 
+            ? { ...c, userJoined: true, participants: c.participants + 1 }
+            : c
+        ));
+        
+        Alert.alert(
+          'Başarılı', 
+          'Kampanyaya başarıyla katıldınız!',
+          [
+            {
+              text: 'Kampanya Detayına Git',
+              onPress: () => navigation.navigate('CampaignDetail', { campaignId: campaign.id })
+            },
+            {
+              text: 'Quiz\'e Başla',
+              onPress: () => navigation.navigate('QuizScreen', {
+                campaignId: campaign.id,
+                campaignTitle: campaign.title,
+                reward: campaign.reward
+              })
+            }
+          ]
+        );
       }
     } catch (error) {
-      console.error('❌ Refresh campaigns error:', error);
-      setError('Kampanyalar yenilenirken bir hata oluştu');
-      setCampaigns([]);
-    } finally {
-      setRefreshing(false);
+      console.error('Join campaign error:', error);
+      Alert.alert('Hata', 'Kampanyaya katılırken bir hata oluştu');
     }
   };
 
-  const onJoinCampaign = async (campaignId) => {
-    await handleJoinCampaign(campaigns, setCampaigns, campaignId, navigation);
+  // Handle search
+  const handleSearch = (query) => {
+    setSearchQuery(query);
   };
 
-  const renderCampaignCard = ({ item }) => (
-    <UserCampaignCard
+  // Handle filter change
+  const handleFilterChange = (filter) => {
+    setSelectedFilter(filter);
+  };
+
+  // Handle sort change
+  const handleSortChange = (newSortBy, newSortOrder) => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  };
+
+  // Render campaign card
+  const renderCampaignCard = useCallback(({ item }) => (
+    <CampaignCard
       campaign={item}
-      onJoinCampaign={onJoinCampaign}
-      onPress={() => navigateToCampaignDetail(navigation, item._id)}
+      onJoinCampaign={handleJoinCampaign}
+      onPress={() => navigation.navigate('CampaignDetail', { campaignId: item.id })}
     />
-  );
+  ), [navigation]);
 
-  // Safe keyExtractor function
-  const keyExtractor = (item, index) => {
-    if (item && item._id) {
-      return item._id.toString();
-    }
-    return index.toString();
-  };
-
+  // Render empty state
   const renderEmptyState = () => {
     if (loading) return null;
     
@@ -155,6 +171,7 @@ const CampaignsScreen = ({ navigation, route }) => {
     );
   };
 
+  // Render loading state
   const renderLoadingState = () => {
     if (!loading) return null;
     
@@ -166,6 +183,7 @@ const CampaignsScreen = ({ navigation, route }) => {
     );
   };
 
+  // Render error state
   const renderErrorState = () => {
     if (!error) return null;
     
@@ -173,31 +191,44 @@ const CampaignsScreen = ({ navigation, route }) => {
       <View style={styles.errorContainer}>
         <Icon name="error" size={48} color="#ef4444" />
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity 
-          style={styles.retryButton}
-          onPress={loadCampaigns}
-        >
-          <Text style={styles.retryButtonText}>Tekrar Dene</Text>
-        </TouchableOpacity>
+        <Text style={styles.errorSubtext}>Lütfen tekrar deneyin</Text>
+      </View>
+    );
+  };
+
+  // Render list footer
+  const renderListFooter = () => {
+    if (filteredCampaigns.length === 0) return null;
+    
+    return (
+      <View style={styles.listFooter}>
+        <Text style={styles.footerText}>
+          {filteredCampaigns.length} kampanya gösteriliyor
+        </Text>
       </View>
     );
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <UserCampaignHeader
+      <CampaignHeader
         navigation={navigation}
         campaignCount={filteredCampaigns.length}
+        totalCount={campaigns.length}
       />
       
-      <UserCampaignSearchBar
+      <CampaignSearchBar
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={handleSearch}
+        placeholder="Kampanya ara..."
       />
       
-      <UserCampaignFilters
+      <CampaignFilters
         selectedFilter={selectedFilter}
-        onFilterChange={setSelectedFilter}
+        onFilterChange={handleFilterChange}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
       />
       
       {loading && !refreshing ? (
@@ -208,7 +239,7 @@ const CampaignsScreen = ({ navigation, route }) => {
         <FlatList
           data={filteredCampaigns}
           renderItem={renderCampaignCard}
-          keyExtractor={keyExtractor}
+          keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -220,6 +251,7 @@ const CampaignsScreen = ({ navigation, route }) => {
             />
           }
           ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={renderListFooter}
           initialNumToRender={5}
           maxToRenderPerBatch={10}
           windowSize={10}
@@ -283,18 +315,20 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
   },
-  retryButton: {
-    backgroundColor: '#6366f1',
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingVertical: Math.max(12, width * 0.03),
-    borderRadius: 12,
-    marginTop: Math.max(16, width * 0.04),
-  },
-  retryButtonText: {
+  errorSubtext: {
     fontSize: Math.max(14, width * 0.035),
-    fontWeight: '600',
-    color: '#ffffff',
+    color: '#94a3b8',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  listFooter: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  footerText: {
+    fontSize: Math.max(14, width * 0.035),
+    color: '#94a3b8',
   },
 });
 
-export default CampaignsScreen; 
+export default CampaignListScreen; 
