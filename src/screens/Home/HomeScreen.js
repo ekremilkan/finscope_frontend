@@ -20,7 +20,6 @@ import HomeHeader from '../../components/Home/HomeHeader';
 import HomeStatsCard from '../../components/Home/HomeStatsCard';
 import HomeQuickActions from '../../components/Home/HomeQuickActions';
 import HomeActiveCampaigns from '../../components/Home/HomeActiveCampaigns';
-import HomeSettingsModal from '../../components/Home/HomeSettingsModal';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,7 +28,6 @@ const HomeScreen = ({ navigation }) => {
   const [activeCampaigns, setActiveCampaigns] = useState([]);
   const [loadingCampaigns, setLoadingCampaigns] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   useEffect(() => {
     loadUserData(setUserData);
@@ -72,7 +70,7 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleLogoutPress = () => {
-    confirmLogout(navigation, setShowSettingsModal);
+    confirmLogout(navigation);
   };
 
   return (
@@ -84,11 +82,7 @@ const HomeScreen = ({ navigation }) => {
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <HomeHeader 
           userName={userData.name}
-          onSettingsPress={() => {
-            console.log('🔧 Settings button pressed!');
-            setShowSettingsModal(true);
-            console.log('🔧 showSettingsModal set to true');
-          }}
+          onLogoutPress={handleLogoutPress}
           onNotificationPress={() => {}}
         />
         
@@ -116,11 +110,11 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </ScrollView>
         
-        <HomeSettingsModal 
+        {/* HomeSettingsModal 
           showModal={showSettingsModal}
           onClose={() => setShowSettingsModal(false)}
           onLogout={handleLogoutPress}
-        />
+        /> */}
       </SafeAreaView>
     </LinearGradient>
   );

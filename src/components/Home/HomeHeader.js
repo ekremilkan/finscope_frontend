@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get('window');
 
-const HomeHeader = ({ userName, onSettingsPress, onNotificationPress }) => {
+const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
   return (
     <LinearGradient
       colors={['rgba(15, 23, 42, 0.95)', 'rgba(15, 23, 42, 0.8)']}
@@ -41,15 +41,15 @@ const HomeHeader = ({ userName, onSettingsPress, onNotificationPress }) => {
         <TouchableOpacity 
           style={styles.headerIcon}
           onPress={() => {
-            console.log('🔧 Settings icon pressed!');
-            onSettingsPress();
+            console.log('🔧 Logout icon pressed!');
+            onLogoutPress();
           }}
         >
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
+            colors={['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.05)']}
             style={styles.iconGradient}
           >
-            <Icon name="settings" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
+            <Icon name="logout" size={Math.max(20, Math.min(28, width * 0.06))} color="#ef4444" />
           </LinearGradient>
         </TouchableOpacity>
       </View>

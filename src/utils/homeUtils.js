@@ -17,7 +17,7 @@ export const loadUserData = async setUserData => {
   }
 };
 
-export const handleLogout = async (navigation, setShowSettingsModal) => {
+export const handleLogout = async (navigation) => {
   console.log('Logout function triggered');
   try {
     // Get token and userId
@@ -51,9 +51,6 @@ export const handleLogout = async (navigation, setShowSettingsModal) => {
 
     console.log('Storage cleared');
 
-    // Close modal
-    setShowSettingsModal(false);
-
     // Navigate to login screen
     navigation.reset({
       index: 0,
@@ -80,7 +77,6 @@ export const handleLogout = async (navigation, setShowSettingsModal) => {
                 'userData',
               ]);
               global.userToken = null;
-              setShowSettingsModal(false);
               navigation.reset({
                 index: 0,
                 routes: [{ name: 'Login' }],
@@ -95,36 +91,16 @@ export const handleLogout = async (navigation, setShowSettingsModal) => {
   }
 };
 
-export const confirmLogout = (navigation, setShowSettingsModal) => {
+export const confirmLogout = (navigation) => {
   Alert.alert('Logout', 'Are you sure you want to logout?', [
     {
       text: 'Cancel',
-      onPress: () => setShowSettingsModal(false),
       style: 'cancel',
     },
     {
       text: 'Logout',
-      onPress: async () => {
-        try {
-          // Clear tokens from storage
-          await AsyncStorage.multiRemove(['userToken', 'refreshToken']);
-        } catch (e) {
-          console.error('Logout error:', e);
-        }
-
-        setShowSettingsModal(false);
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'Auth',
-              state: {
-                routes: [{ name: 'Login' }],
-              },
-            },
-          ],
-        });
-      },
+      style: 'destructive',
+      onPress: () => handleLogout(navigation),
     },
   ]);
 };
