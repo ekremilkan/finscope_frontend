@@ -228,10 +228,10 @@ const CampaignsScreen = ({ navigation, route }) => {
         campaignCount={filteredCampaigns.length}
       />
       
-      <UserCampaignSearchBar
+      {/* UserCampaignSearchBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-      />
+      /> */}
       
       <UserCampaignFilters
         selectedFilter={selectedFilter}
