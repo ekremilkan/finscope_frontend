@@ -20,12 +20,15 @@ import campaignService from '../services/campaignService';
 import { filterUserCampaigns, handleJoinCampaign } from '../utils/userCampaignUtils';
 import { handleApiError } from '../utils/campaignUtils';
 import { navigateToCampaignDetail, getNavigationParams, setNavigationParams } from '../utils/navigationUtils';
+import { showErrorAlert, createRetryHandler } from '../utils/errorHandler';
 
 // Components
 import UserCampaignHeader from '../components/UserCampaign/UserCampaignHeader';
 import UserCampaignSearchBar from '../components/UserCampaign/UserCampaignSearchBar';
 import UserCampaignFilters from '../components/UserCampaign/UserCampaignFilters';
 import UserCampaignCard from '../components/UserCampaign/UserCampaignCard';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import SkeletonLoader from '../components/common/SkeletonLoader';
 
 const { width } = Dimensions.get('window');
 
@@ -63,29 +66,42 @@ const CampaignsScreen = ({ navigation, route }) => {
     setFilteredCampaigns(filtered);
   }, [searchQuery, selectedFilter, campaigns]);
 
-  // Load campaigns from API using campaignService
+  // Load campaigns from API using campaignService with retry mechanism
   const loadCampaigns = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('🔄 Loading campaigns from API...');
-      const campaignsData = await campaignService.getAllCampaigns();
-      
-      if (campaignsData && campaignsData.length > 0) {
-        setCampaigns(campaignsData);
-        console.log('✅ Campaigns loaded successfully:', campaignsData.length);
-      } else {
-        console.log('⚠️ No campaigns found');
+    const retryLoadCampaigns = createRetryHandler(async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('🔄 Loading campaigns from API...');
+        const campaignsData = await campaignService.getAllCampaigns();
+        
+        if (campaignsData && campaignsData.length > 0) {
+          setCampaigns(campaignsData);
+          console.log('✅ Campaigns loaded successfully:', campaignsData.length);
+        } else {
+          console.log('⚠️ No campaigns found');
+          setCampaigns([]);
+        }
+      } catch (error) {
+        console.error('❌ Load campaigns error:', error);
+        const errorInfo = handleApiError(error, 'Load Campaigns');
+        setError(errorInfo.message);
         setCampaigns([]);
+        throw error; // Re-throw for retry mechanism
+      } finally {
+        setLoading(false);
       }
+    }, 3); // 3 retry attempts
+
+    try {
+      await retryLoadCampaigns();
     } catch (error) {
-      console.error('❌ Load campaigns error:', error);
-      setError('Kampanyalar yüklenirken bir hata oluştu');
-      handleApiError(error);
-      setCampaigns([]);
-    } finally {
-      setLoading(false);
+      // Show user-friendly error alert
+      showErrorAlert(error, () => {
+        console.log('🔄 User requested retry for campaigns');
+        loadCampaigns();
+      });
     }
   };
 
@@ -160,8 +176,27 @@ const CampaignsScreen = ({ navigation, route }) => {
     
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={styles.loadingText}>Kampanyalar yükleniyor...</Text>
+        <LoadingSpinner 
+          text="Loading campaigns..." 
+          type="dots"
+          size="large"
+        />
+      </View>
+    );
+  };
+
+  const renderSkeletonLoading = () => {
+    if (!loading) return null;
+    
+    return (
+      <View style={styles.skeletonContainer}>
+        {[1, 2, 3].map((index) => (
+          <SkeletonLoader 
+            key={index}
+            type="card"
+            style={styles.skeletonCard}
+          />
+        ))}
       </View>
     );
   };
@@ -201,7 +236,7 @@ const CampaignsScreen = ({ navigation, route }) => {
       />
       
       {loading && !refreshing ? (
-        renderLoadingState()
+        renderSkeletonLoading()
       ) : error ? (
         renderErrorState()
       ) : (
@@ -294,6 +329,13 @@ const styles = StyleSheet.create({
     fontSize: Math.max(14, width * 0.035),
     fontWeight: '600',
     color: '#ffffff',
+  },
+  skeletonContainer: {
+    paddingHorizontal: Math.max(20, width * 0.05),
+    paddingBottom: 100,
+  },
+  skeletonCard: {
+    marginBottom: 15,
   },
 });
 

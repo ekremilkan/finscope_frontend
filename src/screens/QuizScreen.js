@@ -39,7 +39,7 @@ import QuizQuestion from '../components/Quiz/QuizQuestion';
 import QuizOptions from '../components/Quiz/QuizOptions';
 import QuizNavigation from '../components/Quiz/QuizNavigation';
 import QuizResultModal from '../components/Quiz/QuizResultModal';
-import QuizPenaltyModal from '../components/Quiz/QuizPenaltyModal';
+// import QuizPenaltyModal from '../components/Quiz/QuizPenaltyModal'; // Removed penalty modal
 
 const { width } = Dimensions.get('window');
 
@@ -55,7 +55,7 @@ const QuizScreen = ({ navigation, route }) => {
   // Penalty state
   const [penaltyTime, setPenaltyTime] = useState(0);
   const [isPenaltyActive, setIsPenaltyActive] = useState(false);
-  const [showPenaltyModal, setShowPenaltyModal] = useState(false);
+  // const [showPenaltyModal, setShowPenaltyModal] = useState(false); // Removed penalty modal state
   
   // Answer feedback state
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
@@ -126,6 +126,13 @@ const QuizScreen = ({ navigation, route }) => {
       console.log('✅ Questions loaded successfully:', questions.length);
     } catch (error) {
       console.error('❌ Load questions error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        campaignId: campaignId
+      });
+      
       setQuizState(prev => ({
         ...prev,
         loading: false,
@@ -134,7 +141,7 @@ const QuizScreen = ({ navigation, route }) => {
       
       Alert.alert(
         'Error',
-        'Failed to load questions. Please try again.',
+        `Failed to load questions: ${error.message}`,
         [
           {
             text: 'Go Back',
@@ -185,7 +192,6 @@ const QuizScreen = ({ navigation, route }) => {
   const startPenaltyTimer = () => {
     setIsPenaltyActive(true);
     setPenaltyTime(20); // 20 second penalty
-    setShowPenaltyModal(true); // Show penalty modal
     
     console.log('⏰ Starting 20 second penalty timer...');
     
@@ -195,7 +201,6 @@ const QuizScreen = ({ navigation, route }) => {
         if (prev <= 1) {
           console.log('✅ Penalty timer completed');
           setIsPenaltyActive(false);
-          setShowPenaltyModal(false); // Hide penalty modal
           setShowCorrectAnswer(false); // Hide correct answer
           setCorrectAnswerIndex(null);
           if (penaltyTimerRef.current) {
@@ -211,7 +216,6 @@ const QuizScreen = ({ navigation, route }) => {
   const handlePenaltyComplete = () => {
     console.log('✅ Penalty completed manually');
     setIsPenaltyActive(false);
-    setShowPenaltyModal(false);
     setPenaltyTime(0);
     setShowCorrectAnswer(false);
     setCorrectAnswerIndex(null);
@@ -324,7 +328,7 @@ const QuizScreen = ({ navigation, route }) => {
     setShowResult(false);
     setPenaltyTime(0);
     setIsPenaltyActive(false);
-    setShowPenaltyModal(false);
+    // setShowPenaltyModal(false);
     progress.setValue(0);
     startTimeRef.current = null;
     loadQuestions();
@@ -432,11 +436,7 @@ const QuizScreen = ({ navigation, route }) => {
         timeSpent={quizState.completionTime}
       />
 
-      <QuizPenaltyModal
-        visible={showPenaltyModal}
-        penaltyTime={penaltyTime}
-        onPenaltyComplete={handlePenaltyComplete}
-      />
+      {/* Removed QuizPenaltyModal */}
     </SafeAreaView>
   );
 };

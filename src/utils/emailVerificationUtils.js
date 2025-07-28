@@ -108,7 +108,13 @@ export const verifyEmailCode = async (email, verificationCode) => {
       verificationCode,
     });
 
-    console.log('✅ Email verification successful');
+    console.log('✅ Email verification response:', {
+      success: response.data?.success,
+      isVerified: response.data?.data?.isVerified,
+      hasUser: !!response.data?.data?.user,
+      hasToken: !!response.data?.data?.token
+    });
+
     return {
       success: true,
       data: response.data,

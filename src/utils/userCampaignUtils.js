@@ -42,27 +42,27 @@ export const handleJoinCampaign = async (campaigns, setCampaigns, campaignId, na
       Alert.alert('Error', 'Campaign not found');
       return;
     }
-
-    if (campaign.userJoined) {
-      // Continue to quiz
-      navigation.navigate('QuizScreen', {
-        campaign: campaign,
+  
+  if (campaign.userJoined) {
+    // Continue to quiz
+    navigation.navigate('QuizScreen', { 
+      campaign: campaign,
         campaignId: campaign._id,
-        campaignTitle: campaign.title,
-        reward: campaign.reward
-      });
-    } else {
+      campaignTitle: campaign.title,
+      reward: campaign.reward
+    });
+  } else {
       // Join campaign using campaignService
       console.log('🔄 Joining campaign:', campaignId);
       const success = await campaignService.joinCampaign(campaignId);
 
       if (success) {
         // Update local state
-        setCampaigns(prev => prev.map(c =>
+    setCampaigns(prev => prev.map(c => 
           c._id === campaignId
-            ? { ...c, userJoined: true, participants: c.participants + 1 }
-            : c
-        ));
+        ? { ...c, userJoined: true, participants: c.participants + 1 }
+        : c
+    ));
 
         Alert.alert(
           'Success',

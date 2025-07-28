@@ -52,6 +52,11 @@ const storageService = {
       if (user._id || user.id) {
         await AsyncStorage.setItem('userId', user._id || user.id);
       }
+      
+      // Save isVerified status if available
+      if (user.isVerified !== undefined) {
+        await AsyncStorage.setItem('isVerified', JSON.stringify(user.isVerified));
+      }
     } catch (error) {
       console.error('User data save error:', error);
     }
@@ -65,6 +70,26 @@ const storageService = {
     } catch (error) {
       console.error('User data get error:', error);
       return null;
+    }
+  },
+
+  // Save isVerified status
+  async setIsVerified(isVerified) {
+    try {
+      await AsyncStorage.setItem('isVerified', JSON.stringify(isVerified));
+    } catch (error) {
+      console.error('isVerified save error:', error);
+    }
+  },
+
+  // Get isVerified status
+  async getIsVerified() {
+    try {
+      const isVerified = await AsyncStorage.getItem('isVerified');
+      return isVerified ? JSON.parse(isVerified) : false;
+    } catch (error) {
+      console.error('isVerified get error:', error);
+      return false;
     }
   },
 

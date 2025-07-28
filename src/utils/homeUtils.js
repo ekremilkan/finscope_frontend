@@ -142,10 +142,9 @@ export const handleTabNavigation = (
 };
 
 export const handleCampaignStart = (campaign, navigation) => {
-  navigation.navigate('QuizScreen', {
+  // Navigate to Campaign Detail Screen first
+  navigation.navigate('CampaignDetail', {
+    campaignId: campaign._id || campaign.id,
     campaign: campaign,
-    campaignId: campaign.id,
-    campaignTitle: campaign.title,
-    reward: campaign.reward,
   });
 };

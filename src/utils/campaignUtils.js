@@ -134,7 +134,7 @@ export const searchCampaigns = (campaigns, searchTerm) => {
     campaign.tags.some(tag => tag.toLowerCase().includes(term)) ||
     campaign.category.toLowerCase().includes(term) ||
     campaign.difficulty.toLowerCase().includes(term)
-  );
+    );
 };
 
 // Campaign Join Logic

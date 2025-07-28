@@ -28,9 +28,9 @@ const QuizProgress = ({
       </View>
       
       <View style={styles.progressInfo}>
-        <Text style={styles.progressText}>
-          {currentQuestionIndex + 1} / {totalQuestions}
-        </Text>
+      <Text style={styles.progressText}>
+        {currentQuestionIndex + 1} / {totalQuestions}
+      </Text>
         
         {isPenaltyActive && (
           <View style={styles.penaltyIndicator}>
