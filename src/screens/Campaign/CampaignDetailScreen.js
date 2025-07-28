@@ -193,12 +193,6 @@ const CampaignDetailScreen = ({ navigation, route }) => {
         </View>
         
         <View style={styles.statItem}>
-          <Icon name="schedule" size={20} color="#f59e0b" />
-          <Text style={styles.statLabel}>Duration</Text>
-          <Text style={styles.statValue}>{campaign.estimatedDuration} min</Text>
-        </View>
-        
-        <View style={styles.statItem}>
           <Icon name="quiz" size={20} color="#8b5cf6" />
           <Text style={styles.statLabel}>Questions</Text>
           <Text style={styles.statValue}>{campaign.questions}</Text>

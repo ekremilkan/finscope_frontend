@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Services
@@ -59,6 +60,22 @@ const CampaignsScreen = ({ navigation, route }) => {
       });
     }
   }, [route.params?.refreshCampaigns]);
+
+  // Handle focus effect for tab navigation params
+  useFocusEffect(
+    React.useCallback(() => {
+      const refreshCampaigns = route.params?.refreshCampaigns;
+      if (refreshCampaigns) {
+        console.log('🔄 Refreshing campaigns after quiz completion (focus effect)...');
+        loadCampaigns();
+        // Clear the params to prevent infinite refresh
+        navigation.setParams({ 
+          refreshCampaigns: undefined, 
+          completedCampaignId: undefined 
+        });
+      }
+    }, [route.params?.refreshCampaigns])
+  );
 
   // Filter campaigns when search or filter changes
   useEffect(() => {
@@ -150,37 +167,23 @@ const CampaignsScreen = ({ navigation, route }) => {
   };
 
   const renderEmptyState = () => {
-    if (loading) return null;
+    if (loading || campaigns.length > 0 || filteredCampaigns.length > 0) return null;
     
     return (
       <View style={styles.emptyContainer}>
         <Icon name="campaign" size={64} color="#94a3b8" />
         <Text style={styles.emptyText}>
           {searchQuery || selectedFilter !== 'all' 
-            ? 'Arama kriterlerinize uygun kampanya bulunamadı'
-            : 'Henüz kampanya bulunmuyor'
+            ? 'No campaigns found matching your search criteria'
+            : 'No campaigns available yet'
           }
         </Text>
         <Text style={styles.emptySubtext}>
           {searchQuery || selectedFilter !== 'all' 
-            ? 'Farklı arama terimleri deneyin'
-            : 'Yakında yeni kampanyalar eklenecek'
+            ? 'Try different search terms'
+            : 'New campaigns will be added soon'
           }
         </Text>
-      </View>
-    );
-  };
-
-  const renderLoadingState = () => {
-    if (!loading) return null;
-    
-    return (
-      <View style={styles.loadingContainer}>
-        <LoadingSpinner 
-          text="Loading campaigns..." 
-          type="dots"
-          size="large"
-        />
       </View>
     );
   };
@@ -235,7 +238,7 @@ const CampaignsScreen = ({ navigation, route }) => {
         onFilterChange={setSelectedFilter}
       />
       
-      {loading && !refreshing ? (
+      {loading ? (
         renderSkeletonLoading()
       ) : error ? (
         renderErrorState()
@@ -254,11 +257,7 @@ const CampaignsScreen = ({ navigation, route }) => {
               tintColor="#6366f1"
             />
           }
-          ListEmptyComponent={renderEmptyState}
-          initialNumToRender={5}
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          removeClippedSubviews={true}
+          ListEmptyComponent={!loading ? renderEmptyState : null}
         />
       )}
     </SafeAreaView>

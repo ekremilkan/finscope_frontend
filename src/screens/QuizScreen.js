@@ -48,14 +48,12 @@ const QuizScreen = ({ navigation, route }) => {
 
   // Quiz state
   const [quizState, setQuizState] = useState(getInitialQuizState());
-  const [timeLeft, setTimeLeft] = useState(QUIZ_CONFIG.timeLimit);
   const [showResult, setShowResult] = useState(false);
   const [progress] = useState(new Animated.Value(0));
   
   // Penalty state
   const [penaltyTime, setPenaltyTime] = useState(0);
   const [isPenaltyActive, setIsPenaltyActive] = useState(false);
-  // const [showPenaltyModal, setShowPenaltyModal] = useState(false); // Removed penalty modal state
   
   // Answer feedback state
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
@@ -63,37 +61,12 @@ const QuizScreen = ({ navigation, route }) => {
   
   // Timer refs
   const penaltyTimerRef = useRef(null);
-  const quizTimerRef = useRef(null);
   const startTimeRef = useRef(null);
 
   // Load questions on mount
   useEffect(() => {
     loadQuestions();
   }, [campaignId]);
-
-  // Quiz timer
-  useEffect(() => {
-    if (quizState.loading || quizState.quizCompleted || isPenaltyActive) return;
-
-    // Timer temporarily disabled
-    /*
-    quizTimerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          handleQuizComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    */
-
-    return () => {
-      if (quizTimerRef.current) {
-        clearInterval(quizTimerRef.current);
-      }
-    };
-  }, [quizState.loading, quizState.quizCompleted, isPenaltyActive]);
 
   // Progress bar animation
   useEffect(() => {
@@ -287,9 +260,6 @@ const QuizScreen = ({ navigation, route }) => {
   const handleQuizComplete = async () => {
     try {
       // Stop timers
-      if (quizTimerRef.current) {
-        clearInterval(quizTimerRef.current);
-      }
       if (penaltyTimerRef.current) {
         clearInterval(penaltyTimerRef.current);
       }
@@ -324,11 +294,9 @@ const QuizScreen = ({ navigation, route }) => {
 
   const handleRestartQuiz = () => {
     setQuizState(getInitialQuizState());
-    setTimeLeft(QUIZ_CONFIG.timeLimit);
     setShowResult(false);
     setPenaltyTime(0);
     setIsPenaltyActive(false);
-    // setShowPenaltyModal(false);
     progress.setValue(0);
     startTimeRef.current = null;
     loadQuestions();
@@ -379,7 +347,6 @@ const QuizScreen = ({ navigation, route }) => {
       <QuizHeader
         campaignTitle={campaignTitle}
         reward={reward}
-        timeLeft={timeLeft}
         onExit={onExit}
         penaltyTime={isPenaltyActive ? penaltyTime : null}
       />
@@ -426,10 +393,13 @@ const QuizScreen = ({ navigation, route }) => {
         reward={reward}
         onRetry={handleRestartQuiz}
         onHome={() => {
-          // Navigate back to campaign list with updated state
-          navigation.navigate('Campaigns', {
-            refreshCampaigns: true,
-            completedCampaignId: campaignId
+          // Navigate back to main tabs and select campaigns tab
+          navigation.navigate('MainTabs', {
+            screen: 'Campaigns',
+            params: {
+              refreshCampaigns: true,
+              completedCampaignId: campaignId
+            }
           });
         }}
         passPercentage={100} // All questions must be correct
