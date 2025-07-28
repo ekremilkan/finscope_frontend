@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import BottomTabNavigator from '../TabNavigation/BottomTabNavigator';
-import CustomerBottomTabNavigator from '../TabNavigation/CustomerBottomTabNavigator';
 
 import QuizScreen from '../../screens/QuizScreen';
-import CustomerCampaignsScreen from '../../screens/CustomerCampaignsScreen';
 import CampaignDetailScreen from '../../screens/Campaign/CampaignDetailScreen';
 
 // Wallet Screens
@@ -15,12 +13,6 @@ import AddWalletScreen from '../../screens/Wallet/AddWalletScreen';
 const Stack = createStackNavigator();
 
 const AppStack = () => {
-  const [isCustomer, setIsCustomer] = useState(false);
-
-  const handleSwitchRole = () => {
-    setIsCustomer((prev) => !prev);
-  };
-
   return (
     <Stack.Navigator 
       screenOptions={{ 
@@ -49,13 +41,7 @@ const AppStack = () => {
           gestureEnabled: false, // Disable gesture for main tabs
         }}
       >
-        {() =>
-          isCustomer ? (
-            <CustomerBottomTabNavigator onSwitchPress={handleSwitchRole} />
-          ) : (
-            <BottomTabNavigator onSwitchPress={handleSwitchRole} />
-          )
-        }
+        {() => <BottomTabNavigator />}
       </Stack.Screen>
 
       {/* Campaign Stack screens */}
@@ -87,13 +73,6 @@ const AppStack = () => {
         options={{
           gestureEnabled: true,
           gestureDirection: 'horizontal',
-        }}
-      />
-      <Stack.Screen 
-        name="CustomerCampaignsScreen" 
-        component={CustomerCampaignsScreen}
-        options={{
-          gestureEnabled: false, // Disable gesture for customer campaigns
         }}
       />
       
