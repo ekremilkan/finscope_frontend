@@ -13,46 +13,46 @@ const QuizOptions = ({ options, selectedAnswer, onAnswerSelect, disabled = false
         const isWrong = showCorrectAnswer && isSelected && correctAnswerIndex !== index;
         
         return (
-          <TouchableOpacity
+        <TouchableOpacity
             key={option._id || index}
-            style={[
-              styles.optionButton,
+          style={[
+            styles.optionButton,
               isSelected && styles.selectedOption,
               disabled && styles.disabledOption,
               isCorrect && styles.correctOption,
               isWrong && styles.wrongOption
-            ]}
+          ]}
             onPress={() => !disabled && onAnswerSelect(index)}
             activeOpacity={disabled ? 1 : 0.8}
             disabled={disabled}
-          >
-            <View style={styles.optionContent}>
-              <View style={[
-                styles.optionCircle,
+        >
+          <View style={styles.optionContent}>
+            <View style={[
+              styles.optionCircle,
                 isSelected && styles.selectedCircle,
                 disabled && styles.disabledCircle,
                 isCorrect && styles.correctCircle,
                 isWrong && styles.wrongCircle
-              ]}>
+            ]}>
                 {isSelected && (
                   <Icon 
                     name={isCorrect ? "check" : "close"} 
                     size={16} 
                     color="#ffffff" 
                   />
-                )}
-              </View>
-              <Text style={[
-                styles.optionText,
+              )}
+            </View>
+            <Text style={[
+              styles.optionText,
                 isSelected && styles.selectedOptionText,
                 disabled && styles.disabledOptionText,
                 isCorrect && styles.correctOptionText,
                 isWrong && styles.wrongOptionText
-              ]}>
+            ]}>
                 {option.text || option}
-              </Text>
-            </View>
-          </TouchableOpacity>
+            </Text>
+          </View>
+        </TouchableOpacity>
         );
       })}
     </View>

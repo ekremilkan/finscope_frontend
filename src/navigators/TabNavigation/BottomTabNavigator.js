@@ -18,7 +18,7 @@ const SCREEN_COMPONENTS = {
   profile: ProfileScreen,
 };
 
-const BottomTabNavigator = ({ onSwitchPress }) => {
+const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -65,7 +65,7 @@ const BottomTabNavigator = ({ onSwitchPress }) => {
           }}
           children={(props) => {
             const ScreenComponent = SCREEN_COMPONENTS[item.id];
-            return <ScreenComponent {...props} onSwitchPress={onSwitchPress} />;
+            return <ScreenComponent {...props} />;
           }}
         />
       ))}

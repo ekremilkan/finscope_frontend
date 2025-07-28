@@ -6,7 +6,6 @@ import {
   Dimensions,
   Alert,
   RefreshControl,
-  Text,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { authService } from '../../services/authService';
@@ -34,7 +33,6 @@ const ProfileScreen = ({ navigation, route }) => {
   const [profileData, setProfileData] = useState(PROFILE_DATA);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
     loadUserProfile();
@@ -54,10 +52,12 @@ const ProfileScreen = ({ navigation, route }) => {
     try {
       // 1) AsyncStorage'dan user bilgisini al
       const cachedUser = await storageService.getUser();
+      const isVerified = await storageService.getIsVerified();
+      
       // Burada senin storageService.getUser() zaten AsyncStorage'dan JSON.parse yaparak user objesini döndürüyor varsayıyorum
 
       if (!cachedUser || !cachedUser._id) {
-        throw new Error('Kullanıcı bilgisi AsyncStorage’da yok veya eksik');
+        throw new Error('Kullanıcı bilgisi AsyncStorage\'da yok veya eksik');
       }
 
       // 2) Backend'den kullanıcıyı güncel olarak çek
@@ -67,7 +67,7 @@ const ProfileScreen = ({ navigation, route }) => {
         throw new Error('Sunucudan eksik kullanıcı bilgisi alındı.');
       }
 
-      // 3) Kullanıcı istatistiklerini backend’den çek (varsa)
+      // 3) Kullanıcı istatistiklerini backend'den çek (varsa)
       // Eğer istatistik yoksa PROFILE_DATA.stats kullanılabilir
       let userStats;
       try {
@@ -79,12 +79,13 @@ const ProfileScreen = ({ navigation, route }) => {
       // 4) Durum belirle
       const status = getUserStatus(freshUser, userStats);
 
-      // 5) State güncelle
+      // 5) State güncelle - isVerified durumunu da ekle
       setProfileData({
         user: {
           ...freshUser,
           status,
           avatar: freshUser.avatar || '👤',
+          isVerified: isVerified, // AsyncStorage'dan gelen isVerified durumu
         },
         stats: userStats,
       });
@@ -92,10 +93,8 @@ const ProfileScreen = ({ navigation, route }) => {
       // 6) AsyncStorage içindeki kullanıcıyı güncelle (opsiyonel)
       await storageService.setUser(freshUser);
 
-      setDebugInfo('Profil başarıyla yüklendi');
     } catch (error) {
       console.error('Profil yükleme hatası:', error);
-      setDebugInfo(`Profil yükleme hatası: ${error.message}`);
 
       // Hata durumunda demo verisi
       setProfileData({
@@ -116,10 +115,6 @@ const ProfileScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.debugContainer}>
-        <Text style={styles.debugText}>Debug: {debugInfo}</Text>
-      </View>
-
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -177,13 +172,6 @@ const ProfileScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  debugContainer: {
-    backgroundColor: 'rgba(255,255,0,0.2)',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  debugText: { color: COLORS.text, fontSize: 12, fontFamily: 'monospace' },
   scrollView: { flex: 1 },
   scrollContent: { paddingBottom: Math.max(20, width * 0.05) },
 });

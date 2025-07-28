@@ -216,6 +216,7 @@ const EmailVerification = ({ navigation, route }) => {
       const refreshToken = result.data?.data?.refreshToken;
       // Kullanıcı bilgisi (profil)
       const user = result.data?.data?.user;
+      const isVerified = result.data?.data?.isVerified;
 
       if (!token || !refreshToken || !user) {
         throw new Error('Token veya kullanıcı bilgisi bulunamadı.');
@@ -225,6 +226,11 @@ const EmailVerification = ({ navigation, route }) => {
       await AsyncStorage.setItem('userToken', token);
       await AsyncStorage.setItem('refreshToken', refreshToken);
       await AsyncStorage.setItem('userData', JSON.stringify(user));  // Profil bilgisi
+      
+      // isVerified durumunu da kaydet
+      if (isVerified !== undefined) {
+        await AsyncStorage.setItem('isVerified', JSON.stringify(isVerified));
+      }
 
       setState(prevState => ({
         ...prevState,

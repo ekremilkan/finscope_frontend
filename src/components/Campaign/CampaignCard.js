@@ -77,13 +77,6 @@ const CampaignCard = ({ campaign, onJoinCampaign, onPress }) => {
         </View>
         
         <View style={styles.statItem}>
-          <Icon name="schedule" size={16} color="#f59e0b" />
-          <Text style={styles.statText}>
-            {formatCampaignDuration(campaign.startDate, campaign.endDate)}
-          </Text>
-        </View>
-        
-        <View style={styles.statItem}>
           <Icon name="quiz" size={16} color="#8b5cf6" />
           <Text style={styles.statText}>
             {campaign.questions} soru

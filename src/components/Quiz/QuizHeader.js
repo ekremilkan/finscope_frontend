@@ -25,18 +25,11 @@ const QuizHeader = ({ campaignTitle, reward, timeLeft, onExit, penaltyTime }) =>
       </View>
 
       <View style={styles.timerSection}>
-        {penaltyTime !== null && penaltyTime > 0 ? (
-          <View style={[styles.penaltyContainer, { borderColor: '#ef444430' }]}>
+        {penaltyTime !== null && penaltyTime > 0 && (
+          <View style={[styles.penaltyContainer, { borderColor: '#ef4444' }]}>
             <Icon name="warning" size={20} color="#ef4444" />
             <Text style={[styles.penaltyText, { color: '#ef4444' }]}>
               {penaltyTime}s
-            </Text>
-          </View>
-        ) : (
-          <View style={[styles.timerContainer, { borderColor: `${timerColor}30` }]}>
-            <Icon name="timer" size={20} color={timerColor} />
-            <Text style={[styles.timerText, { color: timerColor }]}>
-              {formatTime(timeLeft)}
             </Text>
           </View>
         )}
@@ -106,11 +99,16 @@ const styles = StyleSheet.create({
   penaltyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: 2,
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   penaltyText: {
     fontSize: Math.max(14, width * 0.035),

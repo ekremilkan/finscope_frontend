@@ -13,18 +13,36 @@ class CampaignService {
   async getAllCampaigns() {
     try {
       console.log('🔄 Fetching campaigns from API...');
+      
       const response = await api.get(`${this.baseURL}/all`);
       
-      if (response.data.success) {
+      console.log('📡 API Response:', {
+        status: response.status,
+        success: response.data?.success,
+        dataType: typeof response.data?.data,
+        dataLength: response.data?.data?.length
+      });
+      
+      if (response.data?.success && Array.isArray(response.data.data)) {
         const campaigns = response.data.data;
         console.log('✅ Campaigns fetched successfully:', campaigns.length);
         return campaigns;
+      } else if (response.data?.success && !Array.isArray(response.data.data)) {
+        console.error('❌ API returned success but data is not an array:', response.data.data);
+        throw new Error('Invalid API response format - data is not an array');
       } else {
-        throw new Error(response.data.message || 'Failed to fetch campaigns');
+        console.error('❌ API returned error:', response.data);
+        throw new Error(response.data?.message || 'Failed to fetch campaigns');
       }
     } catch (error) {
       console.error('❌ Campaign fetch error:', error);
-      throw error; // Re-throw error instead of returning mock data
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      throw error;
     }
   }
 

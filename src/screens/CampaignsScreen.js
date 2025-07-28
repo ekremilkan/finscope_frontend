@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Services
@@ -20,12 +21,15 @@ import campaignService from '../services/campaignService';
 import { filterUserCampaigns, handleJoinCampaign } from '../utils/userCampaignUtils';
 import { handleApiError } from '../utils/campaignUtils';
 import { navigateToCampaignDetail, getNavigationParams, setNavigationParams } from '../utils/navigationUtils';
+import { showErrorAlert, createRetryHandler } from '../utils/errorHandler';
 
 // Components
 import UserCampaignHeader from '../components/UserCampaign/UserCampaignHeader';
 import UserCampaignSearchBar from '../components/UserCampaign/UserCampaignSearchBar';
 import UserCampaignFilters from '../components/UserCampaign/UserCampaignFilters';
 import UserCampaignCard from '../components/UserCampaign/UserCampaignCard';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import SkeletonLoader from '../components/common/SkeletonLoader';
 
 const { width } = Dimensions.get('window');
 
@@ -57,35 +61,64 @@ const CampaignsScreen = ({ navigation, route }) => {
     }
   }, [route.params?.refreshCampaigns]);
 
+  // Handle focus effect for tab navigation params
+  useFocusEffect(
+    React.useCallback(() => {
+      const refreshCampaigns = route.params?.refreshCampaigns;
+      if (refreshCampaigns) {
+        console.log('🔄 Refreshing campaigns after quiz completion (focus effect)...');
+        loadCampaigns();
+        // Clear the params to prevent infinite refresh
+        navigation.setParams({ 
+          refreshCampaigns: undefined, 
+          completedCampaignId: undefined 
+        });
+      }
+    }, [route.params?.refreshCampaigns])
+  );
+
   // Filter campaigns when search or filter changes
   useEffect(() => {
     const filtered = filterUserCampaigns(campaigns, searchQuery, selectedFilter);
     setFilteredCampaigns(filtered);
   }, [searchQuery, selectedFilter, campaigns]);
 
-  // Load campaigns from API using campaignService
+  // Load campaigns from API using campaignService with retry mechanism
   const loadCampaigns = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('🔄 Loading campaigns from API...');
-      const campaignsData = await campaignService.getAllCampaigns();
-      
-      if (campaignsData && campaignsData.length > 0) {
-        setCampaigns(campaignsData);
-        console.log('✅ Campaigns loaded successfully:', campaignsData.length);
-      } else {
-        console.log('⚠️ No campaigns found');
+    const retryLoadCampaigns = createRetryHandler(async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('🔄 Loading campaigns from API...');
+        const campaignsData = await campaignService.getAllCampaigns();
+        
+        if (campaignsData && campaignsData.length > 0) {
+          setCampaigns(campaignsData);
+          console.log('✅ Campaigns loaded successfully:', campaignsData.length);
+        } else {
+          console.log('⚠️ No campaigns found');
+          setCampaigns([]);
+        }
+      } catch (error) {
+        console.error('❌ Load campaigns error:', error);
+        const errorInfo = handleApiError(error, 'Load Campaigns');
+        setError(errorInfo.message);
         setCampaigns([]);
+        throw error; // Re-throw for retry mechanism
+      } finally {
+        setLoading(false);
       }
+    }, 3); // 3 retry attempts
+
+    try {
+      await retryLoadCampaigns();
     } catch (error) {
-      console.error('❌ Load campaigns error:', error);
-      setError('Kampanyalar yüklenirken bir hata oluştu');
-      handleApiError(error);
-      setCampaigns([]);
-    } finally {
-      setLoading(false);
+      // Show user-friendly error alert
+      showErrorAlert(error, () => {
+        console.log('🔄 User requested retry for campaigns');
+        loadCampaigns();
+      });
     }
   };
 
@@ -134,34 +167,39 @@ const CampaignsScreen = ({ navigation, route }) => {
   };
 
   const renderEmptyState = () => {
-    if (loading) return null;
+    if (loading || campaigns.length > 0 || filteredCampaigns.length > 0) return null;
     
     return (
       <View style={styles.emptyContainer}>
         <Icon name="campaign" size={64} color="#94a3b8" />
         <Text style={styles.emptyText}>
           {searchQuery || selectedFilter !== 'all' 
-            ? 'Arama kriterlerinize uygun kampanya bulunamadı'
-            : 'Henüz kampanya bulunmuyor'
+            ? 'No campaigns found matching your search criteria'
+            : 'No campaigns available yet'
           }
         </Text>
         <Text style={styles.emptySubtext}>
           {searchQuery || selectedFilter !== 'all' 
-            ? 'Farklı arama terimleri deneyin'
-            : 'Yakında yeni kampanyalar eklenecek'
+            ? 'Try different search terms'
+            : 'New campaigns will be added soon'
           }
         </Text>
       </View>
     );
   };
 
-  const renderLoadingState = () => {
+  const renderSkeletonLoading = () => {
     if (!loading) return null;
     
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={styles.loadingText}>Kampanyalar yükleniyor...</Text>
+      <View style={styles.skeletonContainer}>
+        {[1, 2, 3].map((index) => (
+          <SkeletonLoader 
+            key={index}
+            type="card"
+            style={styles.skeletonCard}
+          />
+        ))}
       </View>
     );
   };
@@ -190,18 +228,18 @@ const CampaignsScreen = ({ navigation, route }) => {
         campaignCount={filteredCampaigns.length}
       />
       
-      <UserCampaignSearchBar
+      {/* UserCampaignSearchBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-      />
+      /> */}
       
       <UserCampaignFilters
         selectedFilter={selectedFilter}
         onFilterChange={setSelectedFilter}
       />
       
-      {loading && !refreshing ? (
-        renderLoadingState()
+      {loading ? (
+        renderSkeletonLoading()
       ) : error ? (
         renderErrorState()
       ) : (
@@ -219,11 +257,7 @@ const CampaignsScreen = ({ navigation, route }) => {
               tintColor="#6366f1"
             />
           }
-          ListEmptyComponent={renderEmptyState}
-          initialNumToRender={5}
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          removeClippedSubviews={true}
+          ListEmptyComponent={!loading ? renderEmptyState : null}
         />
       )}
     </SafeAreaView>
@@ -294,6 +328,13 @@ const styles = StyleSheet.create({
     fontSize: Math.max(14, width * 0.035),
     fontWeight: '600',
     color: '#ffffff',
+  },
+  skeletonContainer: {
+    paddingHorizontal: Math.max(20, width * 0.05),
+    paddingBottom: 100,
+  },
+  skeletonCard: {
+    marginBottom: 15,
   },
 });
 

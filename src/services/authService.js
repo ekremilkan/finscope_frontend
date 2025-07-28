@@ -7,12 +7,23 @@ export const authService = {
   // Login
   login: async (email, password) => {
     try {
+      console.log('🔄 Attempting login for:', email);
+      
       const response = await api.post('/user/login', {
         email,
         password,
       });
+      
+      console.log('✅ Login response received:', {
+        success: response.data?.success,
+        isVerified: response.data?.data?.isVerified,
+        hasUser: !!response.data?.data?.user,
+        hasToken: !!response.data?.data?.token
+      });
+      
       return response.data;
     } catch (error) {
+      console.error('❌ Login error:', error);
       throw error.response?.data || error.message;
     }
   },

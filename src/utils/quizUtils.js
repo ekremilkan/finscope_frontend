@@ -14,7 +14,7 @@ export const calculateScore = (questions, selectedAnswers) => {
     if (selectedAnswerIndex !== undefined) {
       const isCorrect = checkAnswer(question, selectedAnswerIndex);
       if (isCorrect) {
-        correctAnswers++;
+      correctAnswers++;
       }
     }
   });

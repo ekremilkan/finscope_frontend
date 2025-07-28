@@ -51,6 +51,19 @@ const ProfileHeader = ({ user, onEditPress, isLoading = false }) => {
       <Text style={styles.name}>{user.name || 'User'}</Text>
       <Text style={styles.email}>{user.email || 'Email not provided'}</Text>
       <Text style={styles.status}>{user.status}</Text>
+      
+      {/* Email Verification Status */}
+      {user.isVerified !== undefined && (
+        <View style={styles.verificationContainer}>
+          <Text style={[
+            styles.verificationText,
+            { color: user.isVerified ? COLORS.success : COLORS.warning }
+          ]}>
+            {user.isVerified ? '✅ Email Verified' : '⚠️ Email Not Verified'}
+          </Text>
+        </View>
+      )}
+      
       <Text style={styles.joinDate}>
         Joined: {formatJoinDate(user.joinDate) || user.joinDate}
       </Text>
@@ -142,6 +155,17 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: getResponsiveSize(width, 0.035, 14, 18),
     fontWeight: '600',
+  },
+  verificationContainer: {
+    backgroundColor: COLORS.backgroundLight,
+    paddingHorizontal: Math.max(15, width * 0.04),
+    paddingVertical: Math.max(8, width * 0.02),
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  verificationText: {
+    fontSize: getResponsiveSize(width, 0.028, 11, 14),
+    fontWeight: '500',
   },
 });
 
