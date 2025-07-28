@@ -28,10 +28,6 @@ const UserCampaignCard = ({ campaign, onJoinCampaign, onPress }) => {
           <Text style={styles.statText}>{campaign.participants}/{campaign.maxParticipants}</Text>
         </View>
         <View style={styles.statItem}>
-          <Icon name="schedule" size={16} color="#f59e0b" />
-          <Text style={styles.statText}>{campaign.estimatedDuration} min</Text>
-        </View>
-        <View style={styles.statItem}>
           <Icon name="quiz" size={16} color="#8b5cf6" />
           <Text style={styles.statText}>{campaign.questions} questions</Text>
         </View>
