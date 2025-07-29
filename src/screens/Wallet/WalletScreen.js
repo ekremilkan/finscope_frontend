@@ -13,34 +13,27 @@ const WalletScreen = ({ navigation }) => {
   const [userEmail, setUserEmail] = useState(null);
   const webViewRef = useRef(null);
 
-  // AsyncStorage'dan cüzdanları ve kullanıcı emailini yükle
   useEffect(() => {
     (async () => {
       try {
-        // Walletları yükle
         const savedWallets = await AsyncStorage.getItem(WALLET_STORAGE_KEY);
         if (savedWallets) setConnectedWallets(JSON.parse(savedWallets));
-
-        // UserData'dan email çek
         const userDataStr = await AsyncStorage.getItem('userData');
         if (userDataStr) {
           const userData = JSON.parse(userDataStr);
-          if (userData?.email) {
-            setUserEmail(userData.email);
-          }
+          if (userData?.email) setUserEmail(userData.email);
         }
       } catch (e) {
-        console.error('Failed to load wallets or user email:', e);
+        console.error('Failed to load data from AsyncStorage:', e);
       } finally {
         setIsLoading(false);
       }
     })();
   }, []);
 
-  // Android geri tuşunu WebView history ile yönet
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (webViewRef.current) {
+      if (webViewRef.current?.canGoBack) {
         webViewRef.current.goBack();
         return true;
       }
@@ -49,176 +42,92 @@ const WalletScreen = ({ navigation }) => {
     return () => backHandler.remove();
   }, []);
 
-  // WebView'ten mesajları işle
+  const handleNewWalletVerified = async (data) => {
+    const newWalletInfo = {
+      address: data.address,
+      chainId: data.chainId,
+      chainName: data.chainName || 'Unknown Network',
+      isActive: true,
+    };
+
+    if (!newWalletInfo.address) return;
+
+    if (connectedWallets.some(w => w.address.toLowerCase() === newWalletInfo.address.toLowerCase())) {
+      Alert.alert('Wallet Already Connected', 'This wallet is already in your list.');
+      return;
+    }
+    if (connectedWallets.length >= MAX_WALLETS) {
+      Alert.alert('Max Wallets Reached', `You can connect up to ${MAX_WALLETS} wallets.`);
+      return;
+    }
+
+    const updatedWallets = connectedWallets.map(w => ({ ...w, isActive: false }));
+    const newList = [...updatedWallets, newWalletInfo];
+    await handleWalletUpdate(newList);
+
+    Alert.alert('Wallet Connected & Verified', `Address: ${shortAddress(newWalletInfo.address)}`);
+    // İsteğe bağlı olarak ana ekrana geri dönebilir veya başka bir işlem yapabilirsiniz.
+    // navigation.goBack(); 
+  };
+  
   const handleWebViewMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log('WebView message:', data.type);
+      console.log('Received message from WebView:', data.type);
 
       switch (data.type) {
-        case 'WALLET_CONNECTED':
-          handleWalletConnected(data.wallet);
+        case 'WALLET_VERIFIED_AND_CONNECTED':
+          handleNewWalletVerified(data);
           break;
-
-        case 'WALLET_DISCONNECTED':
-        case 'WALLET_REMOVED':
-          handleWalletUpdate(data.allWallets || []);
-          break;
-
-        case 'WALLET_SWITCHED':
-          handleWalletUpdate(data.allWallets || []);
-          if (data.activeWallet) {
-            Alert.alert(
-              'Wallet Switched',
-              `Active wallet: ${data.activeWallet.walletType}\nAddress: ${shortAddress(data.activeWallet.address)}`,
-              [{ text: 'OK' }]
-            );
-          }
-          break;
-
-        case 'ADD_NEW_WALLET_REQUEST':
-          handleAddNewWalletRequest(data.currentWallets, data.maxWallets);
-          break;
-
-        case 'MAX_WALLETS_REACHED':
-          Alert.alert(
-            'Max Wallets Reached',
-            `You can only connect up to ${data.maxLimit} wallets.`,
-            [{ text: 'OK' }]
-          );
-          break;
-
-        case 'GET_CONNECTED_WALLETS':
-          sendMessageToWebView({
-            type: 'CONNECTED_WALLETS_DATA',
-            wallets: connectedWallets,
-            maxWallets: MAX_WALLETS,
-          });
-          break;
-
         case 'WALLET_CONNECTION_FAILED':
-          Alert.alert('Connection Failed', data.message || 'An error occurred.');
+          Alert.alert('Connection Failed', data.message || 'An unexpected error occurred.');
           break;
-
         default:
-          console.log('Unknown message type:', data.type);
+          console.log('Unknown message type received:', data.type);
       }
     } catch (e) {
-      console.error('Invalid message from WebView:', e);
+      console.error('Error processing message from WebView:', e);
     }
   };
 
-  // Cüzdanlar state ve AsyncStorage güncelle
   const handleWalletUpdate = async (wallets) => {
     setConnectedWallets(wallets);
     try {
       await AsyncStorage.setItem(WALLET_STORAGE_KEY, JSON.stringify(wallets));
     } catch (e) {
-      console.error('Failed to save wallets:', e);
+      console.error('Failed to save wallets to AsyncStorage:', e);
     }
   };
 
-  // Yeni cüzdan eklenecek mi sorusu
-  const handleAddNewWalletRequest = (currentWallets, maxWallets) => {
-    if (currentWallets >= maxWallets) {
-      Alert.alert(
-        'Max Wallets Reached',
-        `You can only connect up to ${maxWallets} wallets.`,
-        [{ text: 'OK' }]
-      );
-      sendMessageToWebView({ type: 'ADD_WALLET_CANCELLED' });
-      return;
-    }
+  const shortAddress = (address) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
 
-    Alert.alert(
-      'Add New Wallet',
-      `Add a new wallet? (${currentWallets}/${maxWallets})\nYou will need to sign a security message.`,
-      [
-        { text: 'Cancel', style: 'cancel', onPress: () => sendMessageToWebView({ type: 'ADD_WALLET_CANCELLED' }) },
-        { text: 'Add Wallet', onPress: () => sendMessageToWebView({ type: 'PROCEED_ADD_WALLET', confirmed: true }) },
-      ]
-    );
-  };
-
-  // Yeni wallet connected mesajını işle
-  const handleWalletConnected = async (wallet) => {
-    if (!wallet || !wallet.address) return;
-
-    // Aynı wallet bağlı mı kontrol
-    if (connectedWallets.some(w => w.address.toLowerCase() === wallet.address.toLowerCase())) {
-      Alert.alert('Wallet Already Connected', 'This wallet is already connected.');
-      return;
-    }
-
-    if (connectedWallets.length >= MAX_WALLETS) {
-      Alert.alert('Max Wallets Reached', `Max ${MAX_WALLETS} wallets allowed.`);
-      return;
-    }
-
-    // Yeni wallet ekle ve diğerlerini pasif yap
-    const updatedWallets = connectedWallets.map(w => ({ ...w, isActive: false }));
-    const newWallet = { ...wallet, isActive: true };
-    const newList = [...updatedWallets, newWallet];
-    await handleWalletUpdate(newList);
-
-    Alert.alert(
-      'Wallet Connected',
-      `${newWallet.walletType} connected to ${newWallet.chainName}\nAddress: ${shortAddress(newWallet.address)}\nTotal wallets: ${newList.length}/${MAX_WALLETS}`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  // WebView'e mesaj gönder
-  const sendMessageToWebView = (message) => {
-    if (webViewRef.current) {
-      webViewRef.current.postMessage(JSON.stringify(message));
-    }
-  };
-
-  // Adresi kısa göster
-  const shortAddress = (address) => {
-    if (!address) return '';
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  // WebView'da wallet deep linklerini handle et
   const handleShouldStartLoadWithRequest = (request) => {
-    const url = request.url;
-    const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://', 'coinbase://'];
-
+    const { url } = request;
+    console.log("WebView is trying to load URL:", url);
+    const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://'];
     if (walletSchemes.some(scheme => url.startsWith(scheme))) {
-      Linking.openURL(url).catch(() => {
-        Alert.alert(
-          'Wallet Not Found',
-          'The wallet app could not be opened. Please make sure it is installed.',
-          [{ text: 'OK' }]
-        );
-      });
+       console.log("Deep link detected! Opening with Linking.openURL...");
+      Linking.openURL(url).catch(() => Alert.alert('Wallet App Not Found', 'Please ensure the selected wallet app is installed.'));
       return false;
     }
     return true;
   };
 
-  if (isLoading) {
-    return <ActivityIndicator size="large" style={{ flex: 1 }} />;
-  }
-
-  // userEmail varsa query param olarak ekle
-  const baseUrl = 'http://192.168.1.106:5173/wallet';
+  if (isLoading) return <ActivityIndicator size="large" color="#fff" style={styles.safeArea} />;
+  
+  const baseUrl = 'http://192.168.1.106:5173/wallet'; // Bu IP'yi kendi IP'nizle değiştirin
   const webViewUrl = userEmail ? `${baseUrl}?email=${encodeURIComponent(userEmail)}` : baseUrl;
-console.log("Loading WebView with:", webViewUrl);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <WebView
         ref={webViewRef}
         source={{ uri: webViewUrl }}
         onMessage={handleWebViewMessage}
-        onError={(error) => {
-          Alert.alert('WebView Error', 'Failed to load wallet interface. Please try again.');
-          console.error('WebView error:', error.nativeEvent);
-        }}
+        onError={(e) => Alert.alert('WebView Error', e.nativeEvent.description)}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-        startInLoadingState={isLoading}
+        startInLoadingState={true}
+        renderLoading={() => <ActivityIndicator size="large" color="#fff" style={styles.safeArea} />}
         javaScriptEnabled
         domStorageEnabled
         originWhitelist={['*']}
@@ -229,14 +138,8 @@ console.log("Loading WebView with:", webViewUrl);
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-  },
+  safeArea: { flex: 1, backgroundColor: '#0f172a' },
+  webview: { flex: 1, backgroundColor: '#0f172a' },
 });
 
 export default WalletScreen;
