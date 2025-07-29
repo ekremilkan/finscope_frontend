@@ -115,7 +115,7 @@ const WalletScreen = ({ navigation }) => {
 
   if (isLoading) return <ActivityIndicator size="large" color="#fff" style={styles.safeArea} />;
   
-  const baseUrl = 'http://192.168.1.106:5173/wallet'; // Bu IP'yi kendi IP'nizle değiştirin
+  const baseUrl = 'http://192.168.1.21:5173/wallet'; // Bu IP'yi kendi IP'nizle değiştirin
   const webViewUrl = userEmail ? `${baseUrl}?email=${encodeURIComponent(userEmail)}` : baseUrl;
 
   return (

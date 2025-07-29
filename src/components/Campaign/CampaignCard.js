@@ -109,29 +109,14 @@ const CampaignCard = ({ campaign, onJoinCampaign, onPress }) => {
 
       {/* Campaign Tags */}
       <View style={styles.campaignTags}>
-        <View style={[
-          styles.difficultyBadge, 
-          { backgroundColor: getDifficultyColor(campaign.difficulty) + '20' }
-        ]}>
-          <Text style={styles.difficultyIcon}>
-            {getCampaignDifficultyIcon(campaign.difficulty)}
-          </Text>
-          <Text style={[
-            styles.difficultyText, 
-            { color: getDifficultyColor(campaign.difficulty) }
-          ]}>
-            {campaign.difficulty}
-          </Text>
-        </View>
-        
-        {campaign.tags.slice(0, 2).map((tag, index) => (
+        {campaign.tags.slice(0, 3).map((tag, index) => (
           <View key={index} style={styles.tag}>
             <Text style={styles.tagText}>{tag}</Text>
           </View>
         ))}
         
-        {campaign.tags.length > 2 && (
-          <Text style={styles.moreTagsText}>+{campaign.tags.length - 2}</Text>
+        {campaign.tags.length > 3 && (
+          <Text style={styles.moreTagsText}>+{campaign.tags.length - 3}</Text>
         )}
       </View>
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -68,10 +67,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart, isLoading = fal
             activeOpacity={0.8}
             onPress={() => onCampaignStart(campaign)}
           >
-            <LinearGradient
-              colors={['rgba(99, 102, 241, 0.1)', 'rgba(99, 102, 241, 0.05)']}
-              style={styles.cardGradient}
-            >
+            <View style={styles.cardContainer}>
           <View style={styles.campaignHeader}>
             <View style={styles.campaignInfo}>
                   <View style={styles.campaignIconContainer}>
@@ -94,15 +90,12 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart, isLoading = fal
               </View>
             </View>
                 <View style={styles.startButtonContainer}>
-                  <LinearGradient
-                    colors={['#6366f1', '#8b5cf6']}
-              style={styles.startButton} 
-            >
+                  <View style={styles.startButton}>
               <Text style={styles.startButtonText}>Start</Text>
-                  </LinearGradient>
+                  </View>
           </View>
         </View>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -118,7 +111,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Math.max(16, height * 0.02),
+    marginBottom: Math.max(24, height * 0.03),
+    marginTop: Math.max(16, height * 0.02),
   },
   sectionTitle: {
     fontSize: Math.max(22, width * 0.055),
@@ -153,11 +147,12 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  cardGradient: {
+  cardContainer: {
     borderRadius: Math.max(20, width * 0.05),
     padding: Math.max(20, width * 0.05),
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.2)',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
   },
   campaignHeader: {
     flexDirection: 'row',
@@ -239,6 +234,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Math.max(24, width * 0.06),
     paddingVertical: Math.max(12, height * 0.015),
     borderRadius: Math.max(16, width * 0.04),
+    backgroundColor: '#6366f1', // Changed from LinearGradient to solid color
     shadowColor: '#6366f1',
     shadowOffset: {
       width: 0,

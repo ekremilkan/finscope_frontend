@@ -1,15 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
 const HomeStatsCard = ({ userData }) => {
   return (
-    <LinearGradient
-      colors={['rgba(30, 41, 59, 0.9)', 'rgba(30, 41, 59, 0.7)']}
-      style={styles.statsCard}
-    >
+    <View style={styles.statsCard}>
       <View style={styles.statsHeader}>
         <Text style={styles.statsTitle}>User Statistics</Text>
         <View style={styles.statsBadge}>
@@ -18,42 +14,33 @@ const HomeStatsCard = ({ userData }) => {
       </View>
       
       <View style={styles.statsGrid}>
-        <LinearGradient
-          colors={['rgba(99, 102, 241, 0.15)', 'rgba(99, 102, 241, 0.05)']}
-          style={styles.statItem}
-        >
+        <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
           <Text style={styles.statIcon}>📈</Text>
           </View>
           <Text style={styles.statLabel}>Success Rate</Text>
           <Text style={styles.statValue}>%{userData.successRate}</Text>
-        </LinearGradient>
+        </View>
         
-        <LinearGradient
-          colors={['rgba(16, 185, 129, 0.15)', 'rgba(16, 185, 129, 0.05)']}
-          style={styles.statItem}
-        >
+        <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
           <Text style={styles.statIcon}>🎯</Text>
           </View>
           <Text style={styles.statLabel}>Completed</Text>
           <Text style={styles.statValue}>{userData.completedCampaigns}/{userData.totalCampaigns}</Text>
-        </LinearGradient>
+        </View>
       </View>
 
       <View style={styles.statsGrid}>
-        <LinearGradient
-          colors={['rgba(245, 158, 11, 0.15)', 'rgba(245, 158, 11, 0.05)']}
-          style={styles.statItem}
-        >
+        <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
           <Text style={styles.statIcon}>💰</Text>
           </View>
           <Text style={styles.statLabel}>Total Earnings</Text>
           <Text style={styles.statValue}>{userData.totalEarnings} USDT</Text>
-        </LinearGradient>
+        </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -63,6 +50,7 @@ const styles = StyleSheet.create({
     borderRadius: Math.max(24, width * 0.06),
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.2)',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -76,7 +64,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Math.max(20, height * 0.025),
+    marginBottom: Math.max(24, height * 0.03),
+    marginTop: Math.max(16, height * 0.02),
   },
   statsTitle: {
     fontSize: Math.max(20, width * 0.055),
@@ -112,6 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: Math.max(16, width * 0.04),
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.2)',
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
     minHeight: Math.max(100, height * 0.12),
     justifyContent: 'center',
   },

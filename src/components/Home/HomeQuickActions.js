@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get('window');
@@ -22,15 +21,12 @@ const HomeQuickActions = ({ quickActions }) => {
             style={styles.quickActionItem}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={[`${action.color}20`, `${action.color}10`]}
-              style={styles.actionGradient}
-          >
+            <View style={styles.actionContainer}>
             <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
                 <Icon name={action.icon} size={Math.max(24, width * 0.06)} color="#ffffff" />
             </View>
             <Text style={styles.quickActionTitle}>{action.title}</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -46,7 +42,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Math.max(16, height * 0.02),
+    marginBottom: Math.max(24, height * 0.03),
+    marginTop: Math.max(16, height * 0.02),
   },
   sectionTitle: {
     fontSize: Math.max(22, width * 0.055),
@@ -88,13 +85,14 @@ const styles = StyleSheet.create({
     elevation: 6,
     minHeight: Math.max(120, height * 0.15),
   },
-  actionGradient: {
+  actionContainer: {
     borderRadius: Math.max(20, width * 0.05),
     padding: Math.max(20, width * 0.05),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.2)',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
     minHeight: Math.max(120, height * 0.15),
   },
   quickActionIcon: {

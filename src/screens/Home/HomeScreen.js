@@ -4,7 +4,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 
 // Data imports
 import { HOME_USER_DATA, QUICK_ACTIONS, BOTTOM_NAV_ITEMS } from '../../data/homeData';
@@ -74,12 +73,9 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient
-      colors={['#0a0f1c', '#1a1f2c', '#0a0f1c']}
-      style={styles.gradientContainer}
-    >
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <HomeHeader 
         userName={userData.name}
           onLogoutPress={handleLogoutPress}
@@ -116,15 +112,16 @@ const HomeScreen = ({ navigation }) => {
         onLogout={handleLogoutPress}
         /> */}
     </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  gradientContainer: {
-    flex: 1,
-  },
   container: {
+    flex: 1,
+    backgroundColor: '#0a0f1c',
+  },
+  safeArea: {
     flex: 1,
   },
   scrollView: {

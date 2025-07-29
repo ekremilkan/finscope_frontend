@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getDifficultyColor, getProgressPercentage } from '../../utils/userCampaignUtils';
+import { getCampaignStatusColor, getCampaignStatusText } from '../../data/campaignData';
 
 const { width } = Dimensions.get('window');
 
@@ -11,9 +12,15 @@ const UserCampaignCard = ({ campaign, onJoinCampaign, onPress }) => {
       <View style={styles.campaignHeader}>
         <View style={styles.campaignTitleRow}>
           <Text style={styles.campaignTitle} numberOfLines={1}>{campaign.title}</Text>
-          <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(campaign.difficulty) + '20' }]}>
-            <Text style={[styles.difficultyText, { color: getDifficultyColor(campaign.difficulty) }]}>
-              {campaign.difficulty}
+          <View style={[
+            styles.statusBadge, 
+            { backgroundColor: getCampaignStatusColor(campaign.status) + '20' }
+          ]}>
+            <Text style={[
+              styles.statusText, 
+              { color: getCampaignStatusColor(campaign.status) }
+            ]}>
+              {getCampaignStatusText(campaign.status)}
             </Text>
           </View>
         </View>
@@ -132,12 +139,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
-  difficultyBadge: {
+  statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    minWidth: 60,
+    alignItems: 'center',
   },
-  difficultyText: {
+  statusText: {
     fontSize: Math.max(12, width * 0.03),
     fontWeight: '600',
   },
