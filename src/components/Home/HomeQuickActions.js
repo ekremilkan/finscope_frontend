@@ -9,7 +9,7 @@ const HomeQuickActions = ({ quickActions }) => {
   return (
     <View style={styles.quickActionsSection}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Quick Access</Text>
+      <Text style={styles.sectionTitle}>Quick Access</Text>
         <View style={styles.sectionBadge}>
           <Text style={styles.sectionBadgeText}>Tools</Text>
         </View>
@@ -25,11 +25,11 @@ const HomeQuickActions = ({ quickActions }) => {
             <LinearGradient
               colors={[`${action.color}20`, `${action.color}10`]}
               style={styles.actionGradient}
-            >
-              <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
                 <Icon name={action.icon} size={Math.max(24, width * 0.06)} color="#ffffff" />
-              </View>
-              <Text style={styles.quickActionTitle}>{action.title}</Text>
+            </View>
+            <Text style={styles.quickActionTitle}>{action.title}</Text>
             </LinearGradient>
           </TouchableOpacity>
         ))}

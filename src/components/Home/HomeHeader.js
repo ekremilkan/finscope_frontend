@@ -13,17 +13,17 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
     >
       <View style={styles.headerLeft}>
         <View style={styles.userAvatar}>
-          <Icon name="person" size={Math.max(20, Math.min(28, width * 0.06))} color="#6366f1" />
+        <Icon name="person" size={Math.max(20, Math.min(28, width * 0.06))} color="#6366f1" />
         </View>
         <View style={styles.welcomeContainer}>
           <Text style={styles.welcomeLabel}>Welcome back</Text>
-          <Text 
-            style={styles.welcomeText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
+        <Text 
+          style={styles.welcomeText}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
             {userName}!
-          </Text>
+        </Text>
         </View>
       </View>
       
@@ -33,8 +33,8 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
             colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
             style={styles.iconGradient}
           >
-            <Icon name="notifications" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
-            <View style={styles.notificationDot} />
+          <Icon name="notifications" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
+          <View style={styles.notificationDot} />
           </LinearGradient>
         </TouchableOpacity>
         
@@ -48,7 +48,7 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
           <LinearGradient
             colors={['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.05)']}
             style={styles.iconGradient}
-          >
+        >
             <Icon name="logout" size={Math.max(20, Math.min(28, width * 0.06))} color="#ef4444" />
           </LinearGradient>
         </TouchableOpacity>

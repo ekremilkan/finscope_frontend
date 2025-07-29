@@ -23,7 +23,7 @@ const HomeStatsCard = ({ userData }) => {
           style={styles.statItem}
         >
           <View style={styles.statIconContainer}>
-            <Text style={styles.statIcon}>📈</Text>
+          <Text style={styles.statIcon}>📈</Text>
           </View>
           <Text style={styles.statLabel}>Success Rate</Text>
           <Text style={styles.statValue}>%{userData.successRate}</Text>
@@ -34,7 +34,7 @@ const HomeStatsCard = ({ userData }) => {
           style={styles.statItem}
         >
           <View style={styles.statIconContainer}>
-            <Text style={styles.statIcon}>🎯</Text>
+          <Text style={styles.statIcon}>🎯</Text>
           </View>
           <Text style={styles.statLabel}>Completed</Text>
           <Text style={styles.statValue}>{userData.completedCampaigns}/{userData.totalCampaigns}</Text>
@@ -47,7 +47,7 @@ const HomeStatsCard = ({ userData }) => {
           style={styles.statItem}
         >
           <View style={styles.statIconContainer}>
-            <Text style={styles.statIcon}>💰</Text>
+          <Text style={styles.statIcon}>💰</Text>
           </View>
           <Text style={styles.statLabel}>Total Earnings</Text>
           <Text style={styles.statValue}>{userData.totalEarnings} USDT</Text>

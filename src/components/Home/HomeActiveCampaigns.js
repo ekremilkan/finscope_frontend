@@ -47,7 +47,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart, isLoading = fal
   return (
     <View style={styles.campaignsSection}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Active Campaigns</Text>
+      <Text style={styles.sectionTitle}>Active Campaigns</Text>
         <View style={styles.sectionBadge}>
           <Text style={styles.sectionBadgeText}>Live</Text>
         </View>
@@ -72,14 +72,14 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart, isLoading = fal
               colors={['rgba(99, 102, 241, 0.1)', 'rgba(99, 102, 241, 0.05)']}
               style={styles.cardGradient}
             >
-              <View style={styles.campaignHeader}>
-                <View style={styles.campaignInfo}>
+          <View style={styles.campaignHeader}>
+            <View style={styles.campaignInfo}>
                   <View style={styles.campaignIconContainer}>
                     <Text style={styles.campaignIcon}>📊</Text>
                   </View>
-                  <View style={styles.campaignDetails}>
+              <View style={styles.campaignDetails}>
                     <Text style={styles.campaignTitle} numberOfLines={2}>{title}</Text>
-                    <View style={styles.campaignMeta}>
+                <View style={styles.campaignMeta}>
                       <View style={styles.rewardContainer}>
                         <Text style={styles.rewardIcon}>💰</Text>
                         <Text style={styles.campaignReward}>{reward} USDT</Text>
@@ -90,18 +90,18 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart, isLoading = fal
                           {participants}/{maxParticipants}
                         </Text>
                       </View>
-                    </View>
-                  </View>
                 </View>
+              </View>
+            </View>
                 <View style={styles.startButtonContainer}>
                   <LinearGradient
                     colors={['#6366f1', '#8b5cf6']}
-                    style={styles.startButton}
-                  >
-                    <Text style={styles.startButtonText}>Start</Text>
+              style={styles.startButton} 
+            >
+              <Text style={styles.startButtonText}>Start</Text>
                   </LinearGradient>
-                </View>
-              </View>
+          </View>
+        </View>
             </LinearGradient>
           </TouchableOpacity>
         );

@@ -79,16 +79,16 @@ const HomeScreen = ({ navigation }) => {
       style={styles.gradientContainer}
     >
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        <HomeHeader 
-          userName={userData.name}
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <HomeHeader 
+        userName={userData.name}
           onLogoutPress={handleLogoutPress}
-          onNotificationPress={() => {}}
-        />
-        
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
+        onNotificationPress={() => {}}
+      />
+      
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           bounces={true}
           overScrollMode="never"
@@ -96,26 +96,26 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.contentWrapper}>
             <HomeActiveCampaigns 
               activeCampaigns={activeCampaigns}
-              onCampaignStart={handleCampaignPress}
+          onCampaignStart={handleCampaignPress}
               isLoading={loadingCampaigns}
-            />
+        />
             
             <View style={styles.sectionSpacer} />
             
-            <HomeStatsCard userData={userData} />
+        <HomeStatsCard userData={userData} />
             
             <View style={styles.sectionSpacer} />
-            
+       
             <HomeQuickActions quickActions={QUICK_ACTIONS} />
           </View>
-        </ScrollView>
-        
+      </ScrollView>
+
         {/* HomeSettingsModal 
-          showModal={showSettingsModal}
-          onClose={() => setShowSettingsModal(false)}
-          onLogout={handleLogoutPress}
+        showModal={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        onLogout={handleLogoutPress}
         /> */}
-      </SafeAreaView>
+    </SafeAreaView>
     </LinearGradient>
   );
 };
