@@ -1,67 +1,80 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-const HomeHeader = ({ userName, onSettingsPress, onNotificationPress, onSwitchPress }) => {
+const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
   return (
-    <View style={styles.header}>
+    <LinearGradient
+      colors={['rgba(15, 23, 42, 0.95)', 'rgba(15, 23, 42, 0.8)']}
+      style={styles.header}
+    >
       <View style={styles.headerLeft}>
+        <View style={styles.userAvatar}>
         <Icon name="person" size={Math.max(20, Math.min(28, width * 0.06))} color="#6366f1" />
+        </View>
+        <View style={styles.welcomeContainer}>
+          <Text style={styles.welcomeLabel}>Welcome back</Text>
         <Text 
           style={styles.welcomeText}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          Welcome, {userName}!
+            {userName}!
         </Text>
+        </View>
       </View>
+      
       <View style={styles.headerRight}>
-        <TouchableOpacity 
-          style={styles.switchButton}
-          onPress={onSwitchPress}
-          activeOpacity={0.7}
-        >
-          <Icon name="business" size={Math.max(16, Math.min(20, width * 0.045))} color="#6366f1" />
-        </TouchableOpacity>
         <TouchableOpacity style={styles.headerIcon} onPress={onNotificationPress}>
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
+            style={styles.iconGradient}
+          >
           <Icon name="notifications" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
           <View style={styles.notificationDot} />
+          </LinearGradient>
         </TouchableOpacity>
+        
         <TouchableOpacity 
           style={styles.headerIcon}
-          onPress={onSettingsPress}
+          onPress={() => {
+            console.log('🔧 Logout icon pressed!');
+            onLogoutPress();
+          }}
         >
-          <Icon name="settings" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
+          <LinearGradient
+            colors={['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.05)']}
+            style={styles.iconGradient}
+        >
+            <Icon name="logout" size={Math.max(20, Math.min(28, width * 0.06))} color="#ef4444" />
+          </LinearGradient>
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Math.max(20, width * 0.05),
-    paddingVertical: Math.max(16, width * 0.04),
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    paddingVertical: Math.max(16, height * 0.02),
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(148, 163, 184, 0.1)',
-    minHeight: Math.max(70, width * 0.18),
+    minHeight: Math.max(70, height * 0.09),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -70,62 +83,63 @@ const styles = StyleSheet.create({
     minWidth: 0,
     paddingRight: Math.max(12, width * 0.03),
   },
+  userAvatar: {
+    width: Math.max(40, width * 0.1),
+    height: Math.max(40, width * 0.1),
+    borderRadius: Math.max(20, width * 0.05),
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Math.max(12, width * 0.03),
+  },
+  welcomeContainer: {
+    flex: 1,
+    minWidth: 0,
+  },
+  welcomeLabel: {
+    fontSize: Math.max(12, width * 0.03),
+    color: 'rgba(148, 163, 184, 0.8)',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
   welcomeText: {
-    fontSize: Math.max(16, Math.min(22, width * 0.055)),
-    fontWeight: '700',
+    fontSize: Math.max(18, Math.min(24, width * 0.06)),
+    fontWeight: '800',
     color: '#ffffff',
-    marginLeft: Math.max(8, width * 0.02),
     flexShrink: 1,
     maxWidth: width * 0.5,
     textShadowColor: 'rgba(99, 102, 241, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 0,
     justifyContent: 'flex-end',
+    gap: Math.max(8, width * 0.02),
   },
   headerIcon: {
-    marginLeft: Math.max(16, width * 0.04),
     position: 'relative',
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+  },
+  iconGradient: {
     padding: Math.max(8, width * 0.02),
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: Math.max(12, width * 0.03),
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.2)',
   },
   notificationDot: {
     position: 'absolute',
     top: Math.max(4, width * 0.01),
     right: Math.max(4, width * 0.01),
-    width: Math.max(8, width * 0.025),
-    height: Math.max(8, width * 0.025),
-    borderRadius: Math.max(4, width * 0.0125),
+    width: Math.max(8, width * 0.02),
+    height: Math.max(8, width * 0.02),
+    borderRadius: Math.max(4, width * 0.01),
     backgroundColor: '#ef4444',
-    shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  switchButton: {
-    width: Math.max(40, width * 0.1),
-    height: Math.max(40, width * 0.1),
-    borderRadius: Math.max(20, width * 0.05),
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.4)',
-    marginRight: Math.max(12, width * 0.03),
-    shadowColor: '#6366f1',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: '#ffffff',
   },
 });
 

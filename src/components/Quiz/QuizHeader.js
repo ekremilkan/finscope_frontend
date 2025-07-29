@@ -5,7 +5,7 @@ import { formatTime, getTimeWarningColor } from '../../utils/quizUtils';
 
 const { width } = Dimensions.get('window');
 
-const QuizHeader = ({ campaignTitle, reward, timeLeft, onExit }) => {
+const QuizHeader = ({ campaignTitle, reward, timeLeft, onExit, penaltyTime }) => {
   const timerColor = getTimeWarningColor(timeLeft);
 
   return (
@@ -24,11 +24,15 @@ const QuizHeader = ({ campaignTitle, reward, timeLeft, onExit }) => {
         <Text style={styles.rewardText}>💰 {reward} USDT Reward</Text>
       </View>
 
-      <View style={[styles.timerContainer, { borderColor: `${timerColor}30` }]}>
-        <Icon name="timer" size={20} color={timerColor} />
-        <Text style={[styles.timerText, { color: timerColor }]}>
-          {formatTime(timeLeft)}
-        </Text>
+      <View style={styles.timerSection}>
+        {penaltyTime !== null && penaltyTime > 0 && (
+          <View style={[styles.penaltyContainer, { borderColor: '#ef4444' }]}>
+            <Icon name="warning" size={20} color="#ef4444" />
+            <Text style={[styles.penaltyText, { color: '#ef4444' }]}>
+              {penaltyTime}s
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -85,6 +89,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   timerText: {
+    fontSize: Math.max(14, width * 0.035),
+    fontWeight: '700',
+    marginLeft: 4,
+  },
+  timerSection: {
+    marginTop: 8,
+  },
+  penaltyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  penaltyText: {
     fontSize: Math.max(14, width * 0.035),
     fontWeight: '700',
     marginLeft: 4,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { isQuizPassed } from '../../utils/quizUtils';
+import { isQuizPassed, formatTime } from '../../utils/quizUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -12,7 +12,8 @@ const QuizResultModal = ({
   reward, 
   onRetry, 
   onHome,
-  passPercentage = 70
+  passPercentage = 100,
+  timeSpent = 0
 }) => {
   const passed = isQuizPassed(score, passPercentage);
 
@@ -39,6 +40,11 @@ const QuizResultModal = ({
             </View>
           </View>
 
+          <View style={styles.timeContainer}>
+            <Icon name="timer" size={20} color="#6366f1" />
+            <Text style={styles.timeText}>Time Spent: {formatTime(timeSpent)}</Text>
+          </View>
+
           <View style={styles.rewardContainer}>
             {passed ? (
               <>
@@ -49,22 +55,13 @@ const QuizResultModal = ({
             ) : (
               <>
                 <Icon name="cancel" size={48} color="#ef4444" />
-                <Text style={styles.failText}>Failed! At least {passPercentage}% score required</Text>
+                <Text style={styles.failText}>Failed! All questions must be answered correctly</Text>
                 <Text style={styles.tryAgainText}>You can try again</Text>
               </>
             )}
           </View>
 
           <View style={styles.resultButtons}>
-            {!passed && (
-              <TouchableOpacity
-                style={[styles.resultButton, styles.retryButton]}
-                onPress={onRetry}
-              >
-                <Icon name="refresh" size={20} color="#ffffff" />
-                <Text style={styles.resultButtonText}>Try Again</Text>
-              </TouchableOpacity>
-            )}
             <TouchableOpacity
               style={[styles.resultButton, styles.homeButton]}
               onPress={onHome}
@@ -140,6 +137,16 @@ const styles = StyleSheet.create({
     fontSize: Math.max(12, width * 0.03),
     color: 'rgba(148, 163, 184, 0.8)',
     marginTop: 4,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  timeText: {
+    fontSize: Math.max(14, width * 0.035),
+    color: 'rgba(148, 163, 184, 0.8)',
+    marginLeft: 8,
   },
   rewardContainer: {
     alignItems: 'center',

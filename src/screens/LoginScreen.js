@@ -57,20 +57,48 @@ const LoginScreen = ({ navigation }) => {
 
       console.log('Login yanıtı:', JSON.stringify(response, null, 2));
 
-      const fullMessage =
-        response?.data?.data?.message ||
-        response?.data?.message ||
-        '';
+      // Backend'den gelen response'u kontrol et
+      const responseData = response?.data || response;
+      const isVerified = responseData?.isVerified;
+      const userData = responseData?.user;
+      const token = responseData?.token;
+      const refreshToken = responseData?.refreshToken;
 
-      if (fullMessage.toLowerCase().includes('doğrulama kodu')) {
+      if (isVerified === true && userData && token) {
+        // Kullanıcı zaten doğrulanmış, direkt giriş yap
+        console.log('✅ User already verified, proceeding to app');
+        
+        // User data'yı AsyncStorage'a kaydet
+        await storageService.setUser(userData);
+        await storageService.setToken(token);
+        if (refreshToken) {
+          await storageService.setRefreshToken(refreshToken);
+        }
+        
+        // Ana uygulamaya yönlendir
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'App' }]
+        });
+      } else if (isVerified === false) {
+        // Kullanıcı doğrulanmamış, email verification gerekli
+        console.log('📧 User not verified, redirecting to email verification');
         navigation.replace('EmailVerification', {
           email: email.trim(),
           expiresIn: 600,
         });
-        return;
+      } else {
+        // Eski sistem için fallback
+        const fullMessage = responseData?.message || '';
+        if (fullMessage.toLowerCase().includes('doğrulama kodu')) {
+          navigation.replace('EmailVerification', {
+            email: email.trim(),
+            expiresIn: 600,
+          });
+        } else {
+          Alert.alert('Login Error', 'Unexpected response from server');
+        }
       }
-
-      Alert.alert('Login Error', 'Giriş başarılı ama doğrulama gerekebilir.');
     } catch (error) {
       console.log('Login error:', error);
       const errorMessage =

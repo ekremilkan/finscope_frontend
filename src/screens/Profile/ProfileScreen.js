@@ -1,60 +1,179 @@
-//kullanıcı istatistikleri
-//terms of service
-//privicy policy
-//theme ? 
-//notif ? 
-//account delete
-//contact us(müşteri)
-//earn rewards (status)
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  Alert,
+  RefreshControl,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { authService } from '../../services/authService';
+import { storageService } from '../../services/AsyncStorage';
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  PROFILE_DATA,
+  PROFILE_MENU_ITEMS,
+  COLORS,
+} from '../../data/profileData';
+import {
+  handleNavigation,
+  getUserStatus,
+  updateUserProfile,
+} from '../../utils/profileUtils';
 
-const ProfileScreen = () => {
+import ProfileHeader from '../../components/Profile/ProfileHeader';
+import ProfileStats from '../../components/Profile/ProfileStats';
+import ProfileMenu from '../../components/Profile/ProfileMenu';
+import ProfileLogout from '../../components/Profile/ProfileLogout';
+
+const { width } = Dimensions.get('window');
+
+const ProfileScreen = ({ navigation, route }) => {
+  const [profileData, setProfileData] = useState(PROFILE_DATA);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadUserProfile();
+
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (route.params?.shouldRefresh) {
+        loadUserProfile();
+        navigation.setParams({ shouldRefresh: false });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, route.params]);
+
+  const loadUserProfile = async () => {
+    setIsLoading(true);
+    try {
+      // 1) AsyncStorage'dan user bilgisini al
+      const cachedUser = await storageService.getUser();
+      const isVerified = await storageService.getIsVerified();
+      
+      // Burada senin storageService.getUser() zaten AsyncStorage'dan JSON.parse yaparak user objesini döndürüyor varsayıyorum
+
+      if (!cachedUser || !cachedUser._id) {
+        throw new Error('Kullanıcı bilgisi AsyncStorage\'da yok veya eksik');
+      }
+
+      // 2) Backend'den kullanıcıyı güncel olarak çek
+      const freshUser = await authService.getUserById(cachedUser._id);
+
+      if (!freshUser || !freshUser.name || !freshUser.email) {
+        throw new Error('Sunucudan eksik kullanıcı bilgisi alındı.');
+      }
+
+      // 3) Kullanıcı istatistiklerini backend'den çek (varsa)
+      // Eğer istatistik yoksa PROFILE_DATA.stats kullanılabilir
+      let userStats;
+      try {
+        userStats = await authService.makeAuthenticatedCall('/user/stats');
+      } catch {
+        userStats = PROFILE_DATA.stats;
+      }
+
+      // 4) Durum belirle
+      const status = getUserStatus(freshUser, userStats);
+
+      // 5) State güncelle - isVerified durumunu da ekle
+      setProfileData({
+        user: {
+          ...freshUser,
+          status,
+          avatar: freshUser.avatar || '👤',
+          isVerified: isVerified, // AsyncStorage'dan gelen isVerified durumu
+        },
+        stats: userStats,
+      });
+
+      // 6) AsyncStorage içindeki kullanıcıyı güncelle (opsiyonel)
+      await storageService.setUser(freshUser);
+
+    } catch (error) {
+      console.error('Profil yükleme hatası:', error);
+
+      // Hata durumunda demo verisi
+      setProfileData({
+        user: {
+          name: 'Demo User',
+          email: 'demo@example.com',
+          status: 'Basic Member',
+          avatar: '👤',
+          joinDate: new Date().toISOString(),
+        },
+        stats: PROFILE_DATA.stats,
+      });
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>👤 Profile</Text>
-      <Text style={styles.info}>Name: Ali</Text>
-      <Text style={styles.info}>Email: ali@example.com</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadUserProfile();
+            }}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
+        <ProfileHeader
+          user={profileData.user}
+          onEditPress={() => {
+            handleNavigation(navigation, 'EditProfile', {
+              userData: profileData.user,
+              onUpdate: updatedData => {
+                updateUserProfile(profileData.user._id, updatedData)
+                  .then(updatedUser => {
+                    setProfileData(prev => ({
+                      ...prev,
+                      user: { ...prev.user, ...updatedUser },
+                    }));
+                    Alert.alert('Başarılı', 'Profil güncellendi.');
+                  })
+                  .catch(() => {
+                    Alert.alert('Hata', 'Profil güncellenirken hata oluştu.');
+                  });
+              },
+            });
+          }}
+          isLoading={isLoading}
+        />
 
-      <TouchableOpacity style={styles.logoutButton} onPress={() => {}}>
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
-    </View>
+        {!isLoading && (
+          <>
+            <ProfileStats stats={profileData.stats} isLoading={isLoading} />
+            <ProfileMenu
+              menuItems={PROFILE_MENU_ITEMS}
+              navigation={navigation}
+              user={profileData.user}
+            />
+            <ProfileLogout navigation={navigation} user={profileData.user} />
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
-export default ProfileScreen;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    padding: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    color: '#fff',
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  info: {
-    fontSize: 18,
-    color: '#ccc',
-    marginVertical: 4
-  },
-  logoutButton: {
-    marginTop: 30,
-    backgroundColor: '#ef4444', 
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: Math.max(20, width * 0.05) },
 });
+
+export default ProfileScreen;

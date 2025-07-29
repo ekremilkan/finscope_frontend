@@ -100,9 +100,19 @@ export const resetAttemptCount = async () => {
 // API Calls with axios api service
 export const verifyEmailCode = async (email, verificationCode) => {
   try {
+    console.log('🔄 Verifying email code for:', email);
+    console.log('📡 API URL:', '/user/verify-login');
+    
     const response = await api.post('/user/verify-login', {
       email,
       verificationCode,
+    });
+
+    console.log('✅ Email verification response:', {
+      success: response.data?.success,
+      isVerified: response.data?.data?.isVerified,
+      hasUser: !!response.data?.data?.user,
+      hasToken: !!response.data?.data?.token
     });
 
     return {
@@ -111,7 +121,12 @@ export const verifyEmailCode = async (email, verificationCode) => {
       message: response.data.message || EMAIL_VERIFICATION_DATA.messages.success,
     };
   } catch (error) {
-    console.error('Email verification error:', error);
+    console.error('❌ Email verification error:', error);
+    console.error('📡 Error details:', {
+      status: error.response?.status,
+      message: error.response?.data?.message,
+      url: error.config?.url
+    });
 
     // Axios hatasından kullanıcıya anlamlı mesaj çıkarmak için
     const errorMsg = error.response?.data?.message || EMAIL_VERIFICATION_DATA.messages.networkError;
@@ -125,10 +140,14 @@ export const verifyEmailCode = async (email, verificationCode) => {
 
 export const resendVerificationCode = async (email) => {
   try {
+    console.log('🔄 Resending verification code for:', email);
+    console.log('📡 API URL:', '/user/resend-verification-code');
+    
     const response = await api.post('/user/resend-verification-code', {
       email,
     });
 
+    console.log('✅ Resend verification code successful');
     const expiresIn = response.data.expiresIn || EMAIL_VERIFICATION_DATA.timerDuration;
 
     // Yeni kod bilgilerini kaydet
@@ -149,7 +168,13 @@ export const resendVerificationCode = async (email) => {
       expiresIn,
     };
   } catch (error) {
-    console.error('Resend code error:', error);
+    console.error('❌ Resend code error:', error);
+    console.error('📡 Error details:', {
+      status: error.response?.status,
+      message: error.response?.data?.message,
+      url: error.config?.url
+    });
+    
     const errorMsg = error.response?.data?.message || EMAIL_VERIFICATION_DATA.messages.networkError;
 
     return {

@@ -183,108 +183,119 @@ const EmailVerification = ({ navigation, route }) => {
   };
 
   const handleVerify = async () => {
-    try {
-      const validation = validateCode(state.code);
-      if (!validation.isValid) {
-        setState(prevState => ({
-          ...prevState,
-          error: validation.error,
-          verificationState: VERIFICATION_STATES.ERROR,
-        }));
-        return;
+  try {
+    const validation = validateCode(state.code);
+    if (!validation.isValid) {
+      setState(prevState => ({
+        ...prevState,
+        error: validation.error,
+        verificationState: VERIFICATION_STATES.ERROR,
+      }));
+      return;
+    }
+
+    if (state.timeRemaining <= 0) {
+      showAlert(
+        'Error',
+        'Verification code has expired. Please request a new code.',
+      );
+      return;
+    }
+
+    setState(prevState => ({
+      ...prevState,
+      verificationState: VERIFICATION_STATES.LOADING,
+      error: null,
+    }));
+
+    const result = await verifyEmailCode(email, state.code);
+
+    if (result.success) {
+      // Tokenlar
+      const token = result.data?.data?.token;
+      const refreshToken = result.data?.data?.refreshToken;
+      // Kullanıcı bilgisi (profil)
+      const user = result.data?.data?.user;
+      const isVerified = result.data?.data?.isVerified;
+
+      if (!token || !refreshToken || !user) {
+        throw new Error('Token veya kullanıcı bilgisi bulunamadı.');
       }
 
-      if (state.timeRemaining <= 0) {
-        showAlert(
-          'Error',
-          'Verification code has expired. Please request a new code.',
-        );
-        return;
+      // AsyncStorage'a kaydet
+      await AsyncStorage.setItem('userToken', token);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+      await AsyncStorage.setItem('userData', JSON.stringify(user));  // Profil bilgisi
+      
+      // isVerified durumunu da kaydet
+      if (isVerified !== undefined) {
+        await AsyncStorage.setItem('isVerified', JSON.stringify(isVerified));
       }
 
       setState(prevState => ({
         ...prevState,
-        verificationState: VERIFICATION_STATES.LOADING,
-        error: null,
+        verificationState: VERIFICATION_STATES.SUCCESS,
       }));
 
-      const result = await verifyEmailCode(email, state.code);
+      await clearVerificationData();
 
-      if (result.success) {
-        // Tokenların doğru yerden geldiğini kontrol edip AsyncStorage'a kaydet
-        const token = result.data?.data?.token;
-        const refreshToken = result.data?.data?.refreshToken;
-
-        if (!token || !refreshToken) {
-          throw new Error('Token bilgisi bulunamadı.');
-        }
-
-        await AsyncStorage.setItem('userToken', token);
-        await AsyncStorage.setItem('refreshToken', refreshToken);
-
-        setState(prevState => ({
-          ...prevState,
-          verificationState: VERIFICATION_STATES.SUCCESS,
-        }));
-
-        await clearVerificationData();
-
-        showAlert(
-          'Success',
-          result.message || 'Email verification successful!',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                navigation.reset({
-                  index: 0,
-                  routes: [
-                    {
-                      name: 'App',
-                      state: {
-                        routes: [
-                          {
-                            name: 'Home',
-                            params: { verificationSuccess: true, email },
-                          },
-                        ],
-                      },
+      showAlert(
+        'Success',
+        result.message || 'Email verification successful!',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'App',
+                    state: {
+                      routes: [
+                        {
+                          name: 'Home',
+                          params: { verificationSuccess: true, email },
+                        },
+                      ],
                     },
-                  ],
-                });
-              },
+                  },
+                ],
+              });
             },
-          ],
-        );
-      } else {
-        const newAttemptCount = await incrementAttemptCount();
+          },
+        ],
+      );
+    } else {
+      const newAttemptCount = await incrementAttemptCount();
 
-        setState(prevState => ({
-          ...prevState,
-          verificationState: VERIFICATION_STATES.ERROR,
-          error: result.error,
-          attemptCount: newAttemptCount,
-          code: '',
-        }));
-
-        if (newAttemptCount >= EMAIL_VERIFICATION_DATA.maxAttempts) {
-          showAlert(
-            'Error',
-            'Maximum verification attempts exceeded. Please try again later.',
-          );
-        }
-      }
-    } catch (error) {
-      console.error('Verification error:', error);
       setState(prevState => ({
         ...prevState,
         verificationState: VERIFICATION_STATES.ERROR,
-        error:
-          error.message ||
-          'Network error. Please check your connection and try again.',
+        error: result.error,
+        attemptCount: newAttemptCount,
+        code: '',
       }));
+
+      if (newAttemptCount >= EMAIL_VERIFICATION_DATA.maxAttempts) {
+        showAlert(
+          'Error',
+          'Maximum verification attempts exceeded. Please try again later.',
+        );
+      }
     }
-  };
+  } catch (error) {
+    console.error('Verification error:', error);
+    setState(prevState => ({
+      ...prevState,
+      verificationState: VERIFICATION_STATES.ERROR,
+      error:
+        error.message ||
+        'Network error. Please check your connection and try again.',
+    }));
+  }
+};
+
 
   const handleResendCode = async () => {
     try {

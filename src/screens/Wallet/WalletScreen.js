@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Alert, BackHandler, Linking } from 'react-native';
+import { StyleSheet, Alert, BackHandler, Linking, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,428 +10,136 @@ const MAX_WALLETS = 3;
 const WalletScreen = ({ navigation }) => {
   const [connectedWallets, setConnectedWallets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState(null);
   const webViewRef = useRef(null);
 
-  // Kayıtlı cüzdanları yükle
   useEffect(() => {
-    loadSavedWallets();
+    (async () => {
+      try {
+        const savedWallets = await AsyncStorage.getItem(WALLET_STORAGE_KEY);
+        if (savedWallets) setConnectedWallets(JSON.parse(savedWallets));
+        const userDataStr = await AsyncStorage.getItem('userData');
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          if (userData?.email) setUserEmail(userData.email);
+        }
+      } catch (e) {
+        console.error('Failed to load data from AsyncStorage:', e);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
   }, []);
 
-  // Android geri tuşu için handler
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (webViewRef.current?.canGoBack) {
+        webViewRef.current.goBack();
+        return true;
+      }
+      return false;
+    });
     return () => backHandler.remove();
   }, []);
 
-  const loadSavedWallets = async () => {
-    try {
-      const savedWallets = await AsyncStorage.getItem(WALLET_STORAGE_KEY);
-      if (savedWallets) {
-        const wallets = JSON.parse(savedWallets);
-        setConnectedWallets(wallets);
-        console.log('Saved wallets loaded:', wallets.length);
-      }
-    } catch (error) {
-      console.error('Failed to load saved wallets:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const handleNewWalletVerified = async (data) => {
+    const newWalletInfo = {
+      address: data.address,
+      chainId: data.chainId,
+      chainName: data.chainName || 'Unknown Network',
+      isActive: true,
+    };
 
-  const saveWallets = async (wallets) => {
-    try {
-      await AsyncStorage.setItem(WALLET_STORAGE_KEY, JSON.stringify(wallets));
-      console.log('Wallets saved successfully');
-    } catch (error) {
-      console.error('Failed to save wallets:', error);
-    }
-  };
+    if (!newWalletInfo.address) return;
 
-  const handleBackPress = () => {
-    // WebView'da geri gitme işlemi
-    if (webViewRef.current) {
-      webViewRef.current.goBack();
-      return true; // Android'de varsayılan geri işlemini engelle
+    if (connectedWallets.some(w => w.address.toLowerCase() === newWalletInfo.address.toLowerCase())) {
+      Alert.alert('Wallet Already Connected', 'This wallet is already in your list.');
+      return;
     }
-    return false;
-  };
+    if (connectedWallets.length >= MAX_WALLETS) {
+      Alert.alert('Max Wallets Reached', `You can connect up to ${MAX_WALLETS} wallets.`);
+      return;
+    }
 
+    const updatedWallets = connectedWallets.map(w => ({ ...w, isActive: false }));
+    const newList = [...updatedWallets, newWalletInfo];
+    await handleWalletUpdate(newList);
+
+    Alert.alert('Wallet Connected & Verified', `Address: ${shortAddress(newWalletInfo.address)}`);
+    // İsteğe bağlı olarak ana ekrana geri dönebilir veya başka bir işlem yapabilirsiniz.
+    // navigation.goBack(); 
+  };
+  
   const handleWebViewMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log('WebView message received:', data);
+      console.log('Received message from WebView:', data.type);
 
       switch (data.type) {
-        case 'WALLET_CONNECTED':
-          handleWalletConnected(data);
+        case 'WALLET_VERIFIED_AND_CONNECTED':
+          handleNewWalletVerified(data);
           break;
-          
-        case 'WALLET_DISCONNECTED':
-          handleWalletDisconnected(data);
+        case 'WALLET_CONNECTION_FAILED':
+          Alert.alert('Connection Failed', data.message || 'An unexpected error occurred.');
           break;
-          
-        case 'ADD_NEW_WALLET_REQUEST':
-          handleAddNewWalletRequest(data);
-          break;
-
-        case 'WALLET_SWITCH_REQUEST':
-          handleWalletSwitchRequest(data);
-          break;
-
-        case 'GET_CONNECTED_WALLETS':
-          sendConnectedWalletsToWebView();
-          break;
-
-        case 'TRANSACTION_SIGN_REQUEST':
-          handleTransactionSignRequest(data);
-          break;
-          
         default:
-          console.log('Unknown message type:', data.type);
+          console.log('Unknown message type received:', data.type);
       }
-    } catch (error) {
-      console.error('Failed to parse message from WebView:', error);
+    } catch (e) {
+      console.error('Error processing message from WebView:', e);
     }
   };
 
-  const handleWalletConnected = async (data) => {
-    const { address, chainId, chainName, walletType = 'Unknown', balance } = data;
-
-    // Aynı adres zaten bağlı mı kontrol et
-    const isAlreadyConnected = connectedWallets.some(wallet => 
-      wallet.address.toLowerCase() === address.toLowerCase()
-    );
-
-    if (isAlreadyConnected) {
-      Alert.alert(
-        'Wallet Already Connected',
-        'This wallet is already connected to your account.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
-    const newWallet = {
-      id: Date.now().toString(),
-      address,
-      chainId,
-      chainName: chainName || 'Unknown Chain',
-      walletType,
-      balance: balance || '0',
-      connectedAt: new Date().toISOString(),
-      isActive: connectedWallets.length === 0 // İlk cüzdan aktif olsun
-    };
-
-    const updatedWallets = [...connectedWallets, newWallet];
-    setConnectedWallets(updatedWallets);
-    await saveWallets(updatedWallets);
-
-    console.log('Wallet connected ✅');
-    console.log('Address:', address);
-    console.log('Chain ID:', chainId);
-    console.log('Chain Name:', chainName);
-
-    Alert.alert(
-      'Wallet Connected Successfully! 🎉',
-      `${walletType} wallet connected\n\nAddress: ${address.slice(0, 6)}...${address.slice(-4)}\nChain: ${chainName || 'Unknown'}\nBalance: ${balance || 'N/A'}`,
-      [
-        {
-          text: 'View Wallets',
-          onPress: () => showConnectedWallets()
-        },
-        { 
-          text: 'Continue', 
-          style: 'default' 
-        }
-      ]
-    );
-
-    // WebView'a başarılı bağlantı mesajı gönder
-    sendMessageToWebView({
-      type: 'WALLET_CONNECTION_SUCCESS',
-      walletCount: updatedWallets.length
-    });
-  };
-
-  const handleWalletDisconnected = async (data) => {
-    // Eğer data veya address yoksa, fonksiyondan çık
-    if (!data || !data.address) {
-        return;
-    }
-
-    const { address } = data;
-    
-    // Belirli cüzdanı kaldır
-    const updatedWallets = connectedWallets.filter(
-        wallet => wallet.address.toLowerCase() !== address.toLowerCase()
-    );
-    
-    setConnectedWallets(updatedWallets);
-    await saveWallets(updatedWallets);
-
-    console.log('Wallet disconnected ❌');
-
-    Alert.alert(
-        'Wallet Disconnected',
-        `Wallet ${address.slice(0, 6)}...${address.slice(-4)} has been disconnected.`,
-        [{ text: 'OK', style: 'default' }]
-    );
-  };
-
-  const handleAddNewWalletRequest = (data) => {
-    const { currentAddress, currentChain, currentChainId } = data;
-    
-    if (connectedWallets.length >= MAX_WALLETS) {
-      Alert.alert(
-        'Maximum Wallets Reached',
-        `You can only connect up to ${MAX_WALLETS} wallets. Please disconnect one of your existing wallets first.`,
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
-    console.log('Add new wallet requested 🆕');
-    console.log('Current connected wallets:', connectedWallets.length);
-
-    Alert.alert(
-      'Add New Wallet',
-      `Do you want to add a new wallet?\n\nCurrent wallets: ${connectedWallets.length}/${MAX_WALLETS}`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-          onPress: () => {
-            sendMessageToWebView({
-              type: 'ADD_WALLET_CANCELLED'
-            });
-          }
-        },
-        {
-          text: 'Add Wallet',
-          style: 'default',
-          onPress: () => {
-            console.log('User confirmed adding new wallet');
-            
-            sendMessageToWebView({
-              type: 'PROCEED_ADD_WALLET',
-              confirmed: true,
-              maxWallets: MAX_WALLETS,
-              currentCount: connectedWallets.length
-            });
-            
-            Alert.alert(
-              'Adding Wallet...',
-              'Please follow the wallet connection process.',
-              [{ text: 'OK' }]
-            );
-          }
-        }
-      ]
-    );
-  };
-
-  const handleWalletSwitchRequest = async (data) => {
-    const { targetAddress } = data;
-    
-    // Aktif cüzdanı değiştir
-    const updatedWallets = connectedWallets.map(wallet => ({
-      ...wallet,
-      isActive: wallet.address.toLowerCase() === targetAddress.toLowerCase()
-    }));
-
-    setConnectedWallets(updatedWallets);
-    await saveWallets(updatedWallets);
-
-    const activeWallet = updatedWallets.find(w => w.isActive);
-    
-    Alert.alert(
-      'Wallet Switched',
-      `Active wallet: ${activeWallet?.address.slice(0, 6)}...${activeWallet?.address.slice(-4)}`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleTransactionSignRequest = (data) => {
-    const { transaction, from, to, value, gasLimit } = data;
-    
-    Alert.alert(
-      'Sign Transaction',
-      `From: ${from?.slice(0, 6)}...${from?.slice(-4)}\nTo: ${to?.slice(0, 6)}...${to?.slice(-4)}\nValue: ${value} ETH\nGas Limit: ${gasLimit}`,
-      [
-        {
-          text: 'Reject',
-          style: 'destructive',
-          onPress: () => {
-            sendMessageToWebView({
-              type: 'TRANSACTION_REJECTED',
-              transactionId: data.transactionId
-            });
-          }
-        },
-        {
-          text: 'Sign',
-          onPress: () => {
-            sendMessageToWebView({
-              type: 'TRANSACTION_APPROVED',
-              transactionId: data.transactionId
-            });
-          }
-        }
-      ]
-    );
-  };
-
-  const sendConnectedWalletsToWebView = () => {
-    sendMessageToWebView({
-      type: 'CONNECTED_WALLETS_DATA',
-      wallets: connectedWallets,
-      maxWallets: MAX_WALLETS
-    });
-  };
-
-  const sendMessageToWebView = (message) => {
-    if (webViewRef.current) {
-      webViewRef.current.postMessage(JSON.stringify(message));
+  const handleWalletUpdate = async (wallets) => {
+    setConnectedWallets(wallets);
+    try {
+      await AsyncStorage.setItem(WALLET_STORAGE_KEY, JSON.stringify(wallets));
+    } catch (e) {
+      console.error('Failed to save wallets to AsyncStorage:', e);
     }
   };
 
-  const showConnectedWallets = () => {
-    if (connectedWallets.length === 0) {
-      Alert.alert('No Wallets', 'No wallets are currently connected.');
-      return;
+  const shortAddress = (address) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
+
+  const handleShouldStartLoadWithRequest = (request) => {
+    const { url } = request;
+    console.log("WebView is trying to load URL:", url);
+    const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://'];
+    if (walletSchemes.some(scheme => url.startsWith(scheme))) {
+       console.log("Deep link detected! Opening with Linking.openURL...");
+      Linking.openURL(url).catch(() => Alert.alert('Wallet App Not Found', 'Please ensure the selected wallet app is installed.'));
+      return false;
     }
-
-    const walletList = connectedWallets.map((wallet, index) => 
-      `${index + 1}. ${wallet.walletType}\n   ${wallet.address.slice(0, 8)}...${wallet.address.slice(-6)}\n   Chain: ${wallet.chainName}${wallet.isActive ? ' (Active)' : ''}`
-    ).join('\n\n');
-
-    Alert.alert(
-      `Connected Wallets (${connectedWallets.length}/${MAX_WALLETS})`,
-      walletList,
-      [{ text: 'OK' }]
-    );
+    return true;
   };
 
-  const handleWebViewLoad = () => {
-    setIsLoading(false);
-    
-    // WebView yüklendiğinde mevcut cüzdanları gönder
-    setTimeout(() => {
-      sendConnectedWalletsToWebView();
-    }, 1000);
-  };
-
-  const handleWebViewError = (error) => {
-    console.error('WebView error details:', {
-      description: error.description,
-      domain: error.domain,
-      code: error.code,
-      nativeEvent: error.nativeEvent
-    });
-    
-    Alert.alert(
-      'Connection Error',
-      `Failed to connect to MetaMask. Error: ${error.description || 'Unknown error'}. Please try again.`,
-      [
-        {
-          text: 'Retry',
-          onPress: () => webViewRef.current?.reload()
-        },
-        {
-          text: 'Go Back',
-          onPress: () => navigation?.goBack()
-        }
-      ]
-    );
-  };
+  if (isLoading) return <ActivityIndicator size="large" color="#fff" style={styles.safeArea} />;
+  
+  const baseUrl = 'http://192.168.1.21:5173/wallet'; // Bu IP'yi kendi IP'nizle değiştirin
+  const webViewUrl = userEmail ? `${baseUrl}?email=${encodeURIComponent(userEmail)}` : baseUrl;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <WebView
         ref={webViewRef}
-        source={{ uri: 'http://10.0.2.2:5173' }}
-        // iOS için: source={{ uri: 'http://localhost:5173' }}
-        // Production için kendi domain'inizi kullanın
-        originWhitelist={['*']}
+        source={{ uri: webViewUrl }}
         onMessage={handleWebViewMessage}
-        onLoad={handleWebViewLoad}
+        onError={(e) => Alert.alert('WebView Error', e.nativeEvent.description)}
+        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+        startInLoadingState={true}
+        renderLoading={() => <ActivityIndicator size="large" color="#fff" style={styles.safeArea} />}
         javaScriptEnabled
         domStorageEnabled
-        startInLoadingState={!isLoading}
+        originWhitelist={['*']}
         style={styles.webview}
-        
-        // WebView gelişmiş ayarları
-        allowsInlineMediaPlayback
-        mediaPlaybackRequiresUserAction={false}
-        scalesPageToFit={false}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        
-        // Güvenlik ayarları
-        allowsBackForwardNavigationGestures
-        // decelerationRate="normal"
-        
-        // Hata yönetimi
-        onError={handleWebViewError}
-        onHttpError={(error) => {
-          console.error('WebView HTTP error:', error.nativeEvent);
-        }}
-        
-        // Loading state
-        renderLoading={() => null}
-        
-        // User agent (opsiyonel)
-        userAgent="WalletApp/1.0 (Mobile)"
-        
-        // İnjected JavaScript (WebView yüklendiğinde çalışır)
-        injectedJavaScript={`
-          // MetaMask kontrolü
-          if (typeof window.ethereum === 'undefined') {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'ERROR',
-              message: 'MetaMask not detected'
-            }));
-          }
-          
-          // React Native'den mesaj dinle
-          window.addEventListener('message', function(event) {
-            console.log('Message from React Native:', event.data);
-          });
-          
-          // Sayfa yüklendiğinde React Native'e bildir
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: 'WEBVIEW_LOADED',
-            timestamp: Date.now()
-          }));
-          
-          true; // Bu satır önemli!
-        `}
-        mixedContentMode="always"
-        allowsProtectedMedia={true}
-        androidLayerType="hardware"
-        cacheEnabled={false}
-        onShouldStartLoadWithRequest={(request) => {
-          // MetaMask deep linking için
-          if (request.url.startsWith('metamask://')) {
-            Linking.openURL(request.url);
-            return false;
-          }
-          return true;
-        }}
       />
     </SafeAreaView>
   );
 };
 
-export default WalletScreen;
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-  },
+  safeArea: { flex: 1, backgroundColor: '#0f172a' },
+  webview: { flex: 1, backgroundColor: '#0f172a' },
 });
+
+export default WalletScreen;

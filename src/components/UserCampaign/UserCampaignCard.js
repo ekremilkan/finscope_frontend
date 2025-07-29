@@ -2,18 +2,25 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getDifficultyColor, getProgressPercentage } from '../../utils/userCampaignUtils';
+import { getCampaignStatusColor, getCampaignStatusText } from '../../data/campaignData';
 
 const { width } = Dimensions.get('window');
 
-const UserCampaignCard = ({ campaign, onJoinCampaign }) => {
+const UserCampaignCard = ({ campaign, onJoinCampaign, onPress }) => {
   return (
-    <TouchableOpacity style={styles.campaignCard} activeOpacity={0.8}>
+    <TouchableOpacity style={styles.campaignCard} activeOpacity={0.8} onPress={onPress}>
       <View style={styles.campaignHeader}>
         <View style={styles.campaignTitleRow}>
           <Text style={styles.campaignTitle} numberOfLines={1}>{campaign.title}</Text>
-          <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(campaign.difficulty) + '20' }]}>
-            <Text style={[styles.difficultyText, { color: getDifficultyColor(campaign.difficulty) }]}>
-              {campaign.difficulty}
+          <View style={[
+            styles.statusBadge, 
+            { backgroundColor: getCampaignStatusColor(campaign.status) + '20' }
+          ]}>
+            <Text style={[
+              styles.statusText, 
+              { color: getCampaignStatusColor(campaign.status) }
+            ]}>
+              {getCampaignStatusText(campaign.status)}
             </Text>
           </View>
         </View>
@@ -26,10 +33,6 @@ const UserCampaignCard = ({ campaign, onJoinCampaign }) => {
         <View style={styles.statItem}>
           <Icon name="people" size={16} color="#6366f1" />
           <Text style={styles.statText}>{campaign.participants}/{campaign.maxParticipants}</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Icon name="schedule" size={16} color="#f59e0b" />
-          <Text style={styles.statText}>{campaign.duration}</Text>
         </View>
         <View style={styles.statItem}>
           <Icon name="quiz" size={16} color="#8b5cf6" />
@@ -55,19 +58,23 @@ const UserCampaignCard = ({ campaign, onJoinCampaign }) => {
       </View>
 
       <View style={styles.campaignTags}>
-        {campaign.tags.slice(0, 3).map((tag, index) => (
+        {campaign.tags && campaign.tags.slice(0, 3).map((tag, index) => (
           <View key={index} style={styles.tag}>
             <Text style={styles.tagText}>{tag}</Text>
           </View>
         ))}
-        {campaign.tags.length > 3 && (
+        {campaign.tags && campaign.tags.length > 3 && (
           <Text style={styles.moreTagsText}>+{campaign.tags.length - 3}</Text>
         )}
       </View>
 
       <View style={styles.campaignFooter}>
         <View style={styles.footerInfo}>
-          <Text style={styles.passRateText}>Pass score: {campaign.passRate}%</Text>
+          <Text style={styles.statusText}>
+            {campaign.status === 'active' ? 'Active' : 
+             campaign.status === 'upcoming' ? 'Upcoming' : 
+             campaign.status === 'expired' ? 'Expired' : 'Unknown'}
+          </Text>
           <Text style={styles.createdDate}>
             {new Date(campaign.createdAt).toLocaleDateString('en-US')}
           </Text>
@@ -77,15 +84,24 @@ const UserCampaignCard = ({ campaign, onJoinCampaign }) => {
             styles.joinButton,
             campaign.userJoined && styles.joinButtonJoined
           ]}
-          onPress={() => onJoinCampaign(campaign.id)}
+          onPress={() => {
+            if (campaign.userJoined) {
+              onJoinCampaign(campaign._id);
+            } else {
+              // Navigate to campaign detail page
+              if (onPress) {
+                onPress();
+              }
+            }
+          }}
         >
           <Icon 
-            name={campaign.userJoined ? 'play-arrow' : 'add'} 
+            name={campaign.userJoined ? 'play-arrow' : 'visibility'} 
             size={16} 
             color="#ffffff" 
           />
           <Text style={styles.joinButtonText}>
-            {campaign.userJoined ? 'Continue Quiz' : 'Join Campaign'}
+            {campaign.userJoined ? 'Continue' : 'View Details'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -123,12 +139,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
-  difficultyBadge: {
+  statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    minWidth: 60,
+    alignItems: 'center',
   },
-  difficultyText: {
+  statusText: {
     fontSize: Math.max(12, width * 0.03),
     fontWeight: '600',
   },
@@ -204,7 +222,7 @@ const styles = StyleSheet.create({
   footerInfo: {
     flex: 1,
   },
-  passRateText: {
+  statusText: {
     fontSize: Math.max(12, width * 0.03),
     color: 'rgba(148, 163, 184, 0.8)',
     fontWeight: '500',

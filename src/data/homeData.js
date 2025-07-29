@@ -6,23 +6,6 @@ export const HOME_USER_DATA = {
   successRate: 78
 };
 
-export const ACTIVE_CAMPAIGNS = [
-  {
-    id: 1,
-    title: 'UniDEX DeFi Training',
-    reward: 15,
-    daysLeft: 2,
-    icon: '📊'
-  },
-  {
-    id: 2,
-    title: 'Layer 2 Guide',
-    reward: 25,
-    daysLeft: 5,
-    icon: '🌐'
-  }
-];
-
 export const QUICK_ACTIONS = [
   { id: 1, title: 'Campaigns', icon: 'campaign', color: '#6366f1' },
   { id: 2, title: 'Education', icon: 'school', color: '#8b5cf6' },

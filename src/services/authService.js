@@ -7,12 +7,23 @@ export const authService = {
   // Login
   login: async (email, password) => {
     try {
+      console.log('🔄 Attempting login for:', email);
+      
       const response = await api.post('/user/login', {
         email,
         password,
       });
+      
+      console.log('✅ Login response received:', {
+        success: response.data?.success,
+        isVerified: response.data?.data?.isVerified,
+        hasUser: !!response.data?.data?.user,
+        hasToken: !!response.data?.data?.token
+      });
+      
       return response.data;
     } catch (error) {
+      console.error('❌ Login error:', error);
       throw error.response?.data || error.message;
     }
   },
@@ -32,6 +43,20 @@ export const authService = {
     try {
       const response = await api.get('/user/profile');
       return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  getUserById: async (userId) => {
+    try {
+      const token = await storageService.getToken();
+      const response = await api.get(`/user/getUserById/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data?.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
