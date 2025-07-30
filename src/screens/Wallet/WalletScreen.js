@@ -1,145 +1,160 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Alert, BackHandler, Linking, ActivityIndicator } from 'react-native';
+import {
+  StyleSheet,
+  Alert,
+  BackHandler,
+  Linking,
+  ActivityIndicator,
+  View,
+  Text,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const WALLET_STORAGE_KEY = '@connected_wallets';
-const MAX_WALLETS = 3;
+const LAST_ACTIVE_WALLET_KEY = '@last_active_wallet';
 
 const WalletScreen = ({ navigation }) => {
-  const [connectedWallets, setConnectedWallets] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState(null);
+  // --- YENİ VE DAHA SAĞLAM STATE YAPISI ---
+  // 'preparing': AsyncStorage'dan veriler okunuyor.
+  // 'ready': Veriler okundu, WebView gösterilmeye hazır.
+  // 'error': Veriler okunurken hata oluştu.
+  const [status, setStatus] = useState('preparing');
+  const [viewData, setViewData] = useState({
+    url: '',
+    injectedJS: '',
+  });
   const webViewRef = useRef(null);
 
   useEffect(() => {
-    (async () => {
+    const prepareWebView = async () => {
       try {
-        const savedWallets = await AsyncStorage.getItem(WALLET_STORAGE_KEY);
-        if (savedWallets) setConnectedWallets(JSON.parse(savedWallets));
         const userDataStr = await AsyncStorage.getItem('userData');
-        if (userDataStr) {
-          const userData = JSON.parse(userDataStr);
-          if (userData?.email) setUserEmail(userData.email);
+        const userToken = await AsyncStorage.getItem('userToken');
+        const refreshToken = await AsyncStorage.getItem('refreshToken');
+        const lastAddress = await AsyncStorage.getItem(LAST_ACTIVE_WALLET_KEY);
+
+        // Token yoksa, devam etmenin bir anlamı yok. Bu kritik bir kontroldür.
+        if (!userToken) {
+          throw new Error("Oturum token'ı (userToken) bulunamadı. Lütfen tekrar giriş yapın.");
         }
+        
+        let email = null;
+        if (userDataStr) {
+          email = JSON.parse(userDataStr)?.email;
+        }
+
+        let jsToInject = '';
+        jsToInject += `localStorage.setItem('userToken', '${userToken}');`;
+        if (refreshToken) {
+          jsToInject += `localStorage.setItem('refreshToken', '${refreshToken}');`;
+        }
+        jsToInject += 'true;';
+        
+        const baseUrl = 'http://192.168.1.106:5173/wallet'; // Kendi IP adresiniz
+        const params = new URLSearchParams();
+        if (email) params.append('email', email);
+        if (lastAddress) params.append('lastActiveAddress', lastAddress);
+        
+        const finalUrl = `${baseUrl}?${params.toString()}`;
+        
+        console.log("[RN] WebView Hazır. URL:", finalUrl);
+        console.log("[RN] Enjekte edilecek JS:", jsToInject);
+
+        // Tüm veriler hazır olduğunda, state'i tek seferde güncelle.
+        setViewData({
+          url: finalUrl,
+          injectedJS: jsToInject,
+        });
+        setStatus('ready');
+
       } catch (e) {
-        console.error('Failed to load data from AsyncStorage:', e);
-      } finally {
-        setIsLoading(false);
+        console.error('WebView hazırlanırken hata oluştu:', e);
+        Alert.alert("Oturum Hatası", e.message);
+        setStatus('error');
       }
-    })();
+    };
+
+    prepareWebView();
   }, []);
 
+  // Geri tuşu ve WebView mesaj yönetimi (önceki gibi)
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (webViewRef.current?.canGoBack) {
+    const backAction = () => {
+      if (webViewRef.current) {
         webViewRef.current.goBack();
         return true;
       }
       return false;
-    });
+    };
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, []);
 
-  const handleNewWalletVerified = async (data) => {
-    const newWalletInfo = {
-      address: data.address,
-      chainId: data.chainId,
-      chainName: data.chainName || 'Unknown Network',
-      isActive: true,
-    };
-
-    if (!newWalletInfo.address) return;
-
-    if (connectedWallets.some(w => w.address.toLowerCase() === newWalletInfo.address.toLowerCase())) {
-      Alert.alert('Wallet Already Connected', 'This wallet is already in your list.');
-      return;
-    }
-    if (connectedWallets.length >= MAX_WALLETS) {
-      Alert.alert('Max Wallets Reached', `You can connect up to ${MAX_WALLETS} wallets.`);
-      return;
-    }
-
-    const updatedWallets = connectedWallets.map(w => ({ ...w, isActive: false }));
-    const newList = [...updatedWallets, newWalletInfo];
-    await handleWalletUpdate(newList);
-
-    Alert.alert('Wallet Connected & Verified', `Address: ${shortAddress(newWalletInfo.address)}`);
-    // İsteğe bağlı olarak ana ekrana geri dönebilir veya başka bir işlem yapabilirsiniz.
-    // navigation.goBack(); 
-  };
-  
-  const handleWebViewMessage = (event) => {
+  const handleWebViewMessage = async (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log('Received message from WebView:', data.type);
-
-      switch (data.type) {
-        case 'WALLET_VERIFIED_AND_CONNECTED':
-          handleNewWalletVerified(data);
-          break;
-        case 'WALLET_CONNECTION_FAILED':
-          Alert.alert('Connection Failed', data.message || 'An unexpected error occurred.');
-          break;
-        default:
-          console.log('Unknown message type received:', data.type);
+      if (data.type === 'WALLET_VERIFIED_AND_CONNECTED' && data.address) {
+        await AsyncStorage.setItem(LAST_ACTIVE_WALLET_KEY, data.address);
+        Alert.alert("Başarılı", "Yeni cüzdanınız hesabınıza eklendi.");
       }
+      // ...diğer mesaj tipleri...
     } catch (e) {
-      console.error('Error processing message from WebView:', e);
+      console.error('WebView mesajı işlenirken hata:', e);
     }
   };
-
-  const handleWalletUpdate = async (wallets) => {
-    setConnectedWallets(wallets);
-    try {
-      await AsyncStorage.setItem(WALLET_STORAGE_KEY, JSON.stringify(wallets));
-    } catch (e) {
-      console.error('Failed to save wallets to AsyncStorage:', e);
-    }
-  };
-
-  const shortAddress = (address) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
-
+  
   const handleShouldStartLoadWithRequest = (request) => {
     const { url } = request;
-    console.log("WebView is trying to load URL:", url);
     const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://'];
     if (walletSchemes.some(scheme => url.startsWith(scheme))) {
-       console.log("Deep link detected! Opening with Linking.openURL...");
-      Linking.openURL(url).catch(() => Alert.alert('Wallet App Not Found', 'Please ensure the selected wallet app is installed.'));
+      Linking.openURL(url).catch(err => {
+        Alert.alert('Uygulama Bulunamadı', 'İlgili cüzdan uygulamasının telefonunuzda kurulu olduğundan emin olun.');
+      });
       return false;
     }
     return true;
   };
 
-  if (isLoading) return <ActivityIndicator size="large" color="#fff" style={styles.safeArea} />;
-  
-  const baseUrl = 'http://192.168.1.21:5173/wallet'; // Bu IP'yi kendi IP'nizle değiştirin
-  const webViewUrl = userEmail ? `${baseUrl}?email=${encodeURIComponent(userEmail)}` : baseUrl;
+  // --- YENİ RENDER MANTIĞI ---
+  if (status === 'preparing') {
+    return <View style={styles.container}><ActivityIndicator size="large" color="#fff" /></View>;
+  }
+
+  if (status === 'error') {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Cüzdan sayfası yüklenemedi.</Text>
+        <Text style={styles.errorSubText}>Lütfen uygulamayı yeniden başlatın veya tekrar giriş yapın.</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <WebView
-        ref={webViewRef}
-        source={{ uri: webViewUrl }}
-        onMessage={handleWebViewMessage}
-        onError={(e) => Alert.alert('WebView Error', e.nativeEvent.description)}
-        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-        startInLoadingState={true}
-        renderLoading={() => <ActivityIndicator size="large" color="#fff" style={styles.safeArea} />}
-        javaScriptEnabled
-        domStorageEnabled
-        originWhitelist={['*']}
-        style={styles.webview}
-      />
+        <WebView
+          ref={webViewRef}
+          source={{ uri: viewData.url }}
+          style={styles.webview}
+          injectedJavaScript={viewData.injectedJS}
+          onMessage={handleWebViewMessage}
+          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          startInLoadingState={true}
+          renderLoading={() => <ActivityIndicator size="large" color="#fff" style={StyleSheet.absoluteFill} />}
+          originWhitelist={['*']}
+        />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#0f172a' },
+  container: { flex: 1, backgroundColor: '#0f172a', justifyContent: 'center', alignItems: 'center', padding: 20 },
   webview: { flex: 1, backgroundColor: '#0f172a' },
+  errorText: { fontSize: 18, color: '#f87171', textAlign: 'center' },
+  errorSubText: { fontSize: 14, color: '#94a3b8', textAlign: 'center', marginTop: 10 },
 });
 
 export default WalletScreen;
