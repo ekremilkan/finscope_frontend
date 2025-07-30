@@ -28,6 +28,7 @@ const WalletScreen = ({ navigation }) => {
     url: '',
     injectedJS: '',
   });
+  const [webViewError, setWebViewError] = useState(null);
   const webViewRef = useRef(null);
 
   useEffect(() => {
@@ -120,27 +121,47 @@ const WalletScreen = ({ navigation }) => {
     return true;
   };
 
+  const handleWebViewError = (syntheticEvent) => {
+    const { nativeEvent } = syntheticEvent;
+    console.error('WebView error:', nativeEvent);
+    setWebViewError(nativeEvent);
+  };
+
+  const handleWebViewLoadEnd = (syntheticEvent) => {
+    const { nativeEvent } = syntheticEvent;
+    console.log('WebView loaded:', nativeEvent.url);
+    setWebViewError(null);
+  };
+
   // --- NEW RENDER LOGIC ---
   if (status === 'preparing') {
     return (
-      <LinearGradient
-        colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-        style={styles.container}
-      >
-        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-      </LinearGradient>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <LinearGradient
+            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+            style={styles.gradientContainer}
+          >
+            <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+          </LinearGradient>
+        </SafeAreaView>
+      </View>
     );
   }
 
   if (status === 'error') {
     return (
-      <LinearGradient
-        colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-        style={styles.container}
-      >
-        <Text style={styles.errorText}>Wallet page could not be loaded.</Text>
-        <Text style={styles.errorSubText}>Please restart the app or log in again.</Text>
-      </LinearGradient>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <LinearGradient
+            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+            style={styles.gradientContainer}
+          >
+            <Text style={styles.errorText}>Wallet page could not be loaded.</Text>
+            <Text style={styles.errorSubText}>Please restart the app or log in again.</Text>
+          </LinearGradient>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -165,19 +186,33 @@ const WalletScreen = ({ navigation }) => {
             end={{ x: 1, y: 0 }}
           />
           
-          <WebView
-            ref={webViewRef}
-            source={{ uri: viewData.url }}
-            style={styles.webview}
-            injectedJavaScript={viewData.injectedJS}
-            onMessage={handleWebViewMessage}
-            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            startInLoadingState={true}
-            renderLoading={() => <ActivityIndicator size="large" color={COLORS.PRIMARY} style={StyleSheet.absoluteFill} />}
-            originWhitelist={['*']}
-          />
+          {webViewError ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>Failed to load wallet page</Text>
+              <Text style={styles.errorSubText}>Error: {webViewError.description}</Text>
+            </View>
+          ) : (
+            <WebView
+              ref={webViewRef}
+              source={{ uri: viewData.url }}
+              style={styles.webview}
+              injectedJavaScript={viewData.injectedJS}
+              onMessage={handleWebViewMessage}
+              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+              onError={handleWebViewError}
+              onLoadEnd={handleWebViewLoadEnd}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              startInLoadingState={true}
+              renderLoading={() => <ActivityIndicator size="large" color={COLORS.PRIMARY} style={StyleSheet.absoluteFill} />}
+              originWhitelist={['*']}
+              allowsInlineMediaPlayback={true}
+              mediaPlaybackRequiresUserAction={false}
+              mixedContentMode="compatibility"
+              allowsBackForwardNavigationGestures={true}
+              incognito={false}
+            />
+          )}
         </LinearGradient>
       </SafeAreaView>
     </View>
@@ -185,18 +220,15 @@ const WalletScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: COLORS.BACKGROUND, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    padding: 20 
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND, // Main background for the whole screen
   },
-  safeArea: { 
-    flex: 1, 
-    backgroundColor: COLORS.BACKGROUND 
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND // SafeArea background
   },
-  gradientContainer: {
+  gradientContainer: { // New style
     flex: 1,
   },
   topRightGradient: {
@@ -215,20 +247,26 @@ const styles = StyleSheet.create({
     height: 250,
     borderTopRightRadius: 125,
   },
-  webview: { 
-    flex: 1, 
-    backgroundColor: COLORS.BACKGROUND 
+  webview: {
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND
   },
-  errorText: { 
-    fontSize: 18, 
-    color: COLORS.ERROR, 
-    textAlign: 'center' 
+  errorText: {
+    fontSize: 18,
+    color: COLORS.ERROR,
+    textAlign: 'center'
   },
-  errorSubText: { 
-    fontSize: 14, 
-    color: COLORS.TEXT_SECONDARY, 
-    textAlign: 'center', 
-    marginTop: 10 
+  errorSubText: {
+    fontSize: 14,
+    color: COLORS.TEXT_SECONDARY,
+    textAlign: 'center',
+    marginTop: 10
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
 });
 

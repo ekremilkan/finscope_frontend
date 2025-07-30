@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { getGlassMorphismStyle, getResponsiveSize, handleNavigation, handleAccountDeletion } from '../../utils/profileUtils';
-import { COLORS } from '../../data/profileData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -118,14 +119,22 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: getResponsiveSize(width, 0.045, 18, 24),
-    fontWeight: '700',
-    color: COLORS.text,
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: Math.max(16, width * 0.04),
     textAlign: 'center',
   },
   menuContainer: {
-    ...getGlassMorphismStyle(0.8),
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    borderRadius: 16,
     paddingVertical: Math.max(12, width * 0.03),
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   menuItem: {
     flexDirection: 'row',
@@ -134,7 +143,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: Math.max(16, width * 0.04),
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.1)',
+    borderBottomColor: COLORS.BORDER_SECONDARY,
   },
   dangerItem: {
     borderBottomColor: 'rgba(239, 68, 68, 0.2)',
@@ -148,13 +157,16 @@ const styles = StyleSheet.create({
     width: Math.max(44, width * 0.11),
     height: Math.max(44, width * 0.11),
     borderRadius: Math.max(22, width * 0.055),
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    backgroundColor: 'rgba(247, 214, 72, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(247, 214, 72, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Math.max(16, width * 0.04),
   },
   dangerIconContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   menuIcon: {
     fontSize: getResponsiveSize(width, 0.05, 18, 24),
@@ -169,14 +181,14 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     fontSize: getResponsiveSize(width, 0.04, 16, 20),
-    fontWeight: '600',
-    color: COLORS.text,
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
   },
   dangerText: {
-    color: COLORS.error,
+    color: COLORS.ERROR,
   },
   badge: {
-    backgroundColor: COLORS.warning,
+    backgroundColor: COLORS.WARNING,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,
@@ -184,16 +196,16 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: getResponsiveSize(width, 0.025, 10, 14),
-    fontWeight: '600',
-    color: COLORS.background,
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.SECONDARY,
   },
   menuSubtitle: {
     fontSize: getResponsiveSize(width, 0.03, 12, 16),
-    color: COLORS.textSecondary,
-    fontWeight: '400',
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('REGULAR'),
   },
   premiumBadge: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.PRIMARY,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
@@ -201,22 +213,23 @@ const styles = StyleSheet.create({
   },
   premiumBadgeText: {
     fontSize: getResponsiveSize(width, 0.022, 9, 12),
-    fontWeight: '600',
-    color: COLORS.text,
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.SECONDARY,
   },
   disabledItem: {
     opacity: 0.5,
   },
   disabledIconContainer: {
     backgroundColor: 'rgba(148, 163, 184, 0.2)',
+    borderColor: 'rgba(148, 163, 184, 0.3)',
   },
   disabledText: {
-    color: COLORS.textSecondary,
+    color: COLORS.TEXT_SECONDARY,
   },
   arrow: {
     fontSize: getResponsiveSize(width, 0.045, 18, 24),
-    color: COLORS.textSecondary,
-    fontWeight: '600',
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('SEMIBOLD'),
   },
 });
 

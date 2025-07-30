@@ -75,15 +75,15 @@ export const transformApiQuestion = (apiQuestion) => {
 export const getCampaignStatusColor = (status) => {
   switch (status) {
     case CAMPAIGN_STATUS.ACTIVE:
-      return '#10b981';
+      return '#10b981'; // COLORS.SUCCESS
     case CAMPAIGN_STATUS.UPCOMING:
-      return '#f59e0b';
+      return '#f59e0b'; // COLORS.WARNING
     case CAMPAIGN_STATUS.EXPIRED:
-      return '#ef4444';
+      return '#ef4444'; // COLORS.ERROR
     case CAMPAIGN_STATUS.PENDING_DELETION:
-      return '#6b7280';
+      return '#64748b'; // COLORS.TEXT_DISABLED
     default:
-      return '#94a3b8';
+      return '#94a3b8'; // COLORS.TEXT_SECONDARY
   }
 };
 
@@ -106,13 +106,13 @@ export const getCampaignStatusText = (status) => {
 export const getDifficultyColor = (difficulty) => {
   switch (difficulty) {
     case CAMPAIGN_DIFFICULTIES.BEGINNER:
-      return '#10b981';
+      return '#10b981'; // COLORS.SUCCESS
     case CAMPAIGN_DIFFICULTIES.INTERMEDIATE:
-      return '#f59e0b';
+      return '#f59e0b'; // COLORS.WARNING
     case CAMPAIGN_DIFFICULTIES.ADVANCED:
-      return '#ef4444';
+      return '#ef4444'; // COLORS.ERROR
     default:
-      return '#6b7280';
+      return '#64748b'; // COLORS.TEXT_DISABLED
   }
 };
 

@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -15,7 +17,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignStart, isLoading = fal
           </View>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366f1" />
+          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
           <Text style={styles.loadingText}>Loading campaigns...</Text>
         </View>
       </View>
@@ -116,14 +118,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: Math.max(22, width * 0.055),
-    fontWeight: '800',
-    color: '#ffffff',
-    textShadowColor: 'rgba(99, 102, 241, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+    textShadowColor: COLORS.PRIMARY,
     textShadowRadius: 4,
   },
   sectionBadge: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
     paddingHorizontal: Math.max(12, width * 0.03),
     paddingVertical: Math.max(6, height * 0.008),
     borderRadius: 12,
@@ -131,14 +132,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   sectionBadgeText: {
-    color: '#10b981',
+    color: COLORS.SUCCESS,
     fontSize: Math.max(12, width * 0.03),
-    fontWeight: '700',
+    ...getFontFamily('SEMIBOLD'),
   },
   campaignCard: {
     marginBottom: Math.max(16, height * 0.02),
     borderRadius: Math.max(20, width * 0.05),
-    shadowColor: '#000',
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: {
       width: 0,
       height: 8,
@@ -151,8 +152,8 @@ const styles = StyleSheet.create({
     borderRadius: Math.max(20, width * 0.05),
     padding: Math.max(20, width * 0.05),
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    borderColor: COLORS.BORDER_SECONDARY,
+    backgroundColor: COLORS.CARD_BACKGROUND,
   },
   campaignHeader: {
     flexDirection: 'row',
@@ -168,10 +169,12 @@ const styles = StyleSheet.create({
     width: Math.max(48, width * 0.12),
     height: Math.max(48, width * 0.12),
     borderRadius: Math.max(12, width * 0.03),
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    backgroundColor: 'rgba(247, 214, 72, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Math.max(16, width * 0.04),
+    borderWidth: 1,
+    borderColor: 'rgba(247, 214, 72, 0.3)',
   },
   campaignIcon: {
     fontSize: Math.max(24, width * 0.06),
@@ -181,12 +184,9 @@ const styles = StyleSheet.create({
   },
   campaignTitle: {
     fontSize: Math.max(16, width * 0.043),
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: Math.max(8, height * 0.01),
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
     lineHeight: Math.max(20, height * 0.025),
   },
   campaignMeta: {
@@ -205,11 +205,8 @@ const styles = StyleSheet.create({
   },
   campaignReward: {
     fontSize: Math.max(14, width * 0.037),
-    color: '#10b981',
-    fontWeight: '600',
-    textShadowColor: 'rgba(16, 185, 129, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
+    color: COLORS.SUCCESS,
+    ...getFontFamily('SEMIBOLD'),
   },
   participantsContainer: {
     flexDirection: 'row',
@@ -221,11 +218,8 @@ const styles = StyleSheet.create({
   },
   campaignTime: {
     fontSize: Math.max(14, width * 0.037),
-    color: '#f59e0b',
-    fontWeight: '600',
-    textShadowColor: 'rgba(245, 158, 11, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
+    color: COLORS.WARNING,
+    ...getFontFamily('SEMIBOLD'),
   },
   startButtonContainer: {
     marginLeft: Math.max(16, width * 0.04),
@@ -234,8 +228,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Math.max(24, width * 0.06),
     paddingVertical: Math.max(12, height * 0.015),
     borderRadius: Math.max(16, width * 0.04),
-    backgroundColor: '#6366f1', // Changed from LinearGradient to solid color
-    shadowColor: '#6366f1',
+    backgroundColor: COLORS.PRIMARY,
+    shadowColor: COLORS.PRIMARY,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -245,12 +239,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   startButtonText: {
-    color: '#ffffff',
+    color: COLORS.SECONDARY,
     fontSize: Math.max(14, width * 0.037),
-    fontWeight: '700',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
+    ...getFontFamily('BOLD'),
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -260,9 +251,9 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: Math.max(12, width * 0.03),
-    color: '#ffffff',
+    color: COLORS.TEXT_PRIMARY,
     fontSize: Math.max(16, width * 0.043),
-    fontWeight: '500',
+    ...getFontFamily('MEDIUM'),
   },
   emptyContainer: {
     alignItems: 'center',
@@ -272,30 +263,30 @@ const styles = StyleSheet.create({
     width: Math.max(80, width * 0.2),
     height: Math.max(80, width * 0.2),
     borderRadius: Math.max(40, width * 0.1),
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(247, 214, 72, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Math.max(16, height * 0.02),
+    borderWidth: 1,
+    borderColor: 'rgba(247, 214, 72, 0.3)',
   },
   emptyIcon: {
     fontSize: Math.max(40, width * 0.1),
-    color: '#f59e0b',
+    color: COLORS.PRIMARY,
   },
   emptyTitle: {
     fontSize: Math.max(20, width * 0.05),
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: Math.max(8, height * 0.01),
-    textShadowColor: 'rgba(245, 158, 11, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
   },
   emptyText: {
     fontSize: Math.max(16, width * 0.043),
-    color: '#9ca3af',
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
     paddingHorizontal: Math.max(20, width * 0.05),
     lineHeight: Math.max(22, height * 0.028),
+    ...getFontFamily('REGULAR'),
   },
 });
 

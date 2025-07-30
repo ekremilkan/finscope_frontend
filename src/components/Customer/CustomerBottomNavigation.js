@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -17,11 +19,11 @@ const CustomerBottomNavigation = ({ bottomNavItems, activeTab, onTabPress }) => 
           <Icon
             name={item.icon}
             size={24}
-            color={activeTab === item.id ? '#6366f1' : '#64748b'}
+            color={activeTab === item.id ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY}
           />
           <Text style={[
             styles.bottomNavText,
-            { color: activeTab === item.id ? '#6366f1' : '#64748b' }
+            { color: activeTab === item.id ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY }
           ]}>
             {item.title}
           </Text>
@@ -38,10 +40,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Math.max(16, width * 0.04),
     paddingHorizontal: Math.max(20, width * 0.05),
-    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+    backgroundColor: COLORS.CARD_BACKGROUND,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(148, 163, 184, 0.2)',
-    shadowColor: '#000',
+    borderTopColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: {
       width: 0,
       height: -4,
@@ -49,7 +51,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
-    backdropFilter: 'blur(20px)',
   },
   bottomNavItem: {
     alignItems: 'center',
@@ -59,11 +60,8 @@ const styles = StyleSheet.create({
   },
   bottomNavText: {
     fontSize: Math.max(10, width * 0.028),
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
     marginTop: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
   },
 });
 

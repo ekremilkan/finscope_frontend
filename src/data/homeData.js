@@ -7,10 +7,10 @@ export const HOME_USER_DATA = {
 };
 
 export const QUICK_ACTIONS = [
-  { id: 1, title: 'Campaigns', icon: 'campaign', color: '#6366f1' },
-  { id: 2, title: 'Education', icon: 'school', color: '#8b5cf6' },
-  { id: 3, title: 'My Rewards', icon: 'card-giftcard', color: '#f59e0b' },
-  { id: 4, title: 'Community', icon: 'group', color: '#10b981' }
+  { id: 1, title: 'Campaigns', icon: 'campaign', color: '#F7D648' },
+  { id: 2, title: 'Education', icon: 'school', color: '#F7D648' },
+  { id: 3, title: 'My Rewards', icon: 'card-giftcard', color: '#F7D648' },
+  { id: 4, title: 'Community', icon: 'group', color: '#F7D648' }
 ];
 
 export const BOTTOM_NAV_ITEMS = [
