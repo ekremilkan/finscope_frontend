@@ -133,7 +133,7 @@ const LoginScreen = ({ navigation }) => {
             <View style={styles.logoContainer}>
               <View style={styles.logo}>
                 <Image
-                  source={require('../../assets/logo/logo.png')}
+                  source={require('../assets/images/finscope-logo.png')}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />
@@ -319,15 +319,15 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 12,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.2)',
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#6366f1',
+        shadowColor: '#fbbf24',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
@@ -338,11 +338,8 @@ const styles = StyleSheet.create({
     }),
   },
   logoImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 12,
-    alignSelf: 'center',
-    marginTop: 12,
+    width: '80%',
+    height: '80%',
   },
   title: {
     fontSize: width * 0.08,

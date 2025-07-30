@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -12,8 +12,12 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
       style={styles.header}
     >
       <View style={styles.headerLeft}>
-        <View style={styles.userAvatar}>
-        <Icon name="person" size={Math.max(20, Math.min(28, width * 0.06))} color="#6366f1" />
+        <View style={styles.logoContainer}>
+          <Image 
+            source={require('../../assets/images/finscope-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
         <View style={styles.welcomeContainer}>
           <Text style={styles.welcomeLabel}>Welcome back</Text>
@@ -83,14 +87,20 @@ const styles = StyleSheet.create({
     minWidth: 0,
     paddingRight: Math.max(12, width * 0.03),
   },
-  userAvatar: {
+  logoContainer: {
     width: Math.max(40, width * 0.1),
     height: Math.max(40, width * 0.1),
-    borderRadius: Math.max(20, width * 0.05),
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    borderRadius: Math.max(8, width * 0.02),
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Math.max(12, width * 0.03),
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.2)',
+  },
+  logo: {
+    width: Math.max(32, width * 0.08),
+    height: Math.max(32, width * 0.08),
   },
   welcomeContainer: {
     flex: 1,

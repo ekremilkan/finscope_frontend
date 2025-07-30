@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authService } from '../services/authService';
@@ -129,11 +130,11 @@ const RegisterScreen = ({ navigation }) => {
           <View style={styles.header}>
             <View style={styles.logoContainer}>
               <View style={styles.logo}>
-                <View style={styles.logoInner}>
-                  <View style={styles.logoShape1} />
-                  <View style={styles.logoShape2} />
-                  <View style={styles.logoShape3} />
-                </View>
+                <Image
+                  source={require('../assets/images/finscope-logo.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.appName}>FinScope</Text>
             </View>
@@ -348,14 +349,18 @@ const styles = StyleSheet.create({
   logo: {
     width: 60,
     height: 60,
-    borderRadius: 18,
-    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#334155',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.2)',
     marginBottom: 8,
     overflow: 'hidden',
+  },
+  logoImage: {
+    width: '80%',
+    height: '80%',
   },
   appName: {
     fontSize: 16,
