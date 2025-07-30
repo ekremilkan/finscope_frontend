@@ -9,7 +9,7 @@ const App = () => {
   useEffect(() => {
     const prepareApp = async () => {
       try {
-        // Async işlemler (veri yükleme, token kontrol, font yükleme vb.)
+        // Async operations (data loading, token check, font loading, etc.)
         await new Promise(resolve => setTimeout(resolve, 2500));
       } catch (e) {
         console.warn(e);
@@ -26,7 +26,7 @@ const App = () => {
     <SafeAreaProvider>
       <StatusBar 
         barStyle="light-content" 
-        backgroundColor="#0f172a" 
+        backgroundColor="#0a0f1c" 
         translucent={false}
       />
       <RootNavigator />

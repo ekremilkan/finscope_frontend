@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
   
-  <!-- Arka plan rengi -->
+  <!-- Background color -->
   <item android:drawable="@color/splash_background" />
 
-  <!-- Responsive ortalanmış logo -->
-  <item android:width="200dp" android:height="300dp" android:gravity="center">
+  <!-- Centered logo with smaller size to prevent overflow -->
+  <item android:width="120dp" android:height="120dp" android:gravity="center">
     <bitmap
       android:gravity="center"
       android:src="@drawable/splashlogo" />
