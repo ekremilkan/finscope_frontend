@@ -10,14 +10,14 @@ import {
 import walletService from '../services/walletService';
 
 /**
- * Wallet Utils - Business logic ve helper fonksiyonları
- * Cüzdan işlemleri için gerekli yardımcı fonksiyonlar
+ * Wallet Utils - Business logic and helper functions
+ * Helper functions required for wallet operations
  */
 
 /**
- * Ethereum adres formatını doğrula
- * @param {string} address - Doğrulanacak adres
- * @returns {boolean} Geçerliliği
+ * Validate Ethereum address format
+ * @param {string} address - Address to validate
+ * @returns {boolean} Validity
  */
 export const isValidEthereumAddress = (address) => {
   if (!address || typeof address !== 'string') return false;
@@ -25,9 +25,9 @@ export const isValidEthereumAddress = (address) => {
 };
 
 /**
- * Adresi normalize et (temizle ve formatla)
- * @param {string} address - Ham adres
- * @returns {string} Temizlenmiş adres
+ * Normalize address (clean and format)
+ * @param {string} address - Raw address
+ * @returns {string} Cleaned address
  */
 export const normalizeAddress = (address) => {
   if (!address) return '';
@@ -35,11 +35,11 @@ export const normalizeAddress = (address) => {
 };
 
 /**
- * Adresi kısalt gösterim için formatla
- * @param {string} address - Tam adres
- * @param {number} prefixLength - Başlangıç karakter sayısı
- * @param {number} suffixLength - Son karakter sayısı
- * @returns {string} Kısaltılmış adres
+ * Format address for short display
+ * @param {string} address - Full address
+ * @param {number} prefixLength - Number of starting characters
+ * @param {number} suffixLength - Number of ending characters
+ * @returns {string} Shortened address
  */
 export const formatAddressShort = (address, prefixLength = 6, suffixLength = 4) => {
   if (!address || address.length < prefixLength + suffixLength) return address;
@@ -47,10 +47,10 @@ export const formatAddressShort = (address, prefixLength = 6, suffixLength = 4) 
 };
 
 /**
- * Network için maksimum cüzdan kontrolü
- * @param {Array} wallets - Mevcut cüzdanlar
- * @param {string} network - Kontrol edilecek network
- * @returns {boolean} Ekleme yapılabilir mi
+ * Check maximum wallet limit for network
+ * @param {Array} wallets - Existing wallets
+ * @param {string} network - Network to check
+ * @returns {boolean} Can add wallet
  */
 export const canAddWalletToNetwork = (wallets, network) => {
   if (!Array.isArray(wallets)) return true;
@@ -59,9 +59,9 @@ export const canAddWalletToNetwork = (wallets, network) => {
 };
 
 /**
- * Airdrop cüzdanını bul
- * @param {Array} wallets - Cüzdan listesi
- * @returns {Object|null} Airdrop cüzdanı
+ * Find airdrop wallet
+ * @param {Array} wallets - Wallet list
+ * @returns {Object|null} Airdrop wallet
  */
 export const getAirdropWallet = (wallets) => {
   if (!Array.isArray(wallets)) return null;
@@ -69,10 +69,10 @@ export const getAirdropWallet = (wallets) => {
 };
 
 /**
- * Cüzdan adresinin zaten var olup olmadığını kontrol et
- * @param {Array} wallets - Mevcut cüzdanlar
- * @param {string} address - Kontrol edilecek adres
- * @returns {boolean} Adres var mı
+ * Check if wallet address already exists
+ * @param {Array} wallets - Existing wallets
+ * @param {string} address - Address to check
+ * @returns {boolean} Address exists
  */
 export const isAddressExists = (wallets, address) => {
   if (!Array.isArray(wallets) || !address) return false;
@@ -83,14 +83,14 @@ export const isAddressExists = (wallets, address) => {
 };
 
 /**
- * Cüzdan bağlama öncesi validasyon
- * @param {Array} wallets - Mevcut cüzdanlar
+ * Pre-connection wallet validation
+ * @param {Array} wallets - Existing wallets
  * @param {string} network - Network
- * @param {string} address - Adres
- * @returns {Object} Validasyon sonucu
+ * @param {string} address - Address
+ * @returns {Object} Validation result
  */
 export const validateWalletConnection = (wallets, network, address) => {
-  // Adres format kontrolü
+  // Address format check
   if (!isValidEthereumAddress(address)) {
     return {
       isValid: false,
@@ -98,7 +98,7 @@ export const validateWalletConnection = (wallets, network, address) => {
     };
   }
 
-  // Adres daha önce eklenmiş mi kontrolü
+  // Check if address already exists
   if (isAddressExists(wallets, address)) {
     return {
       isValid: false,
@@ -106,7 +106,7 @@ export const validateWalletConnection = (wallets, network, address) => {
     };
   }
 
-  // Network limit kontrolü
+  // Check network wallet limit
   if (!canAddWalletToNetwork(wallets, network)) {
     return {
       isValid: false,

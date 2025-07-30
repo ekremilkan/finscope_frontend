@@ -15,10 +15,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const LAST_ACTIVE_WALLET_KEY = '@last_active_wallet';
 
 const WalletScreen = ({ navigation }) => {
-  // --- YENİ VE DAHA SAĞLAM STATE YAPISI ---
-  // 'preparing': AsyncStorage'dan veriler okunuyor.
-  // 'ready': Veriler okundu, WebView gösterilmeye hazır.
-  // 'error': Veriler okunurken hata oluştu.
+  // --- NEW AND MORE ROBUST STATE STRUCTURE ---
+  // 'preparing': Reading data from AsyncStorage.
+  // 'ready': Data read, WebView ready to display.
+  // 'error': Error occurred while reading data.
   const [status, setStatus] = useState('preparing');
   const [viewData, setViewData] = useState({
     url: '',
@@ -34,9 +34,9 @@ const WalletScreen = ({ navigation }) => {
         const refreshToken = await AsyncStorage.getItem('refreshToken');
         const lastAddress = await AsyncStorage.getItem(LAST_ACTIVE_WALLET_KEY);
 
-        // Token yoksa, devam etmenin bir anlamı yok. Bu kritik bir kontroldür.
+        // If no token, there's no point in continuing. This is a critical check.
         if (!userToken) {
-          throw new Error("Oturum token'ı (userToken) bulunamadı. Lütfen tekrar giriş yapın.");
+          throw new Error("Session token (userToken) not found. Please log in again.");
         }
         
         let email = null;
@@ -51,17 +51,17 @@ const WalletScreen = ({ navigation }) => {
         }
         jsToInject += 'true;';
         
-        const baseUrl = 'http://192.168.1.106:5173/wallet'; // Kendi IP adresiniz
+        const baseUrl = 'http://192.168.1.21:5173/wallet'; // Your IP address
         const params = new URLSearchParams();
         if (email) params.append('email', email);
         if (lastAddress) params.append('lastActiveAddress', lastAddress);
         
         const finalUrl = `${baseUrl}?${params.toString()}`;
         
-        console.log("[RN] WebView Hazır. URL:", finalUrl);
-        console.log("[RN] Enjekte edilecek JS:", jsToInject);
+        console.log("[RN] WebView Ready. URL:", finalUrl);
+        console.log("[RN] JS to inject:", jsToInject);
 
-        // Tüm veriler hazır olduğunda, state'i tek seferde güncelle.
+        // When all data is ready, update state in one go.
         setViewData({
           url: finalUrl,
           injectedJS: jsToInject,
@@ -69,8 +69,8 @@ const WalletScreen = ({ navigation }) => {
         setStatus('ready');
 
       } catch (e) {
-        console.error('WebView hazırlanırken hata oluştu:', e);
-        Alert.alert("Oturum Hatası", e.message);
+        console.error('Error preparing WebView:', e);
+        Alert.alert("Session Error", e.message);
         setStatus('error');
       }
     };
@@ -78,7 +78,7 @@ const WalletScreen = ({ navigation }) => {
     prepareWebView();
   }, []);
 
-  // Geri tuşu ve WebView mesaj yönetimi (önceki gibi)
+  // Back button and WebView message management (same as before)
   useEffect(() => {
     const backAction = () => {
       if (webViewRef.current) {
@@ -96,11 +96,11 @@ const WalletScreen = ({ navigation }) => {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'WALLET_VERIFIED_AND_CONNECTED' && data.address) {
         await AsyncStorage.setItem(LAST_ACTIVE_WALLET_KEY, data.address);
-        Alert.alert("Başarılı", "Yeni cüzdanınız hesabınıza eklendi.");
+        Alert.alert("Success", "Your new wallet has been added to your account.");
       }
-      // ...diğer mesaj tipleri...
+      // ...other message types...
     } catch (e) {
-      console.error('WebView mesajı işlenirken hata:', e);
+      console.error('Error processing WebView message:', e);
     }
   };
   
@@ -109,14 +109,14 @@ const WalletScreen = ({ navigation }) => {
     const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://'];
     if (walletSchemes.some(scheme => url.startsWith(scheme))) {
       Linking.openURL(url).catch(err => {
-        Alert.alert('Uygulama Bulunamadı', 'İlgili cüzdan uygulamasının telefonunuzda kurulu olduğundan emin olun.');
+        Alert.alert('App Not Found', 'Please make sure the relevant wallet app is installed on your phone.');
       });
       return false;
     }
     return true;
   };
 
-  // --- YENİ RENDER MANTIĞI ---
+  // --- NEW RENDER LOGIC ---
   if (status === 'preparing') {
     return <View style={styles.container}><ActivityIndicator size="large" color="#fff" /></View>;
   }
@@ -124,8 +124,8 @@ const WalletScreen = ({ navigation }) => {
   if (status === 'error') {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Cüzdan sayfası yüklenemedi.</Text>
-        <Text style={styles.errorSubText}>Lütfen uygulamayı yeniden başlatın veya tekrar giriş yapın.</Text>
+        <Text style={styles.errorText}>Wallet page could not be loaded.</Text>
+        <Text style={styles.errorSubText}>Please restart the app or log in again.</Text>
       </View>
     );
   }

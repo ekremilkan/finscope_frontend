@@ -109,7 +109,7 @@ export const LOADING_MESSAGES = {
   loadingTransactions: 'Loading transactions...'
 };
 
-// Wallet card colors (tema uyumlu)
+// Wallet card colors (theme compatible)
 export const WALLET_COLORS = {
   background: '#0a0f1c',
   cardBackground: 'rgba(30, 41, 59, 0.8)',
@@ -124,7 +124,7 @@ export const WALLET_COLORS = {
   border: 'rgba(148, 163, 184, 0.2)'
 };
 
-// Cüzdan ikonları
+// Wallet icons
 export const WALLET_ICONS = {
   ethereum: '⟠',
   airdrop: '💫',
@@ -135,7 +135,7 @@ export const WALLET_ICONS = {
   error: '❌'
 };
 
-// Form validasyon kuralları
+// Form validation rules
 export const VALIDATION_RULES = {
   address: {
     required: true,
@@ -164,7 +164,7 @@ export const ANIMATIONS = {
   refresh: 1000
 };
 
-// Default wallet data (demo/test için)
+// Default wallet data (for demo/test)
 export const DEFAULT_WALLET_DATA = {
   wallets: [],
   totalCount: 0,
@@ -174,7 +174,7 @@ export const DEFAULT_WALLET_DATA = {
   lastUpdated: null
 };
 
-// Pagination ayarları
+// Pagination settings
 export const PAGINATION = {
   defaultPage: 1,
   defaultLimit: 20,
@@ -183,7 +183,7 @@ export const PAGINATION = {
 
 // App constants
 export const APP_CONSTANTS = {
-  refreshInterval: 30000, // 30 saniye
+  refreshInterval: 30000, // 30 seconds
   maxRetryAttempts: 3,
-  retryDelay: 2000 // 2 saniye
+  retryDelay: 2000 // 2 seconds
 };

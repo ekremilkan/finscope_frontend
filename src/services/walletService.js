@@ -1,16 +1,16 @@
 import api from './api';
 
 /**
- * Wallet Service - Finscope Cüzdan API işlemleri
- * Tüm wallet-related API çağrılarını yönetir
+ * Wallet Service - Finscope Wallet API operations
+ * Manages all wallet-related API calls
  */
 class WalletService {
   
   /**
-   * Adres doğrulama - Auth gerektirmez
-   * @param {string} network - Blockchain ağı (örn: "Ethereum")
-   * @param {string} address - Cüzdan adresi
-   * @returns {Promise} API yanıtı
+   * Address validation - No auth required
+   * @param {string} network - Blockchain network (e.g., "Ethereum")
+   * @param {string} address - Wallet address
+   * @returns {Promise} API response
    */
   async validateAddress(network, address) {
     try {
@@ -24,7 +24,7 @@ class WalletService {
         error: null
       };
     } catch (error) {
-      console.error('Adres doğrulama hatası:', error);
+      console.error('Address validation error:', error);
       return {
         success: false,
         data: null,
@@ -34,8 +34,8 @@ class WalletService {
   }
 
   /**
-   * Desteklenen ağları getir - Auth gerektirmez
-   * @returns {Promise} Desteklenen blockchain ağları
+   * Get supported networks - No auth required
+   * @returns {Promise} Supported blockchain networks
    */
   async getSupportedNetworks() {
     try {
@@ -46,7 +46,7 @@ class WalletService {
         error: null
       };
     } catch (error) {
-      console.error('Desteklenen ağlar alma hatası:', error);
+      console.error('Error getting supported networks:', error);
       return {
         success: false,
         data: null,
@@ -56,10 +56,10 @@ class WalletService {
   }
 
   /**
-   * Cüzdan bağlama - JWT gerekli
-   * @param {string} network - Blockchain ağı
-   * @param {string} address - Cüzdan adresi
-   * @returns {Promise} Bağlama işlemi sonucu
+   * Connect wallet - JWT required
+   * @param {string} network - Blockchain network
+   * @param {string} address - Wallet address
+   * @returns {Promise} Connection operation result
    */
   async connectWallet(network, address) {
     try {
@@ -73,7 +73,7 @@ class WalletService {
         error: null
       };
     } catch (error) {
-      console.error('Cüzdan bağlama hatası:', error);
+      console.error('Wallet connection error:', error);
       return {
         success: false,
         data: null,
@@ -83,8 +83,8 @@ class WalletService {
   }
 
   /**
-   * Kullanıcının cüzdanlarını listele - JWT gerekli
-   * @returns {Promise} Cüzdan listesi
+   * List user's wallets - JWT required
+   * @returns {Promise} Wallet list
    */
   async getWallets() {
     try {
@@ -95,7 +95,7 @@ class WalletService {
         error: null
       };
     } catch (error) {
-      console.error('Cüzdan listesi alma hatası:', error);
+      console.error('Error getting wallet list:', error);
       return {
         success: false,
         data: null,
@@ -105,9 +105,9 @@ class WalletService {
   }
 
   /**
-   * Cüzdan silme - JWT gerekli
-   * @param {string} walletId - Silinecek cüzdanın ID'si
-   * @returns {Promise} Silme işlemi sonucu
+   * Delete wallet - JWT required
+   * @param {string} walletId - Wallet ID to delete
+   * @returns {Promise} Deletion result
    */
   async deleteWallet(walletId) {
     try {
@@ -118,7 +118,7 @@ class WalletService {
         error: null
       };
     } catch (error) {
-      console.error('Cüzdan silme hatası:', error);
+      console.error('Wallet deletion error:', error);
       return {
         success: false,
         data: null,
@@ -128,13 +128,13 @@ class WalletService {
   }
 
   /**
-   * Airdrop cüzdanı ayarlama - JWT gerekli
-   * @param {string} address - Airdrop için seçilen cüzdan adresi
-   * @returns {Promise} Airdrop ayarlama sonucu
+   * Set airdrop wallet - JWT required
+   * @param {string} address - Wallet address for airdrop
+   * @returns {Promise} Airdrop wallet setting result
    */
   async setAirdropWallet(address) {
     try {
-      const response = await api.post('/wallets/set-airdrop', {
+      const response = await api.post('/wallets/airdrop', {
         address
       });
       return {
@@ -143,7 +143,7 @@ class WalletService {
         error: null
       };
     } catch (error) {
-      console.error('Airdrop cüzdanı ayarlama hatası:', error);
+      console.error('Airdrop wallet setting error:', error);
       return {
         success: false,
         data: null,
@@ -153,19 +153,19 @@ class WalletService {
   }
 
   /**
-   * Airdrop cüzdanını kaldırma - JWT gerekli
-   * @returns {Promise} Airdrop kaldırma sonucu
+   * Remove airdrop wallet - JWT required
+   * @returns {Promise} Airdrop wallet removal result
    */
   async removeAirdropWallet() {
     try {
-      const response = await api.delete('/wallets/remove-airdrop');
+      const response = await api.delete('/wallets/airdrop');
       return {
         success: true,
         data: response.data,
         error: null
       };
     } catch (error) {
-      console.error('Airdrop cüzdanı kaldırma hatası:', error);
+      console.error('Airdrop wallet removal error:', error);
       return {
         success: false,
         data: null,
@@ -175,8 +175,8 @@ class WalletService {
   }
 
   /**
-   * Mevcut airdrop cüzdanını görüntüleme - JWT gerekli
-   * @returns {Promise} Airdrop cüzdanı bilgisi
+   * Get airdrop wallet - JWT required
+   * @returns {Promise} Current airdrop wallet
    */
   async getAirdropWallet() {
     try {
@@ -187,7 +187,7 @@ class WalletService {
         error: null
       };
     } catch (error) {
-      console.error('Airdrop cüzdanı görüntüleme hatası:', error);
+      console.error('Error getting airdrop wallet:', error);
       return {
         success: false,
         data: null,
@@ -197,20 +197,20 @@ class WalletService {
   }
 
   /**
-   * Cüzdan bakiyesini yenileme - JWT gerekli
-   * @param {string} walletId - Bakiyesi güncellenecek cüzdanın ID'si
-   * @returns {Promise} Bakiye yenileme sonucu
+   * Refresh wallet balance - JWT required
+   * @param {string} walletId - Wallet ID to refresh
+   * @returns {Promise} Balance refresh result
    */
   async refreshWalletBalance(walletId) {
     try {
-      const response = await api.put(`/wallets/${walletId}/balance/refresh`);
+      const response = await api.post(`/wallets/${walletId}/refresh-balance`);
       return {
         success: true,
         data: response.data,
         error: null
       };
     } catch (error) {
-      console.error('Cüzdan bakiyesi yenileme hatası:', error);
+      console.error('Balance refresh error:', error);
       return {
         success: false,
         data: null,
@@ -220,19 +220,19 @@ class WalletService {
   }
 
   /**
-   * Tüm cüzdan bakiyelerini yenileme - JWT gerekli
-   * @returns {Promise} Toplu bakiye yenileme sonucu
+   * Refresh all wallet balances - JWT required
+   * @returns {Promise} All balances refresh result
    */
   async refreshAllWalletBalances() {
     try {
-      const response = await api.put('/wallets/balance/refresh-all');
+      const response = await api.post('/wallets/refresh-all-balances');
       return {
         success: true,
         data: response.data,
         error: null
       };
     } catch (error) {
-      console.error('Tüm cüzdan bakiyeleri yenileme hatası:', error);
+      console.error('All balances refresh error:', error);
       return {
         success: false,
         data: null,
@@ -242,19 +242,19 @@ class WalletService {
   }
 
   /**
-   * Portföy özeti - JWT gerekli
-   * @returns {Promise} Portföy özeti bilgisi
+   * Get portfolio summary - JWT required
+   * @returns {Promise} Portfolio summary data
    */
   async getPortfolioSummary() {
     try {
-      const response = await api.get('/wallets/portfolio');
+      const response = await api.get('/wallets/portfolio-summary');
       return {
         success: true,
         data: response.data,
         error: null
       };
     } catch (error) {
-      console.error('Portföy özeti alma hatası:', error);
+      console.error('Portfolio summary error:', error);
       return {
         success: false,
         data: null,
@@ -264,11 +264,11 @@ class WalletService {
   }
 
   /**
-   * Cüzdan işlem geçmişi - JWT gerekli
-   * @param {string} walletId - Cüzdan ID'si
-   * @param {number} page - Sayfa numarası (varsayılan: 1)
-   * @param {number} limit - Sayfa başına kayıt (varsayılan: 20)
-   * @returns {Promise} İşlem geçmişi
+   * Get wallet transactions - JWT required
+   * @param {string} walletId - Wallet ID
+   * @param {number} page - Page number
+   * @param {number} limit - Items per page
+   * @returns {Promise} Transaction list
    */
   async getWalletTransactions(walletId, page = 1, limit = 20) {
     try {
@@ -281,7 +281,7 @@ class WalletService {
         error: null
       };
     } catch (error) {
-      console.error('Cüzdan işlem geçmişi alma hatası:', error);
+      console.error('Transaction list error:', error);
       return {
         success: false,
         data: null,
@@ -290,59 +290,27 @@ class WalletService {
     }
   }
 
-  /**
-   * Ethereum adresi için özel doğrulama
-   * @param {string} address - Ethereum adresi
-   * @returns {boolean} Geçerliliği
-   */
+  // Helper methods
   isValidEthereumAddress(address) {
-    // Ethereum adresi format kontrolü: 0x + 40 hex karakter
-    const ethereumRegex = /^0x[a-fA-F0-9]{40}$/;
-    return ethereumRegex.test(address);
+    if (!address || typeof address !== 'string') return false;
+    return /^0x[a-fA-F0-9]{40}$/.test(address.trim());
   }
 
-  /**
-   * Adres formatını normalize et
-   * @param {string} address - Ham adres
-   * @returns {string} Normalize edilmiş adres
-   */
   normalizeAddress(address) {
     if (!address) return '';
-    
-    // Boşlukları temizle
-    address = address.trim();
-    
-    // Ethereum adresi ise checksummed hale getir
-    if (this.isValidEthereumAddress(address)) {
-      return address; // API'den dönen normalize edilmiş adresi kullanacağız
-    }
-    
-    return address;
+    return address.trim();
   }
 
-  /**
-   * Network spesifik maximum cüzdan sayısını kontrol et
-   * @param {Array} wallets - Mevcut cüzdanlar
-   * @param {string} network - Kontrol edilecek network
-   * @returns {boolean} Limit durumu
-   */
   canAddWalletToNetwork(wallets, network) {
-    const MAX_WALLETS_PER_NETWORK = 3;
+    if (!Array.isArray(wallets)) return true;
     const networkWallets = wallets.filter(wallet => wallet.network === network);
-    return networkWallets.length < MAX_WALLETS_PER_NETWORK;
+    return networkWallets.length < 3; // Max 3 wallets per network
   }
 
-  /**
-   * Airdrop cüzdanını bul
-   * @param {Array} wallets - Cüzdan listesi
-   * @returns {Object|null} Airdrop cüzdanı
-   */
   getAirdropWallet(wallets) {
+    if (!Array.isArray(wallets)) return null;
     return wallets.find(wallet => wallet.isAirdropAddress) || null;
   }
 }
 
-// Singleton instance
-const walletService = new WalletService();
-
-export default walletService; 
+export default new WalletService(); 

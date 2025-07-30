@@ -48,27 +48,27 @@ const AddWalletScreen = ({ navigation }) => {
   const [formValid, setFormValid] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
-  // Network sabitlendi (şimdilik sadece Ethereum)
+  // Network fixed (only Ethereum for now)
   const selectedNetwork = ETHEREUM_NETWORK.name;
 
-  // Authentication kontrolü
+  // Authentication check
   useEffect(() => {
     checkAuthentication();
   }, []);
 
-  // Component mount - mevcut cüzdanları yükle (authenticated ise)
+  // Component mount - load existing wallets (if authenticated)
   useEffect(() => {
     if (isAuthenticated === true) {
       loadUserWallets();
     }
   }, [isAuthenticated]);
 
-  // Form validasyon kontrolü
+  // Form validation check
   useEffect(() => {
     setFormValid(address.length > 0 && addressValid === true);
   }, [address, addressValid]);
 
-  // Authentication kontrolü
+  // Authentication check
   const checkAuthentication = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
@@ -78,19 +78,19 @@ const AddWalletScreen = ({ navigation }) => {
       setIsAuthenticated(authenticated);
 
       if (!authenticated) {
-        // Auth olmayan kullanıcıyı geri gönder
+        // Send unauthenticated user back
         navigation.goBack();
-        showErrorAlert('Cüzdan bağlamak için giriş yapmanız gerekiyor');
+        showErrorAlert('You need to log in to connect a wallet');
       }
     } catch (error) {
       console.log('Auth check error:', error);
       setIsAuthenticated(false);
       navigation.goBack();
-      showErrorAlert('Kimlik doğrulama hatası');
+      showErrorAlert('Authentication error');
     }
   };
 
-  // Kullanıcının mevcut cüzdanlarını yükle
+  // Load user's existing wallets
   const loadUserWallets = async () => {
     try {
       const result = await walletService.getWallets();
@@ -98,7 +98,7 @@ const AddWalletScreen = ({ navigation }) => {
         setUserWallets(result.data.data.wallets || []);
       }
     } catch (error) {
-      console.log('Mevcut cüzdanlar yüklenemedi:', error);
+      console.log('Failed to load existing wallets:', error);
     }
   };
 
