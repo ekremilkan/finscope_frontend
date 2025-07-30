@@ -2,15 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { getFontFamily } from '../../constants/fontConstants';
+import { COLORS } from '../../constants/colorConstants';
 
 const { width, height } = Dimensions.get('window');
 
 const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
   return (
-    <LinearGradient
-      colors={['rgba(15, 23, 42, 0.95)', 'rgba(15, 23, 42, 0.8)']}
-      style={styles.header}
-    >
+    <View style={styles.header}>
       <View style={styles.headerLeft}>
         <View style={styles.logoContainer}>
           <Image 
@@ -33,13 +32,10 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
       
       <View style={styles.headerRight}>
         <TouchableOpacity style={styles.headerIcon} onPress={onNotificationPress}>
-          <LinearGradient
-            colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
-            style={styles.iconGradient}
-          >
-          <Icon name="notifications" size={Math.max(20, Math.min(28, width * 0.06))} color="#94a3b8" />
-          <View style={styles.notificationDot} />
-          </LinearGradient>
+          <View style={styles.iconContainer}>
+            <Icon name="notifications" size={Math.max(20, Math.min(28, width * 0.06))} color={COLORS.TEXT_SECONDARY} />
+            <View style={styles.notificationDot} />
+          </View>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -49,15 +45,12 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
             onLogoutPress();
           }}
         >
-          <LinearGradient
-            colors={['rgba(239, 68, 68, 0.15)', 'rgba(239, 68, 68, 0.05)']}
-            style={styles.iconGradient}
-        >
-            <Icon name="logout" size={Math.max(20, Math.min(28, width * 0.06))} color="#ef4444" />
-          </LinearGradient>
+          <View style={styles.iconContainer}>
+            <Icon name="logout" size={Math.max(20, Math.min(28, width * 0.06))} color={COLORS.ERROR} />
+          </View>
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -69,9 +62,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: Math.max(16, height * 0.02),
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.1)',
+    borderBottomColor: COLORS.BORDER_SECONDARY,
     minHeight: Math.max(70, height * 0.09),
-    shadowColor: '#000',
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -91,12 +85,12 @@ const styles = StyleSheet.create({
     width: Math.max(40, width * 0.1),
     height: Math.max(40, width * 0.1),
     borderRadius: Math.max(8, width * 0.02),
-    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    backgroundColor: 'rgba(247, 214, 72, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Math.max(12, width * 0.03),
     borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.2)',
+    borderColor: 'rgba(247, 214, 72, 0.2)',
   },
   logo: {
     width: Math.max(32, width * 0.08),
@@ -108,17 +102,17 @@ const styles = StyleSheet.create({
   },
   welcomeLabel: {
     fontSize: Math.max(12, width * 0.03),
-    color: 'rgba(148, 163, 184, 0.8)',
-    fontWeight: '500',
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_SECONDARY,
     marginBottom: 2,
   },
   welcomeText: {
     fontSize: Math.max(18, Math.min(24, width * 0.06)),
-    fontWeight: '800',
-    color: '#ffffff',
+    ...getFontFamily('EXTRABOLD'),
+    color: COLORS.TEXT_PRIMARY,
     flexShrink: 1,
     maxWidth: width * 0.5,
-    textShadowColor: 'rgba(99, 102, 241, 0.3)',
+    textShadowColor: 'rgba(247, 214, 72, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
@@ -134,11 +128,12 @@ const styles = StyleSheet.create({
     borderRadius: Math.max(12, width * 0.03),
     overflow: 'hidden',
   },
-  iconGradient: {
+  iconContainer: {
     padding: Math.max(8, width * 0.02),
     borderRadius: Math.max(12, width * 0.03),
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
+    borderColor: COLORS.BORDER_SECONDARY,
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
   },
   notificationDot: {
     position: 'absolute',
@@ -147,9 +142,9 @@ const styles = StyleSheet.create({
     width: Math.max(8, width * 0.02),
     height: Math.max(8, width * 0.02),
     borderRadius: Math.max(4, width * 0.01),
-    backgroundColor: '#ef4444',
+    backgroundColor: COLORS.ERROR,
     borderWidth: 1,
-    borderColor: '#ffffff',
+    borderColor: COLORS.TEXT_PRIMARY,
   },
 });
 

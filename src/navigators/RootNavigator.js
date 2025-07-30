@@ -6,6 +6,7 @@ import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'rea
 import SplashScreen from 'react-native-splash-screen';
 
 import api, { isAuthenticated } from '../services/api';
+import { COLORS } from '../constants/colorConstants';
 
 import EmailVerificationScreen from '../screens/EmailVerification/EmailVerificationScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
@@ -78,7 +79,7 @@ const RootNavigator = () => {
   if (!initialScreen) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
       </View>
     );
   }
@@ -101,32 +102,32 @@ const RootNavigator = () => {
 const styles = StyleSheet.create({
   center: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.BACKGROUND,
     justifyContent: 'center',
     alignItems: 'center',
   },
   errorText: {
-    color: 'white',
+    color: COLORS.TEXT_PRIMARY,
     fontSize: 18,
     marginBottom: 10,
   },
   subText: {
-    color: '#ccc',
+    color: COLORS.TEXT_SECONDARY,
   },
   retryButton: {
     marginTop: 20,
     paddingVertical: 10,
     paddingHorizontal: 25,
-    backgroundColor: '#1e293b',
+    backgroundColor: COLORS.CARD_BACKGROUND,
     borderRadius: 8,
   },
   retryText: {
-    color: 'white',
+    color: COLORS.TEXT_PRIMARY,
     fontWeight: 'bold',
   },
   loading: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.BACKGROUND,
     justifyContent: 'center',
     alignItems: 'center',
   },

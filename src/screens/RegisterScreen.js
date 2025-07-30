@@ -14,8 +14,11 @@ import {
   Platform,
   Image,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authService } from '../services/authService';
+import { FONTS, FONT_WEIGHTS, getFontFamily } from '../constants/fontConstants';
+import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -116,222 +119,264 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Header Section */}
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <View style={styles.logo}>
-                <Image
-                  source={require('../assets/images/finscope-logo.png')}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={styles.appName}>FinScope</Text>
-            </View>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join us and start your journey</Text>
-          </View>
-
-          {/* Form Section */}
-          <View style={styles.formContainer}>
-            {/* Name Input */}
-            <View style={[
-              styles.inputWrapper,
-              nameFocused && styles.inputWrapperFocused,
-              name.length > 0 && name.length < 2 && styles.inputWrapperError
-            ]}>
-              <Icon name="person" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Full Name"
-                placeholderTextColor="#9ca3af"
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-                editable={!loading}
-                onFocus={() => setNameFocused(true)}
-                onBlur={() => setNameFocused(false)}
-              />
-            </View>
-
-            {/* Email Input */}
-            <View style={[
-              styles.inputWrapper,
-              emailFocused && styles.inputWrapperFocused,
-              !validateEmail(email) && email.length > 0 && styles.inputWrapperError
-            ]}>
-              <Icon name="email" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Email Address"
-                placeholderTextColor="#9ca3af"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                onFocus={() => setEmailFocused(true)}
-                onBlur={() => setEmailFocused(false)}
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={[
-              styles.inputWrapper,
-              passwordFocused && styles.inputWrapperFocused,
-              !validatePassword(password) && password.length > 0 && styles.inputWrapperError
-            ]}>
-              <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Password (8+ chars, A-z, 0-9)"
-                placeholderTextColor="#9ca3af"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                editable={!loading}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-                disabled={loading}
-                activeOpacity={0.7}
-              >
-                <Icon
-                  name={showPassword ? 'visibility-off' : 'visibility'}
-                  size={20}
-                  color="#6b7280"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Confirm Password Input */}
-            <View style={[
-              styles.inputWrapper,
-              confirmPasswordFocused && styles.inputWrapperFocused,
-              confirmPassword.length > 0 && password !== confirmPassword && styles.inputWrapperError
-            ]}>
-              <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Confirm Password"
-                placeholderTextColor="#9ca3af"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                editable={!loading}
-                onFocus={() => setConfirmPasswordFocused(true)}
-                onBlur={() => setConfirmPasswordFocused(false)}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={loading}
-                activeOpacity={0.7}
-              >
-                <Icon
-                  name={showConfirmPassword ? 'visibility-off' : 'visibility'}
-                  size={20}
-                  color="#6b7280"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Terms and Conditions */}
-            <TouchableOpacity 
-              style={styles.termsContainer}
-              onPress={() => setAcceptTerms(!acceptTerms)}
-              activeOpacity={0.7}
+    <View style={styles.container}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <LinearGradient
+            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+            style={styles.gradientContainer}
+          >
+            {/* Corner Gradients - Daha yumuşak */}
+            <LinearGradient
+              colors={getCornerGradientColors()}
+              style={styles.topRightGradient}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+            />
+            <LinearGradient
+              colors={getCornerGradientColors().reverse()}
+              style={styles.bottomLeftGradient}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+            />
+            
+            <ScrollView 
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
-                {acceptTerms && <Icon name="check" size={14} color="#ffffff" />}
-              </View>
-              <Text style={styles.termsText}>
-                I agree to the{' '}
-                <Text style={styles.termsLink}>Terms</Text>
-                {' '}and{' '}
-                <Text style={styles.termsLink}>Privacy Policy</Text>
-              </Text>
-            </TouchableOpacity>
-
-            {/* Register Button */}
-            <TouchableOpacity
-              style={[
-                styles.registerButton,
-                loading && styles.registerButtonDisabled
-              ]}
-              onPress={handleRegister}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator color="#ffffff" size="small" />
-                  <Text style={styles.loadingText}>Creating...</Text>
+              {/* Header Section */}
+              <View style={styles.header}>
+                <View style={styles.logoContainer}>
+                  <View style={styles.logo}>
+                    <Image
+                      source={require('../assets/images/finscope-logo.png')}
+                      style={styles.logoImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <Text style={styles.appName}>FinScope</Text>
                 </View>
-              ) : (
-                <Text style={styles.registerButtonText}>Create Account</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Google Register Button */}
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={handleGoogleRegister}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              <View style={styles.googleIconContainer}>
-                <Text style={styles.googleIcon}>G</Text>
+                <Text style={styles.title}>Create Account</Text>
+                <Text style={styles.subtitle}>Join us and start your journey</Text>
               </View>
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
-          </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Login')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.signInText}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+              {/* Form Section */}
+              <View style={styles.formContainer}>
+                {/* Name Input */}
+                <View style={[
+                  styles.inputWrapper,
+                  nameFocused && styles.inputWrapperFocused,
+                  name.length > 0 && name.length < 2 && styles.inputWrapperError
+                ]}>
+                  <Icon name="person" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Full Name"
+                    placeholderTextColor="#9ca3af"
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="words"
+                    editable={!loading}
+                    onFocus={() => setNameFocused(true)}
+                    onBlur={() => setNameFocused(false)}
+                  />
+                </View>
+
+                {/* Email Input */}
+                <View style={[
+                  styles.inputWrapper,
+                  emailFocused && styles.inputWrapperFocused,
+                  !validateEmail(email) && email.length > 0 && styles.inputWrapperError
+                ]}>
+                  <Icon name="email" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Email Address"
+                    placeholderTextColor="#9ca3af"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!loading}
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
+                  />
+                </View>
+
+                {/* Password Input */}
+                <View style={[
+                  styles.inputWrapper,
+                  passwordFocused && styles.inputWrapperFocused,
+                  !validatePassword(password) && password.length > 0 && styles.inputWrapperError
+                ]}>
+                  <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]}
+                    placeholder="Password (8+ chars, A-z, 0-9)"
+                    placeholderTextColor="#9ca3af"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    editable={!loading}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                    activeOpacity={0.7}
+                  >
+                    <Icon
+                      name={showPassword ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color="#6b7280"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Confirm Password Input */}
+                <View style={[
+                  styles.inputWrapper,
+                  confirmPasswordFocused && styles.inputWrapperFocused,
+                  confirmPassword.length > 0 && password !== confirmPassword && styles.inputWrapperError
+                ]}>
+                  <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]}
+                    placeholder="Confirm Password"
+                    placeholderTextColor="#9ca3af"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirmPassword}
+                    editable={!loading}
+                    onFocus={() => setConfirmPasswordFocused(true)}
+                    onBlur={() => setConfirmPasswordFocused(false)}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={loading}
+                    activeOpacity={0.7}
+                  >
+                    <Icon
+                      name={showConfirmPassword ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color="#6b7280"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Terms and Conditions */}
+                <TouchableOpacity 
+                  style={styles.termsContainer}
+                  onPress={() => setAcceptTerms(!acceptTerms)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
+                    {acceptTerms && <Icon name="check" size={14} color="#ffffff" />}
+                  </View>
+                  <Text style={styles.termsText}>
+                    I agree to the{' '}
+                    <Text style={styles.termsLink}>Terms</Text>
+                    {' '}and{' '}
+                    <Text style={styles.termsLink}>Privacy Policy</Text>
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Register Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.registerButton,
+                    loading && styles.registerButtonDisabled
+                  ]}
+                  onPress={handleRegister}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                >
+                  {loading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator color="#ffffff" size="small" />
+                      <Text style={styles.loadingText}>Creating...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.registerButtonText}>Create Account</Text>
+                  )}
+                </TouchableOpacity>
+
+                {/* Divider */}
+                <View style={styles.dividerContainer}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                {/* Google Register Button */}
+                <TouchableOpacity
+                  style={styles.googleButton}
+                  onPress={handleGoogleRegister}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.googleIconContainer}>
+                    <Text style={styles.googleIcon}>G</Text>
+                  </View>
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Footer */}
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>Already have an account? </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Login')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.signInText}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </LinearGradient>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
+  gradientContainer: {
+    flex: 1,
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: width * 0.6,
+    height: height * 0.4,
+    borderBottomLeftRadius: 150,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: width * 0.6,
+    height: height * 0.4,
+    borderTopRightRadius: 150,
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: width * 0.05,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -350,11 +395,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 12,
-    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    backgroundColor: 'rgba(247, 214, 72, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.2)',
+    borderColor: 'rgba(247, 214, 72, 0.2)',
     marginBottom: 8,
     overflow: 'hidden',
   },
@@ -364,22 +409,23 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     letterSpacing: 1,
   },
   title: {
     fontSize: width * 0.07,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginTop:48,
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+    marginTop: 48,
     textAlign: 'justify',
   },
   subtitle: {
     fontSize: width * 0.038,
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
-    marginBottom:24,
+    marginBottom: 24,
   },
   formContainer: {
     flex: 1,
@@ -388,20 +434,20 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1e293b',
+    backgroundColor: COLORS.CARD_BACKGROUND,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: COLORS.BORDER_SECONDARY,
     paddingHorizontal: 14,
     height: 50,
     marginBottom: 12,
   },
   inputWrapperFocused: {
-    borderColor: '#6366f1',
-    backgroundColor: '#1e293b',
+    borderColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.CARD_BACKGROUND,
   },
   inputWrapperError: {
-    borderColor: '#ef4444',
+    borderColor: COLORS.ERROR,
   },
   inputIcon: {
     marginRight: 10,
@@ -409,7 +455,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: '#ffffff',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_PRIMARY,
     paddingVertical: 0,
   },
   passwordInput: {
@@ -429,33 +476,34 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 3,
     borderWidth: 2,
-    borderColor: '#334155',
+    borderColor: COLORS.SURFACE,
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#6366f1',
-    borderColor: '#6366f1',
+    backgroundColor: COLORS.PRIMARY,
+    borderColor: COLORS.PRIMARY,
   },
   termsText: {
     flex: 1,
     fontSize: 13,
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     lineHeight: 18,
   },
   termsLink: {
-    color: '#6366f1',
-    fontWeight: '500',
+    color: COLORS.PRIMARY,
+    ...getFontFamily('MEDIUM'),
   },
   registerButton: {
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 14,
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: '#6366f1',
+    shadowColor: COLORS.PRIMARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -465,18 +513,18 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   registerButtonText: {
-    color: '#ffffff',
+    color: COLORS.SECONDARY,
     fontSize: 15,
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   loadingText: {
-    color: '#ffffff',
+    color: COLORS.SECONDARY,
     fontSize: 15,
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
     marginLeft: 6,
   },
   dividerContainer: {
@@ -487,12 +535,13 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#334155',
+    backgroundColor: COLORS.SURFACE,
   },
   dividerText: {
     paddingHorizontal: 12,
     fontSize: 13,
-    color: '#64748b',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_DISABLED,
   },
   googleButton: {
     flexDirection: 'row',
@@ -502,7 +551,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     height: 50,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -519,12 +568,12 @@ const styles = StyleSheet.create({
   },
   googleIcon: {
     fontSize: 16,
-    fontWeight: 'bold',
+    ...getFontFamily('BOLD'),
     color: '#ea4335',
   },
   googleButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
     color: '#1f2937',
   },
   footer: {
@@ -535,12 +584,13 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 15,
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
   },
   signInText: {
     fontSize: 15,
-    color: '#6366f1',
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.PRIMARY,
   },
 });
 

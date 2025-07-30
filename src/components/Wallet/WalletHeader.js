@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { WALLET_COLORS } from '../../data/walletData';
+import { getFontFamily } from '../../constants/fontConstants';
+import { COLORS } from '../../constants/colorConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -100,14 +102,28 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: Math.max(16, width * 0.04),
-    backgroundColor: WALLET_COLORS.background,
+    backgroundColor: COLORS.BACKGROUND,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.1)',
-    minHeight: Math.max(80, width * 0.2),
+    borderBottomColor: COLORS.BORDER_SECONDARY,
   },
   titleSection: {
     flex: 1,
-    paddingRight: Math.max(16, width * 0.04),
+    marginRight: Math.max(16, width * 0.04),
+  },
+  logoContainer: {
+    width: Math.max(32, width * 0.08),
+    height: Math.max(32, width * 0.08),
+    marginBottom: Math.max(8, width * 0.02),
+    borderRadius: Math.max(6, width * 0.015),
+    backgroundColor: 'rgba(247, 214, 72, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(247, 214, 72, 0.2)',
+  },
+  logo: {
+    width: Math.max(24, width * 0.06),
+    height: Math.max(24, width * 0.06),
   },
   titleContainer: {
     flexDirection: 'row',
@@ -115,58 +131,65 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(4, width * 0.01),
   },
   title: {
-    fontSize: Math.max(24, width * 0.06),
-    fontWeight: '700',
-    color: WALLET_COLORS.text,
-    marginRight: Math.max(12, width * 0.03),
+    fontSize: Math.max(20, Math.min(24, width * 0.06)),
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+    marginRight: Math.max(8, width * 0.02),
   },
   countContainer: {
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-    borderRadius: 12,
+    backgroundColor: COLORS.PRIMARY,
     paddingHorizontal: Math.max(8, width * 0.02),
     paddingVertical: Math.max(4, width * 0.01),
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.4)',
+    borderRadius: Math.max(12, width * 0.03),
   },
   countText: {
     fontSize: Math.max(12, width * 0.03),
-    fontWeight: '600',
-    color: WALLET_COLORS.primary,
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.SECONDARY,
   },
   subtitle: {
     fontSize: Math.max(14, width * 0.035),
-    color: WALLET_COLORS.textSecondary,
-    marginTop: 2,
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Math.max(12, width * 0.03),
+    gap: Math.max(8, width * 0.02),
   },
-  settingsButton: {
-    width: Math.max(40, width * 0.1),
-    height: Math.max(40, width * 0.1),
-    borderRadius: Math.max(20, width * 0.05),
+  refreshButton: {
+    width: Math.max(36, width * 0.09),
+    height: Math.max(36, width * 0.09),
+    borderRadius: Math.max(18, width * 0.045),
+    backgroundColor: 'rgba(247, 214, 72, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(247, 214, 72, 0.2)',
+  },
+  settingsButton: {
+    width: Math.max(36, width * 0.09),
+    height: Math.max(36, width * 0.09),
+    borderRadius: Math.max(18, width * 0.045),
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.2)',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: WALLET_COLORS.primary,
-    paddingHorizontal: Math.max(16, width * 0.04),
-    paddingVertical: Math.max(10, width * 0.025),
-    borderRadius: Math.max(20, width * 0.05),
-    shadowColor: WALLET_COLORS.primary,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    backgroundColor: COLORS.PRIMARY,
+    paddingHorizontal: Math.max(12, width * 0.03),
+    paddingVertical: Math.max(8, width * 0.02),
+    borderRadius: Math.max(16, width * 0.04),
+    gap: Math.max(4, width * 0.01),
+    shadowColor: COLORS.PRIMARY,
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 4,
-    gap: 6,
+    elevation: 3,
   },
   disabledButton: {
     backgroundColor: 'rgba(148, 163, 184, 0.2)',
@@ -174,20 +197,13 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   addButtonText: {
-    color: '#ffffff',
     fontSize: Math.max(14, width * 0.035),
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.SECONDARY,
   },
   disabledButtonText: {
-    color: WALLET_COLORS.textSecondary,
-  },
-  refreshButton: {
-    width: Math.max(40, width * 0.1),
-    height: Math.max(40, width * 0.1),
-    borderRadius: Math.max(20, width * 0.05),
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
   },
 });
 

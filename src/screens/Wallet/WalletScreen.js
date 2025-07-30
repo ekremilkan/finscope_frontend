@@ -9,8 +9,12 @@ import {
   Text,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Constants
+import { COLORS, getCornerGradientColors } from '../../constants/colorConstants';
 
 const LAST_ACTIVE_WALLET_KEY = '@last_active_wallet';
 
@@ -118,43 +122,114 @@ const WalletScreen = ({ navigation }) => {
 
   // --- NEW RENDER LOGIC ---
   if (status === 'preparing') {
-    return <View style={styles.container}><ActivityIndicator size="large" color="#fff" /></View>;
+    return (
+      <LinearGradient
+        colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+        style={styles.container}
+      >
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+      </LinearGradient>
+    );
   }
 
   if (status === 'error') {
     return (
-      <View style={styles.container}>
+      <LinearGradient
+        colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+        style={styles.container}
+      >
         <Text style={styles.errorText}>Wallet page could not be loaded.</Text>
         <Text style={styles.errorSubText}>Please restart the app or log in again.</Text>
-      </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-        <WebView
-          ref={webViewRef}
-          source={{ uri: viewData.url }}
-          style={styles.webview}
-          injectedJavaScript={viewData.injectedJS}
-          onMessage={handleWebViewMessage}
-          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          startInLoadingState={true}
-          renderLoading={() => <ActivityIndicator size="large" color="#fff" style={StyleSheet.absoluteFill} />}
-          originWhitelist={['*']}
-        />
-    </SafeAreaView>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LinearGradient
+          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+          style={styles.gradientContainer}
+        >
+          {/* Corner Gradients - Daha yumuşak */}
+          <LinearGradient
+            colors={getCornerGradientColors()}
+            style={styles.topRightGradient}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <LinearGradient
+            colors={getCornerGradientColors().reverse()}
+            style={styles.bottomLeftGradient}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+          />
+          
+          <WebView
+            ref={webViewRef}
+            source={{ uri: viewData.url }}
+            style={styles.webview}
+            injectedJavaScript={viewData.injectedJS}
+            onMessage={handleWebViewMessage}
+            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            renderLoading={() => <ActivityIndicator size="large" color={COLORS.PRIMARY} style={StyleSheet.absoluteFill} />}
+            originWhitelist={['*']}
+          />
+        </LinearGradient>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0f172a' },
-  container: { flex: 1, backgroundColor: '#0f172a', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  webview: { flex: 1, backgroundColor: '#0f172a' },
-  errorText: { fontSize: 18, color: '#f87171', textAlign: 'center' },
-  errorSubText: { fontSize: 14, color: '#94a3b8', textAlign: 'center', marginTop: 10 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.BACKGROUND, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    padding: 20 
+  },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: COLORS.BACKGROUND 
+  },
+  gradientContainer: {
+    flex: 1,
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 250,
+    height: 250,
+    borderBottomLeftRadius: 125,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: 250,
+    height: 250,
+    borderTopRightRadius: 125,
+  },
+  webview: { 
+    flex: 1, 
+    backgroundColor: COLORS.BACKGROUND 
+  },
+  errorText: { 
+    fontSize: 18, 
+    color: COLORS.ERROR, 
+    textAlign: 'center' 
+  },
+  errorSubText: { 
+    fontSize: 14, 
+    color: COLORS.TEXT_SECONDARY, 
+    textAlign: 'center', 
+    marginTop: 10 
+  },
 });
 
 export default WalletScreen;

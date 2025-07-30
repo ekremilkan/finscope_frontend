@@ -15,9 +15,12 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authService } from '../services/authService';
 import { storageService } from '../services/AsyncStorage';
+import { FONTS, FONT_WEIGHTS, getFontFamily } from '../constants/fontConstants';
+import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -116,188 +119,226 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
+    <LinearGradient
+      colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        bounces={false}
+      {/* Corner Gradients - Daha yumuşak */}
+      <LinearGradient
+        colors={getCornerGradientColors()}
+        style={styles.topRightGradient}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
+      />
+      <LinearGradient
+        colors={getCornerGradientColors().reverse()}
+        style={styles.bottomLeftGradient}
+        start={{ x: 0, y: 1 }}
+        end={{ x: 1, y: 0 }}
+      />
+      
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-          {/* Header Section */}
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <View style={styles.logo}>
-                <Image
-                  source={require('../assets/images/finscope-logo.png')}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <SafeAreaView style={styles.safeArea} edges={['top']}>
+            {/* Header Section */}
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <View style={styles.logo}>
+                  <Image
+                    source={require('../assets/images/finscope-logo.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
+                </View>
               </View>
-            </View>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>
-              Sign in to your account to continue
-            </Text>
-          </View>
-
-          {/* Form Section */}
-          <View style={styles.formContainer}>
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Email Address</Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  emailFocused && styles.inputWrapperFocused,
-                  !validateEmail(email) &&
-                    email.length > 0 &&
-                    styles.inputWrapperError,
-                ]}
-              >
-                <Icon
-                  name="email"
-                  size={20}
-                  color="#6b7280"
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your email"
-                  placeholderTextColor="#9ca3af"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  textContentType="emailAddress"
-                  editable={!loading}
-                  onFocus={() => setEmailFocused(true)}
-                  onBlur={() => setEmailFocused(false)}
-                  returnKeyType="next"
-                  blurOnSubmit={false}
-                />
-              </View>
+              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.subtitle}>
+                Sign in to your account to continue
+              </Text>
             </View>
 
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  passwordFocused && styles.inputWrapperFocused,
-                ]}
-              >
-                <Icon
-                  name="lock"
-                  size={20}
-                  color="#6b7280"
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={[styles.input, styles.passwordInput]}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#9ca3af"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  autoComplete="password"
-                  textContentType="password"
-                  editable={!loading}
-                  onFocus={() => setPasswordFocused(true)}
-                  onBlur={() => setPasswordFocused(false)}
-                  returnKeyType="done"
-                  onSubmitEditing={handleLogin}
-                />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                  activeOpacity={0.7}
+            {/* Form Section */}
+            <View style={styles.formContainer}>
+              {/* Email Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Email Address</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    emailFocused && styles.inputWrapperFocused,
+                    !validateEmail(email) &&
+                      email.length > 0 &&
+                      styles.inputWrapperError,
+                  ]}
                 >
                   <Icon
-                    name={showPassword ? 'visibility-off' : 'visibility'}
+                    name="email"
                     size={20}
                     color="#6b7280"
+                    style={styles.inputIcon}
                   />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your email"
+                    placeholderTextColor="#9ca3af"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="email"
+                    textContentType="emailAddress"
+                    editable={!loading}
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
+                    returnKeyType="next"
+                    blurOnSubmit={false}
+                  />
+                </View>
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    passwordFocused && styles.inputWrapperFocused,
+                  ]}
+                >
+                  <Icon
+                    name="lock"
+                    size={20}
+                    color="#6b7280"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#9ca3af"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoComplete="password"
+                    textContentType="password"
+                    editable={!loading}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
+                    returnKeyType="done"
+                    onSubmitEditing={handleLogin}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                    activeOpacity={0.7}
+                  >
+                    <Icon
+                      name={showPassword ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color="#6b7280"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Forgot Password */}
+              <TouchableOpacity
+                style={styles.forgotPasswordContainer}
+                onPress={() => navigation.navigate('ForgotPassword')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+
+              {/* Login Button */}
+              <TouchableOpacity
+                style={[
+                  styles.loginButton,
+                  loading && styles.loginButtonDisabled,
+                ]}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.8}
+              >
+                {loading ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator color="#ffffff" size="small" />
+                    <Text style={styles.loadingText}>Signing in...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.dividerContainer}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              {/* Social Login Buttons */}
+              <View style={styles.socialContainer}>
+                <TouchableOpacity
+                  style={styles.socialButton}
+                  onPress={() => handleSocialLogin('Google')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.googleIcon}>G</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Forgot Password */}
-            <TouchableOpacity
-              style={styles.forgotPasswordContainer}
-              onPress={() => navigation.navigate('ForgotPassword')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
-
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[
-                styles.loginButton,
-                loading && styles.loginButtonDisabled,
-              ]}
-              onPress={handleLogin}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator color="#ffffff" size="small" />
-                  <Text style={styles.loadingText}>Signing in...</Text>
-                </View>
-              ) : (
-                <Text style={styles.loginButtonText}>Sign In</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or continue with</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Social Login Buttons */}
-            <View style={styles.socialContainer}>
+            {/* Footer */}
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
               <TouchableOpacity
-                style={styles.socialButton}
-                onPress={() => handleSocialLogin('Google')}
+                onPress={() => navigation.navigate('Register')}
                 activeOpacity={0.7}
               >
-                <Text style={styles.googleIcon}>G</Text>
+                <Text style={styles.signUpText}>Sign Up</Text>
               </TouchableOpacity>
             </View>
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Register')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.signUpText}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </SafeAreaView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: width * 0.6,
+    height: height * 0.4,
+    borderBottomLeftRadius: 150,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: width * 0.6,
+    height: height * 0.4,
+    borderTopRightRadius: 150,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -319,15 +360,15 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 12,
-    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    backgroundColor: 'rgba(247, 214, 72, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.2)',
+    borderColor: 'rgba(247, 214, 72, 0.2)',
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#fbbf24',
+        shadowColor: COLORS.PRIMARY,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
@@ -343,27 +384,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: width * 0.08,
-    fontWeight: Platform.OS === 'ios' ? '700' : 'bold',
-    color: '#ffffff',
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: 8,
     textAlign: 'center',
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-      },
-    }),
   },
   subtitle: {
     fontSize: width * 0.04,
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: 24,
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-        fontWeight: '400',
-      },
-    }),
   },
   formContainer: {
     flex: 1,
@@ -374,27 +405,22 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
-    color: '#e2e8f0',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: 8,
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-      },
-    }),
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1e293b',
+    backgroundColor: COLORS.CARD_BACKGROUND,
     borderRadius: Platform.OS === 'ios' ? 12 : 16,
     borderWidth: Platform.OS === 'ios' ? 1 : 1,
-    borderColor: '#334155',
+    borderColor: COLORS.BORDER_SECONDARY,
     paddingHorizontal: 16,
     height: Platform.OS === 'ios' ? 52 : 56,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.SHADOW_SECONDARY,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
@@ -405,11 +431,11 @@ const styles = StyleSheet.create({
     }),
   },
   inputWrapperFocused: {
-    borderColor: '#6366f1',
-    backgroundColor: '#1e293b',
+    borderColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.CARD_BACKGROUND,
     ...Platform.select({
       ios: {
-        shadowColor: '#6366f1',
+        shadowColor: COLORS.PRIMARY,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
@@ -420,7 +446,7 @@ const styles = StyleSheet.create({
     }),
   },
   inputWrapperError: {
-    borderColor: '#ef4444',
+    borderColor: COLORS.ERROR,
   },
   inputIcon: {
     marginRight: 12,
@@ -428,13 +454,9 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#ffffff',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_PRIMARY,
     paddingVertical: Platform.OS === 'ios' ? 12 : 0,
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-      },
-    }),
   },
   passwordInput: {
     paddingRight: 12,
@@ -450,16 +472,11 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: '#6366f1',
-    fontWeight: Platform.OS === 'ios' ? '500' : 'bold',
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-      },
-    }),
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.PRIMARY,
   },
   loginButton: {
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: Platform.OS === 'ios' ? 12 : 16,
     height: Platform.OS === 'ios' ? 52 : 56,
     justifyContent: 'center',
@@ -467,7 +484,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     ...Platform.select({
       ios: {
-        shadowColor: '#6366f1',
+        shadowColor: COLORS.PRIMARY,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -481,29 +498,19 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   loginButtonText: {
-    color: '#ffffff',
+    color: COLORS.SECONDARY,
     fontSize: 16,
-    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-      },
-    }),
+    ...getFontFamily('SEMIBOLD'),
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   loadingText: {
-    color: '#ffffff',
+    color: COLORS.SECONDARY,
     fontSize: 16,
-    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+    ...getFontFamily('SEMIBOLD'),
     marginLeft: 8,
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-      },
-    }),
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -513,18 +520,13 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#334155',
+    backgroundColor: COLORS.SURFACE,
   },
   dividerText: {
     paddingHorizontal: 16,
     fontSize: 14,
-    color: '#64748b',
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-        fontWeight: '400',
-      },
-    }),
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_DISABLED,
   },
   socialContainer: {
     flexDirection: 'row',
@@ -536,14 +538,14 @@ const styles = StyleSheet.create({
     width: Platform.OS === 'ios' ? 52 : 56,
     height: Platform.OS === 'ios' ? 52 : 56,
     borderRadius: Platform.OS === 'ios' ? 12 : 16,
-    backgroundColor: '#1e293b',
+    backgroundColor: COLORS.CARD_BACKGROUND,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: COLORS.BORDER_SECONDARY,
     justifyContent: 'center',
     alignItems: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: COLORS.SHADOW_SECONDARY,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
@@ -555,7 +557,7 @@ const styles = StyleSheet.create({
   },
   googleIcon: {
     fontSize: 20,
-    fontWeight: 'bold',
+    ...getFontFamily('BOLD'),
     color: '#ea4335',
   },
   footer: {
@@ -566,23 +568,13 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 16,
-    color: '#94a3b8',
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-        fontWeight: '400',
-      },
-    }),
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
   },
   signUpText: {
     fontSize: 16,
-    color: '#6366f1',
-    fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
-    ...Platform.select({
-      ios: {
-        fontFamily: 'San Francisco',
-      },
-    }),
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.PRIMARY,
   },
 });
 

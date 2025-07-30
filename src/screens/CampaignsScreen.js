@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -30,6 +31,9 @@ import UserCampaignFilters from '../components/UserCampaign/UserCampaignFilters'
 import UserCampaignCard from '../components/UserCampaign/UserCampaignCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+
+// Constants
+import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -222,52 +226,95 @@ const CampaignsScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <UserCampaignHeader
-        navigation={navigation}
-        campaignCount={filteredCampaigns.length}
-      />
-      
-      {/* UserCampaignSearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      /> */}
-      
-      <UserCampaignFilters
-        selectedFilter={selectedFilter}
-        onFilterChange={setSelectedFilter}
-      />
-      
-      {loading ? (
-        renderSkeletonLoading()
-      ) : error ? (
-        renderErrorState()
-      ) : (
-        <FlatList
-          data={filteredCampaigns}
-          renderItem={renderCampaignCard}
-          keyExtractor={keyExtractor}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={['#6366f1']}
-              tintColor="#6366f1"
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LinearGradient
+          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+          style={styles.gradientContainer}
+        >
+          {/* Corner Gradients - Daha yumuşak */}
+          <LinearGradient
+            colors={getCornerGradientColors()}
+            style={styles.topRightGradient}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <LinearGradient
+            colors={getCornerGradientColors().reverse()}
+            style={styles.bottomLeftGradient}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+          />
+          
+          <UserCampaignHeader
+            navigation={navigation}
+            campaignCount={filteredCampaigns.length}
+          />
+          
+          {/* UserCampaignSearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          /> */}
+          
+          <UserCampaignFilters
+            selectedFilter={selectedFilter}
+            onFilterChange={setSelectedFilter}
+          />
+          
+          {loading ? (
+            renderSkeletonLoading()
+          ) : error ? (
+            renderErrorState()
+          ) : (
+            <FlatList
+              data={filteredCampaigns}
+              renderItem={renderCampaignCard}
+              keyExtractor={keyExtractor}
+              contentContainerStyle={styles.listContainer}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  colors={[COLORS.PRIMARY]}
+                  tintColor={COLORS.PRIMARY}
+                />
+              }
+              ListEmptyComponent={!loading ? renderEmptyState : null}
             />
-          }
-          ListEmptyComponent={!loading ? renderEmptyState : null}
-        />
-      )}
-    </SafeAreaView>
+          )}
+        </LinearGradient>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0f1c',
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  gradientContainer: {
+    flex: 1,
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: width * 0.6,
+    height: width * 0.6,
+    borderBottomLeftRadius: width * 0.6,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: width * 0.6,
+    height: width * 0.6,
+    borderTopRightRadius: width * 0.6,
   },
   listContainer: {
     paddingHorizontal: Math.max(20, width * 0.05),
@@ -282,13 +329,13 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: Math.max(18, width * 0.045),
     fontWeight: '600',
-    color: '#ffffff',
+    color: COLORS.TEXT_PRIMARY,
     marginTop: 16,
     textAlign: 'center',
   },
   emptySubtext: {
     fontSize: Math.max(14, width * 0.035),
-    color: 'rgba(148, 163, 184, 0.8)',
+    color: COLORS.TEXT_SECONDARY,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -300,7 +347,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: Math.max(16, width * 0.04),
-    color: '#94a3b8',
+    color: COLORS.TEXT_SECONDARY,
     marginTop: 16,
   },
   errorContainer: {
@@ -313,12 +360,12 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: Math.max(16, width * 0.04),
     fontWeight: '600',
-    color: '#ef4444',
+    color: COLORS.ERROR,
     marginTop: 16,
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.PRIMARY,
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: Math.max(12, width * 0.03),
     borderRadius: 12,
@@ -327,7 +374,7 @@ const styles = StyleSheet.create({
   retryButtonText: {
     fontSize: Math.max(14, width * 0.035),
     fontWeight: '600',
-    color: '#ffffff',
+    color: COLORS.SECONDARY,
   },
   skeletonContainer: {
     paddingHorizontal: Math.max(20, width * 0.05),
