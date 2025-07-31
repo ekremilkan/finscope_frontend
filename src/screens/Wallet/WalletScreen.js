@@ -56,7 +56,7 @@ const WalletScreen = ({ navigation }) => {
         }
         jsToInject += 'true;';
         
-        const baseUrl = 'http://192.168.1.21:5173/wallet'; // Your IP address
+        const baseUrl = 'https://finscope.app/wallet'; // Your IP address
         const params = new URLSearchParams();
         if (email) params.append('email', email);
         if (lastAddress) params.append('lastActiveAddress', lastAddress);
