@@ -111,7 +111,8 @@ const WalletScreen = ({ navigation }) => {
   
   const handleShouldStartLoadWithRequest = (request) => {
     const { url } = request;
-    const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://'];
+    const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://','rainbow://', 
+  'uniswap://','coinbase://'];
     if (walletSchemes.some(scheme => url.startsWith(scheme))) {
       Linking.openURL(url).catch(err => {
         Alert.alert('App Not Found', 'Please make sure the relevant wallet app is installed on your phone.');
