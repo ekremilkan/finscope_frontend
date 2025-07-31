@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './src/navigators/RootNavigator';
+import { COLORS } from './src/constants/colorConstants';
 
 const App = () => {
   const [isAppReady, setIsAppReady] = useState(false);
@@ -9,10 +10,10 @@ const App = () => {
   useEffect(() => {
     const prepareApp = async () => {
       try {
-        // Async operations (data loading, token check, font loading, etc.)
+        // Async operations (data loading, token check, etc.)
         await new Promise(resolve => setTimeout(resolve, 2500));
       } catch (e) {
-        console.warn(e);
+        console.warn('App preparation error:', e);
       } finally {
         setIsAppReady(true);
       }
@@ -21,12 +22,19 @@ const App = () => {
     prepareApp();
   }, []);
 
+  if (!isAppReady) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaProvider>
       <StatusBar 
         barStyle="light-content" 
-        backgroundColor="#0a0f1c" 
+        backgroundColor={COLORS.BACKGROUND} 
         translucent={false}
       />
       <RootNavigator />
@@ -34,5 +42,13 @@ const App = () => {
   );
 };
 
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.BACKGROUND,
+  },
+});
 
 export default App;

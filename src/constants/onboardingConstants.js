@@ -1,7 +1,9 @@
+import { COLORS } from './colorConstants';
+
 export const ONBOARDING_PAGES = [
   {
     id: 1,
-    backgroundColor: "#181818",
+    backgroundColor: COLORS.BACKGROUND,
     image: require("../../assets/onboard/onboard1.png"),
     title: "Welcome to Finscope",
     subtitle:
@@ -9,7 +11,7 @@ export const ONBOARDING_PAGES = [
   },
   {
     id: 2,
-    backgroundColor: "#181818",
+    backgroundColor: COLORS.BACKGROUND,
     image: require("../../assets/onboard/onboard2.png"),
     title: "Learn & Earn Model",
     subtitle:
@@ -17,7 +19,7 @@ export const ONBOARDING_PAGES = [
   },
   {
     id: 3,
-    backgroundColor: "#181818",
+    backgroundColor: COLORS.BACKGROUND,
     image: require("../../assets/onboard/onboard3.png"),
     title: "Connect Your Wallets",
     subtitle:
@@ -25,7 +27,7 @@ export const ONBOARDING_PAGES = [
   },
   {
     id: 4,
-    backgroundColor: "#181818",
+    backgroundColor: COLORS.BACKGROUND,
     image: require("../../assets/onboard/onboard4.png"),
     title: "Targeted Marketing",
     subtitle:
@@ -33,7 +35,7 @@ export const ONBOARDING_PAGES = [
   },
   {
     id: 5,
-    backgroundColor: "#181818",
+    backgroundColor: COLORS.BACKGROUND,
     image: require("../../assets/onboard/onboard5.png"),
     title: "Build Your Network",
     subtitle:
@@ -49,7 +51,7 @@ export const ONBOARDING_CONFIG = {
     width: 200,
     height: 200,
     borderRadius: 0, // Removed border radius
-    shadowColor: "#fbbf24",
+    shadowColor: COLORS.PRIMARY,
     shadowOffset: {
       width: 0,
       height: 8,
@@ -62,11 +64,11 @@ export const ONBOARDING_CONFIG = {
     width: 240,
     height: 240,
     borderRadius: 0, // Removed border radius
-    backgroundColor: "rgba(251, 191, 36, 0.08)",
+    backgroundColor: "rgba(247, 214, 72, 0.08)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 40,
-    shadowColor: "#fbbf24",
+    shadowColor: COLORS.PRIMARY,
     shadowOffset: {
       width: 0,
       height: 12,
@@ -77,7 +79,8 @@ export const ONBOARDING_CONFIG = {
   },
   titleStyle: {
     fontSize: 28,
-    color: "#fbbf24",
+    color: COLORS.PRIMARY,
+    fontFamily: "FunnelDisplay",
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 20,
@@ -88,6 +91,7 @@ export const ONBOARDING_CONFIG = {
   subtitleStyle: {
     fontSize: 16,
     color: "rgba(255,255,255,0.85)",
+    fontFamily: "FunnelDisplay",
     fontWeight: "400",
     textAlign: "center",
     lineHeight: 24,
@@ -98,7 +102,7 @@ export const ONBOARDING_CONFIG = {
     paddingHorizontal: 48,
     paddingVertical: 16,
     borderRadius: 28,
-    shadowColor: "#fbbf24",
+    shadowColor: COLORS.PRIMARY,
     shadowOffset: {
       width: 0,
       height: 6,
@@ -111,7 +115,8 @@ export const ONBOARDING_CONFIG = {
     justifyContent: "center",
   },
   buttonTextStyle: {
-    color: "#ffffff",
+    color: COLORS.SECONDARY,
+    fontFamily: "FunnelDisplay",
     fontWeight: "600",
     fontSize: 16,
     letterSpacing: 0.5,

@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,24 +49,23 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: Math.max(22, width * 0.055),
-    fontWeight: '800',
-    color: '#ffffff',
-    textShadowColor: 'rgba(99, 102, 241, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+    textShadowColor: COLORS.PRIMARY,
     textShadowRadius: 4,
   },
   sectionBadge: {
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    backgroundColor: 'rgba(247, 214, 72, 0.15)',
     paddingHorizontal: Math.max(12, width * 0.03),
     paddingVertical: Math.max(6, height * 0.008),
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
+    borderColor: 'rgba(247, 214, 72, 0.3)',
   },
   sectionBadgeText: {
-    color: '#8b5cf6',
+    color: COLORS.PRIMARY,
     fontSize: Math.max(12, width * 0.03),
-    fontWeight: '700',
+    ...getFontFamily('SEMIBOLD'),
   },
   quickActionsGrid: {
     flexDirection: 'row',
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
   quickActionItem: {
     width: (width - Math.max(64, width * 0.16)) / 2,
     borderRadius: Math.max(20, width * 0.05),
-    shadowColor: '#000',
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: {
       width: 0,
       height: 6,
@@ -91,8 +92,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    borderColor: COLORS.BORDER_SECONDARY,
+    backgroundColor: COLORS.CARD_BACKGROUND,
     minHeight: Math.max(120, height * 0.15),
   },
   quickActionIcon: {
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Math.max(12, height * 0.015),
-    shadowColor: '#000',
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -113,12 +114,9 @@ const styles = StyleSheet.create({
   },
   quickActionTitle: {
     fontSize: Math.max(14, width * 0.037),
-    fontWeight: '600',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
   },
 });
 

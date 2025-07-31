@@ -1,3 +1,3 @@
 module.exports = {
-  assets: ['./ios/finscope_front/Fonts'],
+  assets: ['./src/assets/fonts'],
 };

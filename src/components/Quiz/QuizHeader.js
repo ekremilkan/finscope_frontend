@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { formatTime, getTimeWarningColor } from '../../utils/quizUtils';
+import { getFontFamily } from '../../constants/fontConstants';
+import { COLORS } from '../../constants/colorConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -45,10 +47,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: Math.max(16, width * 0.04),
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    backgroundColor: COLORS.CARD_BACKGROUND,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.2)',
-    shadowColor: '#000',
+    borderBottomColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -67,17 +69,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 16,
   },
+  logoContainer: {
+    width: Math.max(28, width * 0.07),
+    height: Math.max(28, width * 0.07),
+    marginBottom: Math.max(6, width * 0.015),
+    borderRadius: Math.max(5, width * 0.012),
+    backgroundColor: 'rgba(247, 214, 72, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(247, 214, 72, 0.2)',
+  },
+  logo: {
+    width: Math.max(20, width * 0.05),
+    height: Math.max(20, width * 0.05),
+  },
   campaignTitle: {
     fontSize: Math.max(16, width * 0.04),
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
     marginBottom: 4,
   },
   rewardText: {
     fontSize: Math.max(12, width * 0.03),
-    color: '#10b981',
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.SUCCESS,
   },
   timerContainer: {
     flexDirection: 'row',
@@ -90,7 +107,7 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontSize: Math.max(14, width * 0.035),
-    fontWeight: '700',
+    ...getFontFamily('BOLD'),
     marginLeft: 4,
   },
   timerSection: {
@@ -99,20 +116,15 @@ const styles = StyleSheet.create({
   penaltyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   penaltyText: {
-    fontSize: Math.max(14, width * 0.035),
-    fontWeight: '700',
+    fontSize: Math.max(12, width * 0.03),
+    ...getFontFamily('SEMIBOLD'),
     marginLeft: 4,
   },
 });

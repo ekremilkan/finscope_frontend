@@ -1,22 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Image } from 'react-native';
 import {
   getGlassMorphismStyle,
   getResponsiveSize,
   getUserAvatar,
   formatJoinDate
 } from '../../utils/profileUtils';
-import { COLORS } from '../../data/profileData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
 const ProfileHeader = ({ user, onEditPress, isLoading = false }) => {
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Premium Member': return COLORS.warning;
+      case 'Premium Member': return COLORS.WARNING;
       case 'Gold Member': return '#FFD700';
       case 'Silver Member': return '#C0C0C0';
-      default: return COLORS.primary;
+      default: return COLORS.PRIMARY;
     }
   };
 
@@ -57,7 +58,7 @@ const ProfileHeader = ({ user, onEditPress, isLoading = false }) => {
         <View style={styles.verificationContainer}>
           <Text style={[
             styles.verificationText,
-            { color: user.isVerified ? COLORS.success : COLORS.warning }
+            { color: user.isVerified ? COLORS.SUCCESS : COLORS.WARNING }
           ]}>
             {user.isVerified ? '✅ Email Verified' : '⚠️ Email Not Verified'}
           </Text>
@@ -77,12 +78,35 @@ const ProfileHeader = ({ user, onEditPress, isLoading = false }) => {
 
 const styles = StyleSheet.create({
   container: {
-    ...getGlassMorphismStyle(0.9),
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    borderRadius: 20,
     alignItems: 'center',
     paddingVertical: Math.max(24, width * 0.06),
     paddingHorizontal: Math.max(20, width * 0.05),
     marginHorizontal: Math.max(16, width * 0.04),
     marginTop: Math.max(20, width * 0.05),
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  logoContainer: {
+    width: Math.max(60, width * 0.15),
+    height: Math.max(60, width * 0.15),
+    marginBottom: Math.max(16, width * 0.04),
+    borderRadius: Math.max(12, width * 0.03),
+    backgroundColor: 'rgba(247, 214, 72, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(247, 214, 72, 0.2)',
+  },
+  logo: {
+    width: Math.max(48, width * 0.12),
+    height: Math.max(48, width * 0.12),
   },
   avatarContainer: {
     position: 'relative',
@@ -91,81 +115,91 @@ const styles = StyleSheet.create({
   avatar: {
     fontSize: getResponsiveSize(width, 0.15, 48, 80),
     textAlign: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.PRIMARY,
     width: Math.max(80, width * 0.2),
     height: Math.max(80, width * 0.2),
     borderRadius: Math.max(40, width * 0.1),
     textAlignVertical: 'center',
     lineHeight: Math.max(80, width * 0.2),
+    color: COLORS.SECONDARY,
+    ...getFontFamily('BOLD'),
   },
   statusBadge: {
     position: 'absolute',
-    top: -5,
-    right: -10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.background,
-    minWidth: 32,
+    bottom: -Math.max(4, width * 0.01),
+    right: -Math.max(4, width * 0.01),
+    width: Math.max(24, width * 0.06),
+    height: Math.max(24, width * 0.06),
+    borderRadius: Math.max(12, width * 0.03),
+    justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.TEXT_PRIMARY,
   },
   statusEmoji: {
-    fontSize: getResponsiveSize(width, 0.03, 12, 16),
+    fontSize: Math.max(12, width * 0.03),
   },
   loadingContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: Math.max(40, width * 0.1),
   },
   loadingText: {
-    color: COLORS.textSecondary,
-    fontSize: getResponsiveSize(width, 0.035, 14, 18),
+    fontSize: getResponsiveSize(width, 0.04, 16, 20),
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
   },
   status: {
-    fontSize: getResponsiveSize(width, 0.032, 13, 17),
-    color: COLORS.warning,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontSize: getResponsiveSize(width, 0.04, 16, 20),
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.PRIMARY,
+    marginBottom: Math.max(12, width * 0.03),
+    textAlign: 'center',
   },
   name: {
-    fontSize: getResponsiveSize(width, 0.055, 20, 28),
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 4,
+    fontSize: getResponsiveSize(width, 0.06, 24, 32),
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: Math.max(4, width * 0.01),
+    textAlign: 'center',
   },
   email: {
     fontSize: getResponsiveSize(width, 0.035, 14, 18),
-    color: COLORS.textSecondary,
-    marginBottom: 8,
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: Math.max(8, width * 0.02),
+    textAlign: 'center',
   },
   joinDate: {
     fontSize: getResponsiveSize(width, 0.03, 12, 16),
-    color: COLORS.textSecondary,
-    marginBottom: Math.max(20, width * 0.05),
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: Math.max(16, width * 0.04),
+    textAlign: 'center',
   },
   editButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: Math.max(24, width * 0.06),
-    paddingVertical: Math.max(12, width * 0.03),
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: COLORS.PRIMARY,
+    paddingHorizontal: Math.max(20, width * 0.05),
+    paddingVertical: Math.max(10, width * 0.025),
+    borderRadius: Math.max(20, width * 0.05),
+    shadowColor: COLORS.PRIMARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   editButtonText: {
-    color: COLORS.text,
+    color: COLORS.SECONDARY,
     fontSize: getResponsiveSize(width, 0.035, 14, 18),
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
   },
   verificationContainer: {
-    backgroundColor: COLORS.backgroundLight,
-    paddingHorizontal: Math.max(15, width * 0.04),
-    paddingVertical: Math.max(8, width * 0.02),
-    borderRadius: 12,
-    marginBottom: 8,
+    marginBottom: Math.max(8, width * 0.02),
   },
   verificationText: {
-    fontSize: getResponsiveSize(width, 0.028, 11, 14),
-    fontWeight: '500',
+    fontSize: getResponsiveSize(width, 0.03, 12, 16),
+    ...getFontFamily('MEDIUM'),
+    textAlign: 'center',
   },
 });
 

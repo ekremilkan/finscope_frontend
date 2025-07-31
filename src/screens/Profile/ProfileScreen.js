@@ -8,13 +8,14 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import { authService } from '../../services/authService';
 import { storageService } from '../../services/AsyncStorage';
 
 import {
   PROFILE_DATA,
   PROFILE_MENU_ITEMS,
-  COLORS,
+  COLORS as PROFILE_COLORS,
 } from '../../data/profileData';
 import {
   handleNavigation,
@@ -26,6 +27,9 @@ import ProfileHeader from '../../components/Profile/ProfileHeader';
 import ProfileStats from '../../components/Profile/ProfileStats';
 import ProfileMenu from '../../components/Profile/ProfileMenu';
 import ProfileLogout from '../../components/Profile/ProfileLogout';
+
+// Constants
+import { COLORS, getCornerGradientColors } from '../../constants/colorConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -114,66 +118,116 @@ const ProfileScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              loadUserProfile();
-            }}
-            colors={[COLORS.primary]}
-            tintColor={COLORS.primary}
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LinearGradient
+          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+          style={styles.gradientContainer}
+        >
+          {/* Corner Gradients - Daha yumuşak */}
+          <LinearGradient
+            colors={getCornerGradientColors()}
+            style={styles.topRightGradient}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
           />
-        }
-      >
-        <ProfileHeader
-          user={profileData.user}
-          onEditPress={() => {
-            handleNavigation(navigation, 'EditProfile', {
-              userData: profileData.user,
-              onUpdate: updatedData => {
-                updateUserProfile(profileData.user._id, updatedData)
-                  .then(updatedUser => {
-                    setProfileData(prev => ({
-                      ...prev,
-                      user: { ...prev.user, ...updatedUser },
-                    }));
-                    Alert.alert('Başarılı', 'Profil güncellendi.');
-                  })
-                  .catch(() => {
-                    Alert.alert('Hata', 'Profil güncellenirken hata oluştu.');
-                  });
-              },
-            });
-          }}
-          isLoading={isLoading}
-        />
-
-        {!isLoading && (
-          <>
-            <ProfileStats stats={profileData.stats} isLoading={isLoading} />
-            <ProfileMenu
-              menuItems={PROFILE_MENU_ITEMS}
-              navigation={navigation}
+          <LinearGradient
+            colors={getCornerGradientColors().reverse()}
+            style={styles.bottomLeftGradient}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+          />
+          
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => {
+                  setRefreshing(true);
+                  loadUserProfile();
+                }}
+                colors={[COLORS.PRIMARY]}
+                tintColor={COLORS.PRIMARY}
+              />
+            }
+          >
+            <ProfileHeader
               user={profileData.user}
+              onEditPress={() => {
+                handleNavigation(navigation, 'EditProfile', {
+                  userData: profileData.user,
+                  onUpdate: updatedData => {
+                    updateUserProfile(profileData.user._id, updatedData)
+                      .then(updatedUser => {
+                        setProfileData(prev => ({
+                          ...prev,
+                          user: { ...prev.user, ...updatedUser },
+                        }));
+                        Alert.alert('Başarılı', 'Profil güncellendi.');
+                      })
+                      .catch(() => {
+                        Alert.alert('Hata', 'Profil güncellenirken hata oluştu.');
+                      });
+                  },
+                });
+              }}
+              isLoading={isLoading}
             />
-            <ProfileLogout navigation={navigation} user={profileData.user} />
-          </>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+
+            {!isLoading && (
+              <>
+                <ProfileStats stats={profileData.stats} isLoading={isLoading} />
+                <ProfileMenu
+                  menuItems={PROFILE_MENU_ITEMS}
+                  navigation={navigation}
+                  user={profileData.user}
+                />
+                <ProfileLogout navigation={navigation} user={profileData.user} />
+              </>
+            )}
+          </ScrollView>
+        </LinearGradient>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: Math.max(20, width * 0.05) },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.BACKGROUND 
+  },
+  safeArea: { 
+    flex: 1 
+  },
+  gradientContainer: {
+    flex: 1,
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: width * 0.6,
+    height: width * 0.6,
+    borderBottomLeftRadius: width * 0.6,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: width * 0.6,
+    height: width * 0.6,
+    borderTopRightRadius: width * 0.6,
+  },
+  scrollView: { 
+    flex: 1 
+  },
+  scrollContent: { 
+    paddingBottom: Math.max(20, width * 0.05) 
+  },
 });
 
 export default ProfileScreen;

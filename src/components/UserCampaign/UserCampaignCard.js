@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getDifficultyColor, getProgressPercentage } from '../../utils/userCampaignUtils';
 import { getCampaignStatusColor, getCampaignStatusText } from '../../data/campaignData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -31,15 +33,15 @@ const UserCampaignCard = ({ campaign, onJoinCampaign, onPress }) => {
 
       <View style={styles.campaignStats}>
         <View style={styles.statItem}>
-          <Icon name="people" size={16} color="#6366f1" />
+          <Icon name="people" size={16} color={COLORS.PRIMARY} />
           <Text style={styles.statText}>{campaign.participants}/{campaign.maxParticipants}</Text>
         </View>
         <View style={styles.statItem}>
-          <Icon name="quiz" size={16} color="#8b5cf6" />
+          <Icon name="quiz" size={16} color={COLORS.INFO} />
           <Text style={styles.statText}>{campaign.questions} questions</Text>
         </View>
         <View style={styles.statItem}>
-          <Icon name="monetization-on" size={16} color="#10b981" />
+          <Icon name="monetization-on" size={16} color={COLORS.SUCCESS} />
           <Text style={styles.statText}>{campaign.reward} USDT</Text>
         </View>
       </View>
@@ -111,13 +113,13 @@ const UserCampaignCard = ({ campaign, onJoinCampaign, onPress }) => {
 
 const styles = StyleSheet.create({
   campaignCard: {
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    backgroundColor: COLORS.CARD_BACKGROUND,
     borderRadius: 20,
     padding: Math.max(20, width * 0.05),
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
-    shadowColor: '#000',
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -134,8 +136,8 @@ const styles = StyleSheet.create({
   },
   campaignTitle: {
     fontSize: Math.max(16, width * 0.04),
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     flex: 1,
     marginRight: 12,
   },
@@ -148,12 +150,13 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: Math.max(12, width * 0.03),
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
   },
   campaignDescription: {
     fontSize: Math.max(14, width * 0.035),
-    color: 'rgba(148, 163, 184, 0.9)',
+    color: COLORS.TEXT_SECONDARY,
     lineHeight: Math.max(20, width * 0.05),
+    ...getFontFamily('REGULAR'),
   },
   campaignStats: {
     flexDirection: 'row',
@@ -167,27 +170,27 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: Math.max(12, width * 0.03),
-    color: 'rgba(148, 163, 184, 0.9)',
-    fontWeight: '500',
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('MEDIUM'),
   },
   progressContainer: {
     marginBottom: 16,
   },
   progressLabel: {
     fontSize: Math.max(12, width * 0.03),
-    color: 'rgba(148, 163, 184, 0.8)',
+    color: COLORS.TEXT_SECONDARY,
     marginBottom: 8,
-    fontWeight: '500',
+    ...getFontFamily('MEDIUM'),
   },
   progressBar: {
     height: 6,
-    backgroundColor: 'rgba(148, 163, 184, 0.2)',
+    backgroundColor: COLORS.SURFACE,
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.PRIMARY,
     borderRadius: 3,
   },
   campaignTags: {
@@ -197,22 +200,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tag: {
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    backgroundColor: 'rgba(247, 214, 72, 0.15)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
+    borderColor: 'rgba(247, 214, 72, 0.3)',
   },
   tagText: {
     fontSize: Math.max(11, width * 0.028),
-    color: '#6366f1',
-    fontWeight: '500',
+    color: COLORS.PRIMARY,
+    ...getFontFamily('MEDIUM'),
   },
   moreTagsText: {
     fontSize: Math.max(11, width * 0.028),
-    color: 'rgba(148, 163, 184, 0.8)',
-    fontWeight: '500',
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('MEDIUM'),
   },
   campaignFooter: {
     flexDirection: 'row',
@@ -224,36 +227,37 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: Math.max(12, width * 0.03),
-    color: 'rgba(148, 163, 184, 0.8)',
-    fontWeight: '500',
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('MEDIUM'),
   },
   createdDate: {
     fontSize: Math.max(11, width * 0.028),
-    color: 'rgba(148, 163, 184, 0.6)',
+    color: COLORS.TEXT_DISABLED,
     marginTop: 2,
+    ...getFontFamily('REGULAR'),
   },
   joinButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.PRIMARY,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
     gap: 6,
-    shadowColor: '#6366f1',
+    shadowColor: COLORS.PRIMARY,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
   joinButtonJoined: {
-    backgroundColor: '#10b981',
-    shadowColor: '#10b981',
+    backgroundColor: COLORS.SUCCESS,
+    shadowColor: COLORS.SUCCESS,
   },
   joinButtonText: {
     fontSize: Math.max(12, width * 0.03),
-    color: '#ffffff',
-    fontWeight: '600',
+    color: COLORS.SECONDARY,
+    ...getFontFamily('SEMIBOLD'),
   },
 });
 

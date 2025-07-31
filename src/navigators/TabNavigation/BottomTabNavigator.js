@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { BOTTOM_NAV_ITEMS } from '../../data/homeData';
+import { COLORS } from '../../constants/colorConstants';
 
 import HomeScreen from '../../screens/Home/HomeScreen';
 import CampaignsScreen from '../../screens/CampaignsScreen';
@@ -29,21 +30,22 @@ const BottomTabNavigator = () => {
             <Ionicons 
               name={item?.icon || 'ellipse-outline'} 
               size={size} 
-              color={focused ? '#6366f1' : color} 
+              color={focused ? COLORS.PRIMARY : color} 
             />
           ),
-          tabBarActiveTintColor: '#6366f1',
-          tabBarInactiveTintColor: '#94a3b8',
+          tabBarActiveTintColor: COLORS.PRIMARY,
+          tabBarInactiveTintColor: COLORS.TEXT_SECONDARY,
           tabBarStyle: {
-            backgroundColor: '#0f172a',
-            borderTopWidth: 0,
+            backgroundColor: COLORS.CARD_BACKGROUND,
+            borderTopWidth: 1,
+            borderTopColor: COLORS.BORDER_SECONDARY,
             height: 60,
             paddingBottom: 8,
             paddingTop: 8,
-            shadowColor: '#000',
+            shadowColor: COLORS.SHADOW_SECONDARY,
             shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
             elevation: 8,
           },
           tabBarLabelStyle: {

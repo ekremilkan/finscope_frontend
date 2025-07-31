@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { getGlassMorphismStyle, getResponsiveSize, handleLogout } from '../../utils/profileUtils';
-import { COLORS } from '../../data/profileData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -51,9 +52,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoutButton: {
-    ...getGlassMorphismStyle(0.9),
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -61,6 +63,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Math.max(32, width * 0.08),
     width: '100%',
     marginBottom: Math.max(20, width * 0.05),
+    elevation: 4,
   },
   logoutIcon: {
     fontSize: getResponsiveSize(width, 0.05, 20, 28),
@@ -68,8 +71,8 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontSize: getResponsiveSize(width, 0.04, 16, 22),
-    fontWeight: '700',
-    color: COLORS.error,
+    ...getFontFamily('BOLD'),
+    color: COLORS.ERROR,
   },
   infoContainer: {
     alignItems: 'center',
@@ -77,22 +80,22 @@ const styles = StyleSheet.create({
   },
   lastLoginText: {
     fontSize: getResponsiveSize(width, 0.028, 11, 15),
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('MEDIUM'),
     opacity: 0.8,
     marginBottom: 4,
   },
   deviceText: {
     fontSize: getResponsiveSize(width, 0.025, 10, 14),
-    color: COLORS.textSecondary,
-    fontWeight: '400',
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('REGULAR'),
     opacity: 0.6,
     marginTop: 4,
   },
   versionText: {
     fontSize: getResponsiveSize(width, 0.03, 12, 16),
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('MEDIUM'),
     opacity: 0.7,
   },
 });

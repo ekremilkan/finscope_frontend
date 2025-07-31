@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -49,9 +51,9 @@ const styles = StyleSheet.create({
     padding: Math.max(24, width * 0.06),
     borderRadius: Math.max(24, width * 0.06),
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    shadowColor: '#000',
+    borderColor: COLORS.BORDER_SECONDARY,
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: {
       width: 0,
       height: 8,
@@ -69,24 +71,23 @@ const styles = StyleSheet.create({
   },
   statsTitle: {
     fontSize: Math.max(20, width * 0.055),
-    fontWeight: '800',
-    color: '#ffffff',
-    textShadowColor: 'rgba(99, 102, 241, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+    textShadowColor: COLORS.PRIMARY,
     textShadowRadius: 4,
   },
   statsBadge: {
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    backgroundColor: 'rgba(247, 214, 72, 0.15)',
     paddingHorizontal: Math.max(12, width * 0.03),
     paddingVertical: Math.max(6, height * 0.008),
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
+    borderColor: 'rgba(247, 214, 72, 0.3)',
   },
   statsBadgeText: {
-    color: '#6366f1',
+    color: COLORS.PRIMARY,
     fontSize: Math.max(12, width * 0.03),
-    fontWeight: '700',
+    ...getFontFamily('SEMIBOLD'),
   },
   statsGrid: {
     flexDirection: 'row',
@@ -100,8 +101,8 @@ const styles = StyleSheet.create({
     padding: Math.max(16, width * 0.04),
     borderRadius: Math.max(16, width * 0.04),
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
-    backgroundColor: 'rgba(30, 41, 59, 0.6)',
+    borderColor: COLORS.BORDER_SECONDARY,
+    backgroundColor: COLORS.SURFACE,
     minHeight: Math.max(100, height * 0.12),
     justifyContent: 'center',
   },
@@ -109,34 +110,30 @@ const styles = StyleSheet.create({
     width: Math.max(40, width * 0.1),
     height: Math.max(40, width * 0.1),
     borderRadius: Math.max(20, width * 0.05),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(247, 214, 72, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Math.max(8, height * 0.01),
+    borderWidth: 1,
+    borderColor: 'rgba(247, 214, 72, 0.3)',
   },
   statIcon: {
     fontSize: Math.max(20, width * 0.05),
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   statLabel: {
     fontSize: Math.max(12, width * 0.032),
-    color: 'rgba(148, 163, 184, 0.9)',
+    color: COLORS.TEXT_SECONDARY,
     marginBottom: Math.max(6, height * 0.008),
     textAlign: 'center',
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   statValue: {
     fontSize: Math.max(16, width * 0.043),
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
   },
 });
 
