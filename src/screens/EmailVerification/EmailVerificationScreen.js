@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -44,6 +45,9 @@ import EmailVerificationHeader from '../../components/EmailVerification/EmailVer
 import EmailVerificationTimer from '../../components/EmailVerification/EmailVerificationTimer';
 import EmailVerificationInput from '../../components/EmailVerification/EmailVerificationInput';
 import EmailVerificationActions from '../../components/EmailVerification/EmailVerificationActions';
+
+// Constants
+import { COLORS, getCornerGradientColors } from '../../constants/colorConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -378,67 +382,117 @@ const EmailVerification = ({ navigation, route }) => {
   const hasError = state.verificationState === VERIFICATION_STATES.ERROR;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <EmailVerificationHeader
-          navigation={navigation}
-          email={email}
-          onBackPress={handleBackPress}
-        />
-
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LinearGradient
+          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+          style={styles.gradientContainer}
         >
-          <EmailVerificationTimer
-            timeRemaining={state.timeRemaining}
-            timerState={
-              state.timerActive ? TIMER_STATES.ACTIVE : TIMER_STATES.EXPIRED
-            }
-            onTimerExpired={handleTimerExpired}
+          {/* Corner Gradients */}
+          <LinearGradient
+            colors={getCornerGradientColors()}
+            style={styles.topRightGradient}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
           />
-
-          <EmailVerificationInput
-            code={state.code}
-            onCodeChange={handleCodeChange}
-            disabled={isInputDisabled}
-            hasError={hasError}
-            autoFocus={true}
+          <LinearGradient
+            colors={getCornerGradientColors().reverse()}
+            style={styles.bottomLeftGradient}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
           />
+          
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardView}
+          >
+            <EmailVerificationHeader
+              navigation={navigation}
+              email={email}
+              onBackPress={handleBackPress}
+            />
 
-          <EmailVerificationActions
-            code={state.code}
-            timeRemaining={state.timeRemaining}
-            resendCooldown={state.resendCooldown}
-            canResend={state.canResend}
-            verificationState={state.verificationState}
-            attemptCount={state.attemptCount}
-            onVerify={handleVerify}
-            onResendCode={handleResendCode}
-            onChangeEmail={handleChangeEmail}
-            disabled={isInputDisabled}
-          />
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <EmailVerificationTimer
+                timeRemaining={state.timeRemaining}
+                timerState={
+                  state.timerActive ? TIMER_STATES.ACTIVE : TIMER_STATES.EXPIRED
+                }
+                onTimerExpired={handleTimerExpired}
+              />
 
-          {state.error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{state.error}</Text>
-            </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              <EmailVerificationInput
+                code={state.code}
+                onCodeChange={handleCodeChange}
+                disabled={isInputDisabled}
+                hasError={hasError}
+                autoFocus={true}
+              />
+
+              <EmailVerificationActions
+                code={state.code}
+                timeRemaining={state.timeRemaining}
+                resendCooldown={state.resendCooldown}
+                canResend={state.canResend}
+                verificationState={state.verificationState}
+                attemptCount={state.attemptCount}
+                onVerify={handleVerify}
+                onResendCode={handleResendCode}
+                onChangeEmail={handleChangeEmail}
+                disabled={isInputDisabled}
+              />
+
+              {state.error && (
+                <View style={styles.errorContainer}>
+                  <LinearGradient
+                    colors={[`${COLORS.ERROR}20`, `${COLORS.ERROR}10`]}
+                    style={styles.errorGradient}
+                  >
+                    <Text style={styles.errorText}>{state.error}</Text>
+                  </LinearGradient>
+                </View>
+              )}
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </LinearGradient>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: EMAIL_VERIFICATION_DATA.colors.background,
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  gradientContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 250,
+    height: 250,
+    borderBottomLeftRadius: 125,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: 250,
+    height: 250,
+    borderTopRightRadius: 125,
   },
   keyboardView: {
     flex: 1,
@@ -453,16 +507,22 @@ const styles = StyleSheet.create({
   errorContainer: {
     marginHorizontal: Math.max(16, width * 0.04),
     marginTop: Math.max(12, width * 0.03),
-    padding: Math.max(12, width * 0.03),
-    backgroundColor: `${EMAIL_VERIFICATION_DATA.colors.error}15`,
     borderRadius: Math.max(8, width * 0.02),
-    borderLeftWidth: 4,
-    borderLeftColor: EMAIL_VERIFICATION_DATA.colors.error,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.ERROR,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  errorGradient: {
+    padding: Math.max(12, width * 0.03),
   },
   errorText: {
     fontSize: Math.max(14, Math.min(16, width * 0.04)),
-    color: EMAIL_VERIFICATION_DATA.colors.error,
-    fontWeight: '500',
+    color: COLORS.ERROR,
     textAlign: 'center',
   },
 });

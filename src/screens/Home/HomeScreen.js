@@ -98,43 +98,43 @@ const HomeScreen = ({ navigation }) => {
             end={{ x: 1, y: 0 }}
           />
           
-          <HomeHeader 
-            userName={userData.name}
-            onLogoutPress={handleLogoutPress}
-            onNotificationPress={() => {}}
-          />
-          
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-            bounces={true}
-            overScrollMode="never"
-          >
-            <View style={styles.contentWrapper}>
-              <HomeActiveCampaigns 
-                activeCampaigns={activeCampaigns}
-                onCampaignStart={handleCampaignPress}
-                isLoading={loadingCampaigns}
-              />
-              
-              <View style={styles.sectionSpacer} />
-              
-              <HomeStatsCard userData={userData} />
-              
-              <View style={styles.sectionSpacer} />
-         
-              <HomeQuickActions quickActions={QUICK_ACTIONS} />
-            </View>
-          </ScrollView>
+      <HomeHeader 
+        userName={userData.name}
+          onLogoutPress={handleLogoutPress}
+        onNotificationPress={() => {}}
+      />
+      
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          bounces={true}
+          overScrollMode="never"
+        >
+          <View style={styles.contentWrapper}>
+            <HomeActiveCampaigns 
+              activeCampaigns={activeCampaigns}
+          onCampaignStart={handleCampaignPress}
+              isLoading={loadingCampaigns}
+        />
+            
+            <View style={styles.sectionSpacer} />
+            
+        <HomeStatsCard userData={userData} />
+            
+            <View style={styles.sectionSpacer} />
+       
+            <HomeQuickActions quickActions={QUICK_ACTIONS} />
+          </View>
+      </ScrollView>
 
-          {/* HomeSettingsModal 
-          showModal={showSettingsModal}
-          onClose={() => setShowSettingsModal(false)}
-          onLogout={handleLogoutPress}
-          /> */}
+        {/* HomeSettingsModal 
+        showModal={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        onLogout={handleLogoutPress}
+        /> */}
         </LinearGradient>
-      </SafeAreaView>
+    </SafeAreaView>
     </View>
   );
 };

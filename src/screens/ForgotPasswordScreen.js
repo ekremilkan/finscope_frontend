@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 
 // Data
 import { FORGOT_PASSWORD_STEPS } from '../data/forgotPasswordData';
@@ -26,6 +27,9 @@ import ForgotPasswordHeader from '../components/ForgotPassword/ForgotPasswordHea
 import ForgotPasswordForm from '../components/ForgotPassword/ForgotPasswordForm';
 import VerifyCodeForm from '../components/ForgotPassword/VerifyCodeForm';
 import ResetPasswordForm from '../components/ForgotPassword/ResetPasswordForm';
+
+// Constants
+import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -191,37 +195,76 @@ const ForgotPassword = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.background}>
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardAvoidingView}
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LinearGradient
+          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+          style={styles.gradientContainer}
         >
-          <ForgotPasswordHeader navigation={navigation} step={step} />
+          {/* Corner Gradients */}
+          <LinearGradient
+            colors={getCornerGradientColors()}
+            style={styles.topRightGradient}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <LinearGradient
+            colors={getCornerGradientColors().reverse()}
+            style={styles.bottomLeftGradient}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+          />
+          
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+          >
+            <ForgotPasswordHeader navigation={navigation} step={step} />
 
-          <View style={styles.contentContainer}>
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              {renderContent()}
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
+            <View style={styles.contentContainer}>
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {renderContent()}
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
+        </LinearGradient>
       </SafeAreaView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-  },
   container: {
     flex: 1,
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  gradientContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 250,
+    height: 250,
+    borderBottomLeftRadius: 125,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: 250,
+    height: 250,
+    borderTopRightRadius: 125,
   },
   keyboardAvoidingView: {
     flex: 1,

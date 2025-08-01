@@ -34,7 +34,7 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
         <TouchableOpacity style={styles.headerIcon} onPress={onNotificationPress}>
           <View style={styles.iconContainer}>
             <Icon name="notifications" size={Math.max(20, Math.min(28, width * 0.06))} color={COLORS.TEXT_SECONDARY} />
-            <View style={styles.notificationDot} />
+          <View style={styles.notificationDot} />
           </View>
         </TouchableOpacity>
         

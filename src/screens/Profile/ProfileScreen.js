@@ -138,59 +138,59 @@ const ProfileScreen = ({ navigation, route }) => {
             end={{ x: 1, y: 0 }}
           />
           
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => {
-                  setRefreshing(true);
-                  loadUserProfile();
-                }}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadUserProfile();
+            }}
                 colors={[COLORS.PRIMARY]}
                 tintColor={COLORS.PRIMARY}
-              />
-            }
-          >
-            <ProfileHeader
-              user={profileData.user}
-              onEditPress={() => {
-                handleNavigation(navigation, 'EditProfile', {
-                  userData: profileData.user,
-                  onUpdate: updatedData => {
-                    updateUserProfile(profileData.user._id, updatedData)
-                      .then(updatedUser => {
-                        setProfileData(prev => ({
-                          ...prev,
-                          user: { ...prev.user, ...updatedUser },
-                        }));
-                        Alert.alert('Başarılı', 'Profil güncellendi.');
-                      })
-                      .catch(() => {
-                        Alert.alert('Hata', 'Profil güncellenirken hata oluştu.');
-                      });
-                  },
-                });
-              }}
-              isLoading={isLoading}
-            />
+          />
+        }
+      >
+        <ProfileHeader
+          user={profileData.user}
+          onEditPress={() => {
+            handleNavigation(navigation, 'EditProfile', {
+              userData: profileData.user,
+              onUpdate: updatedData => {
+                updateUserProfile(profileData.user._id, updatedData)
+                  .then(updatedUser => {
+                    setProfileData(prev => ({
+                      ...prev,
+                      user: { ...prev.user, ...updatedUser },
+                    }));
+                    Alert.alert('Başarılı', 'Profil güncellendi.');
+                  })
+                  .catch(() => {
+                    Alert.alert('Hata', 'Profil güncellenirken hata oluştu.');
+                  });
+              },
+            });
+          }}
+          isLoading={isLoading}
+        />
 
-            {!isLoading && (
-              <>
-                <ProfileStats stats={profileData.stats} isLoading={isLoading} />
-                <ProfileMenu
-                  menuItems={PROFILE_MENU_ITEMS}
-                  navigation={navigation}
-                  user={profileData.user}
-                />
-                <ProfileLogout navigation={navigation} user={profileData.user} />
-              </>
-            )}
-          </ScrollView>
+        {!isLoading && (
+          <>
+            <ProfileStats stats={profileData.stats} isLoading={isLoading} />
+            <ProfileMenu
+              menuItems={PROFILE_MENU_ITEMS}
+              navigation={navigation}
+              user={profileData.user}
+            />
+            <ProfileLogout navigation={navigation} user={profileData.user} />
+          </>
+        )}
+      </ScrollView>
         </LinearGradient>
-      </SafeAreaView>
+    </SafeAreaView>
     </View>
   );
 };

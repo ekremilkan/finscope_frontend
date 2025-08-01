@@ -1,6 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+
 import { EMAIL_VERIFICATION_DATA, TIMER_STATES } from '../../data/emailVerificationData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 import { formatTime } from '../../utils/emailVerificationUtils';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -55,12 +59,12 @@ const EmailVerificationTimer = ({
 
   const getIconColor = () => {
     if (timerState === TIMER_STATES.EXPIRED || timeRemaining <= 0) {
-      return EMAIL_VERIFICATION_DATA.colors.error;
+      return COLORS.ERROR;
     }
     if (timeRemaining <= 30) {
-      return EMAIL_VERIFICATION_DATA.colors.warning;
+      return COLORS.WARNING;
     }
-    return EMAIL_VERIFICATION_DATA.colors.primary;
+    return COLORS.PRIMARY;
   };
 
   const getTimerText = () => {
@@ -80,61 +84,106 @@ const EmailVerificationTimer = ({
     return 'Time remaining';
   };
 
+  const getGradientColors = () => {
+    if (timerState === TIMER_STATES.EXPIRED || timeRemaining <= 0) {
+      return [`${COLORS.ERROR}20`, `${COLORS.ERROR}10`];
+    }
+    if (timeRemaining <= 30) {
+      return [`${COLORS.WARNING}20`, `${COLORS.WARNING}10`];
+    }
+    return [`${COLORS.PRIMARY}20`, `${COLORS.PRIMARY}10`];
+  };
+
+  const getBorderColor = () => {
+    if (timerState === TIMER_STATES.EXPIRED || timeRemaining <= 0) {
+      return COLORS.ERROR;
+    }
+    if (timeRemaining <= 30) {
+      return COLORS.WARNING;
+    }
+    return COLORS.PRIMARY;
+  };
+
   return (
     <View style={getTimerStyle()}>
-      <View style={styles.timerIcon}>
-        <Ionicons 
-          name={getIconName()} 
-          size={Math.max(24, width * 0.06)} 
-          color={getIconColor()} 
-        />
-      </View>
-      
-      <View style={styles.timerContent}>
-        <Text style={[styles.timerText, { color: getIconColor() }]}>
-          {getTimerText()}
-        </Text>
+      <LinearGradient
+        colors={getGradientColors()}
+        style={[styles.timerGradient, { borderColor: getBorderColor() }]}
+      >
+        <View style={styles.timerIcon}>
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+            style={styles.iconGradient}
+          >
+            <Ionicons 
+              name={getIconName()} 
+              size={Math.max(24, width * 0.06)} 
+              color={getIconColor()} 
+            />
+          </LinearGradient>
+        </View>
         
-        <Text style={styles.timerMessage}>
-          {getTimerMessage()}
-        </Text>
-      </View>
+        <View style={styles.timerContent}>
+          <Text style={[styles.timerText, { color: getIconColor() }]}>
+            {getTimerText()}
+          </Text>
+          
+          <Text style={styles.timerMessage}>
+            {getTimerMessage()}
+          </Text>
+        </View>
+      </LinearGradient>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   timerContainer: {
+    marginHorizontal: Math.max(16, width * 0.04),
+    marginVertical: Math.max(8, width * 0.02),
+    borderRadius: Math.max(16, width * 0.04),
+    overflow: 'hidden',
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  timerGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: EMAIL_VERIFICATION_DATA.colors.cardBackground,
     borderRadius: Math.max(16, width * 0.04),
     paddingHorizontal: Math.max(16, width * 0.04),
     paddingVertical: Math.max(12, width * 0.03),
-    marginHorizontal: Math.max(16, width * 0.04),
-    marginVertical: Math.max(8, width * 0.02),
     borderWidth: 1,
   },
   timerActive: {
-    borderColor: `${EMAIL_VERIFICATION_DATA.colors.primary}40`,
-    backgroundColor: `${EMAIL_VERIFICATION_DATA.colors.primary}10`,
+    // Gradient already applied
   },
   timerWarning: {
-    borderColor: `${EMAIL_VERIFICATION_DATA.colors.warning}40`,
-    backgroundColor: `${EMAIL_VERIFICATION_DATA.colors.warning}10`,
+    // Gradient already applied
   },
   timerExpired: {
-    borderColor: `${EMAIL_VERIFICATION_DATA.colors.error}40`,
-    backgroundColor: `${EMAIL_VERIFICATION_DATA.colors.error}10`,
+    // Gradient already applied
   },
   timerIcon: {
     width: Math.max(40, width * 0.1),
     height: Math.max(40, width * 0.1),
     borderRadius: Math.max(20, width * 0.05),
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+    marginRight: Math.max(12, width * 0.03),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  iconGradient: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Math.max(12, width * 0.03),
   },
   timerContent: {
     flex: 1,
@@ -142,12 +191,13 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontSize: Math.max(18, Math.min(22, width * 0.055)),
-    fontWeight: 'bold',
+    ...getFontFamily('BOLD'),
     marginBottom: Math.max(2, width * 0.005),
   },
   timerMessage: {
     fontSize: Math.max(12, Math.min(14, width * 0.035)),
-    color: EMAIL_VERIFICATION_DATA.colors.textSecondary,
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     opacity: 0.8,
   },
 });

@@ -9,7 +9,11 @@ import {
   ActivityIndicator 
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import LinearGradient from 'react-native-linear-gradient';
+
 import { FORGOT_PASSWORD_DATA } from '../../data/forgotPasswordData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -36,32 +40,42 @@ const ForgotPasswordForm = ({
     <View style={styles.container}>
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
-          <Ionicons 
-            name="mail-outline" 
-            size={20} 
-            color={error ? "#ef4444" : "#94a3b8"} 
-            style={styles.inputIcon} 
-          />
-          <TextInput
-            style={[styles.textInput, error && styles.textInputError]}
-            placeholder={FORGOT_PASSWORD_DATA.emailPlaceholder}
-            placeholderTextColor="#64748b"
-            value={email}
-            onChangeText={handleEmailChange}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="email"
-            editable={!loading}
-            returnKeyType="send"
-            onSubmitEditing={handleSendResetCode}  // Enter tuşunda gönder
-          />
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+            style={styles.inputGradient}
+          >
+            <Ionicons 
+              name="mail-outline" 
+              size={20} 
+              color={error ? COLORS.ERROR : COLORS.TEXT_SECONDARY} 
+              style={styles.inputIcon} 
+            />
+            <TextInput
+              style={[styles.textInput, error && styles.textInputError]}
+              placeholder={FORGOT_PASSWORD_DATA.emailPlaceholder}
+              placeholderTextColor={COLORS.TEXT_SECONDARY + '80'}
+              value={email}
+              onChangeText={handleEmailChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              editable={!loading}
+              returnKeyType="send"
+              onSubmitEditing={handleSendResetCode}  // Enter tuşunda gönder
+            />
+          </LinearGradient>
         </View>
         
         {error ? (
           <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle" size={16} color="#ef4444" />
-            <Text style={styles.errorText}>{error}</Text>
+            <LinearGradient
+              colors={[`${COLORS.ERROR}20`, `${COLORS.ERROR}10`]}
+              style={styles.errorGradient}
+            >
+              <Ionicons name="alert-circle" size={16} color={COLORS.ERROR} />
+              <Text style={styles.errorText}>{error}</Text>
+            </LinearGradient>
           </View>
         ) : null}
       </View>
@@ -72,16 +86,22 @@ const ForgotPasswordForm = ({
         disabled={!email.trim() || loading}
         activeOpacity={0.8}
       >
-        <View style={styles.sendButtonContent}>
+        <LinearGradient
+          colors={(!email.trim() || loading) 
+            ? [COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80']
+            : [COLORS.PRIMARY, COLORS.PRIMARY]
+          }
+          style={styles.sendButtonGradient}
+        >
           {loading ? (
-            <ActivityIndicator size="small" color="#ffffff" />
+            <ActivityIndicator size="small" color={COLORS.TEXT_PRIMARY} />
           ) : (
-            <Ionicons name="paper-plane-outline" size={20} color="#ffffff" />
+            <Ionicons name="paper-plane-outline" size={20} color={COLORS.TEXT_PRIMARY} />
           )}
           <Text style={styles.sendButtonText}>
             {loading ? 'Sending...' : FORGOT_PASSWORD_DATA.sendButtonText}
           </Text>
-        </View>
+        </LinearGradient>
       </TouchableOpacity>
     </View>
   );
@@ -96,10 +116,18 @@ const styles = StyleSheet.create({
     marginBottom: Math.max(24, width * 0.06),
   },
   inputWrapper: {
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    borderRadius: 16,
+    borderRadius: Math.max(16, width * 0.04),
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  inputGradient: {
+    borderRadius: Math.max(16, width * 0.04),
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Math.max(16, width * 0.04),
@@ -111,46 +139,64 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: Math.max(16, Math.min(18, width * 0.045)),
-    color: '#ffffff',
-    fontWeight: '500',
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_PRIMARY,
     letterSpacing: 0.2,
   },
   textInputError: {
-    color: '#ef4444',
+    color: COLORS.ERROR,
   },
   errorContainer: {
+    marginTop: Math.max(8, width * 0.02),
+    borderRadius: Math.max(8, width * 0.02),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.ERROR,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  errorGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Math.max(8, width * 0.02),
-    paddingHorizontal: Math.max(4, width * 0.01),
+    paddingHorizontal: Math.max(12, width * 0.03),
+    paddingVertical: Math.max(8, width * 0.02),
   },
   errorText: {
     fontSize: Math.max(14, width * 0.035),
-    color: '#ef4444',
-    fontWeight: '500',
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.ERROR,
     marginLeft: Math.max(6, width * 0.015),
     flex: 1,
   },
   sendButton: {
-    backgroundColor: '#6366f1',
-    borderRadius: 16,
-    paddingVertical: Math.max(16, width * 0.04),
-    paddingHorizontal: Math.max(24, width * 0.06),
+    borderRadius: Math.max(16, width * 0.04),
+    overflow: 'hidden',
+    shadowColor: COLORS.SHADOW_PRIMARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
     elevation: 8,
   },
   sendButtonDisabled: {
-    backgroundColor: 'rgba(99, 102, 241, 0.5)',
     shadowOpacity: 0.1,
   },
-  sendButtonContent: {
+  sendButtonGradient: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: Math.max(16, width * 0.04),
+    paddingHorizontal: Math.max(24, width * 0.06),
+    borderRadius: Math.max(16, width * 0.04),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_PRIMARY,
   },
   sendButtonText: {
     fontSize: Math.max(16, Math.min(18, width * 0.045)),
-    fontWeight: '600',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginLeft: Math.max(8, width * 0.02),
     letterSpacing: 0.5,
   },
