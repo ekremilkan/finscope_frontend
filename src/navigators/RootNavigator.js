@@ -16,12 +16,12 @@ import AppStack from './StackNavigation/AppStack';
 const Stack = createStackNavigator();
 
 const RootNavigator = () => {
-  const [initialScreen, setInitialScreen] = useState('Auth'); // Default olarak Auth
-  const [backendOnline, setBackendOnline] = useState(true); // Default olarak online
+  const [initialScreen, setInitialScreen] = useState(null);
+  const [backendOnline, setBackendOnline] = useState(null);
 
   const checkBackendHealth = async () => {
     try {
-      await api.get('/health');
+      await api.get('/health'); // Authorization header eklenmiyor, timeout ayarlı
       setBackendOnline(true);
     } catch (e) {
       console.log('❌ Backend offline:', e.message);
@@ -48,35 +48,38 @@ const RootNavigator = () => {
   };
 
   useEffect(() => {
-    const initializeApp = async () => {
-      // Splash screen'i hemen kapat
-      SplashScreen.hide();
-      
-      try {
-        // Backend health check ve session check'i paralel yap
-        await Promise.all([
-          checkBackendHealth(),
-          checkSession()
-        ]);
-      } catch (error) {
-        console.error('App initialization error:', error);
-        setBackendOnline(false);
-        setInitialScreen('Auth');
-      }
-    };
-
-    initializeApp();
+    checkBackendHealth();
   }, []);
 
-  // Backend offline durumu
+  useEffect(() => {
+    if (backendOnline === true) {
+      checkSession();
+      SplashScreen.hide(); // Backend canlıysa splash kapat
+    }
+  }, [backendOnline]);
+
+  if (backendOnline === null) {
+    // Splash açık kalır
+    return null;
+  }
+
   if (backendOnline === false) {
+  // Backend is offline, show error to user
+  return (
+    <View style={styles.center}>
+      <Text style={styles.errorText}>Server is offline 🚫</Text>
+      <Text style={styles.subText}>Please check your internet connection.</Text>
+      <TouchableOpacity onPress={checkBackendHealth} style={styles.retryButton}>
+        <Text style={styles.retryText}>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+  if (!initialScreen) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>Server is offline 🚫</Text>
-        <Text style={styles.subText}>Please check your internet connection.</Text>
-        <TouchableOpacity onPress={checkBackendHealth} style={styles.retryButton}>
-          <Text style={styles.retryText}>Retry</Text>
-        </TouchableOpacity>
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
       </View>
     );
   }
