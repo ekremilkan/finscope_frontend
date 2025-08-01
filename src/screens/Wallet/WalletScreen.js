@@ -103,7 +103,46 @@ const WalletScreen = ({ navigation }) => {
 
   const handleShouldStartLoadWithRequest = (request) => {
     const { url } = request;
-    const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://', 'rainbow://', 'uniswap://', 'coinbase://'];
+    const walletSchemes = [ 'metamask://',
+  'trust://',
+  'walletconnect://',
+  'wc:',
+
+  // Popüler Web3 cüzdanları
+  'rainbow://',
+  'coinbase://',
+  'argent://',
+  'zerion://',
+  'imtokenv2://',
+  'pillarwallet://',
+  'onto://',
+  'bitkeep://',
+  'tokenpocket://',
+  'mathwallet://',
+  'safe://', // formerly Gnosis Safe
+  'unstoppable://',
+  'crypto.com://',
+  'okx://',
+  'kucoinwallet://',
+  'phantom://',
+  'solflare://',
+  'sollet://',
+
+  // Ethereum L2 / alternatif ağlar
+  'brave://',
+  'opera://',
+  'onekey://',
+  'venly://',
+
+  // Diğer bilinen Web3 bağlantıları
+  'ledgerlive://',
+  'keplrwallet://',
+  'exodus://',
+  'desig://', // Desig Wallet
+  'nabox://',
+
+  // DeFi bağlantıları (bazı cüzdanlar Uniswap için ayrı destek verir)
+  'uniswap://'];
     if (walletSchemes.some(scheme => url.startsWith(scheme))) {
       Linking.openURL(url).catch(() => Alert.alert('App Not Found', 'Please make sure the relevant wallet app is installed.'));
       return false;
