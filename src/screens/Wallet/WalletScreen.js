@@ -8,7 +8,6 @@ import {
   View,
   Text,
   ScrollView,
-  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -24,93 +23,77 @@ const WalletScreen = ({ navigation }) => {
   const [status, setStatus] = useState('preparing');
   const [viewData, setViewData] = useState({ url: '', injectedJS: '' });
   const [webViewError, setWebViewError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
   const webViewRef = useRef(null);
 
-  // Data loading and token refresh logic
- const loadWebViewData = useCallback(async () => {
-  try {
-    let userToken = await AsyncStorage.getItem('userToken');
-    const refreshToken = await AsyncStorage.getItem('refreshToken');
+  const loadWebViewData = useCallback(async () => {
+    try {
+      let userToken = await AsyncStorage.getItem('userToken');
+      const refreshToken = await AsyncStorage.getItem('refreshToken');
 
-    if (!userToken || !refreshToken) {
-      Alert.alert("Login Required", "Please log in to view this page.", [
-        { text: "OK", onPress: () => navigation.navigate('Login') }
-      ]);
-      return;
-    }
-
-    const decodedToken = jwtDecode(userToken);
-    const isExpired = decodedToken.exp * 1000 < Date.now();
-
-    if (isExpired) {
-      console.log("[RN] Access token has expired. Refreshing...");
-      const result = await refreshAuthToken();
-      if (result.success) {
-        userToken = result.accessToken;
-        console.log("[RN] Token successfully refreshed.");
-      } else {
-        console.error("[RN] Token refresh failed:", result.error);
-        Alert.alert(
-          "Session Expired", 
-          "For your security, your session has been terminated. Please log in again.", 
-          [{ text: "OK", onPress: () => navigation.navigate('Login') }], 
-          { cancelable: false }
-        );
+      if (!userToken || !refreshToken) {
+        Alert.alert("Login Required", "Please log in to view this page.", [
+          { text: "OK", onPress: () => navigation.navigate('Login') }
+        ]);
         return;
       }
+
+      const decodedToken = jwtDecode(userToken);
+      const isExpired = decodedToken.exp * 1000 < Date.now();
+
+      if (isExpired) {
+        console.log("[RN] Access token has expired. Refreshing...");
+        const result = await refreshAuthToken();
+        if (result.success) {
+          userToken = result.accessToken;
+          console.log("[RN] Token successfully refreshed.");
+        } else {
+          console.error("[RN] Token refresh failed:", result.error);
+          Alert.alert(
+            "Session Expired",
+            "For your security, your session has been terminated. Please log in again.",
+            [{ text: "OK", onPress: () => navigation.navigate('Login') }],
+            { cancelable: false }
+          );
+          return;
+        }
+      }
+
+      const userDataStr = await AsyncStorage.getItem('userData');
+      const lastAddress = await AsyncStorage.getItem(LAST_ACTIVE_WALLET_KEY);
+      let email = userDataStr ? JSON.parse(userDataStr)?.email : null;
+
+      const currentRefreshToken = await AsyncStorage.getItem('refreshToken');
+
+      let jsToInject = `
+        localStorage.setItem('userToken', '${userToken}');
+        localStorage.setItem('refreshToken', '${currentRefreshToken}');
+        true;
+      `;
+
+      const baseUrl = 'https://finscope.app/wallet';
+      const params = new URLSearchParams();
+      if (email) params.append('email', email);
+      if (lastAddress) params.append('lastActiveAddress', lastAddress);
+      const finalUrl = `${baseUrl}?${params.toString()}`;
+
+      setViewData({ url: finalUrl, injectedJS: jsToInject });
+      setStatus('ready');
+
+      console.log("[RN] WebView data loaded successfully with token:", userToken.substring(0, 20) + "...");
+    } catch (e) {
+      console.error('Error preparing WebView:', e);
+      Alert.alert(
+        "Unexpected Error",
+        e.message || "Something went wrong. Please log in again.",
+        [{ text: "OK", onPress: () => navigation.navigate('Login') }]
+      );
     }
+  }, [navigation]);
 
-    // Token yenilendikten sonra güncel bilgileri al
-    const userDataStr = await AsyncStorage.getItem('userData');
-    const lastAddress = await AsyncStorage.getItem(LAST_ACTIVE_WALLET_KEY);
-    let email = userDataStr ? JSON.parse(userDataStr)?.email : null;
-    
-    // Güncel refresh token'ı al (token yenileme işleminden sonra değişmiş olabilir)
-    const currentRefreshToken = await AsyncStorage.getItem('refreshToken');
-
-    // Güncel token'larla injected JS'i hazırla
-    let jsToInject = `
-      localStorage.setItem('userToken', '${userToken}');
-      localStorage.setItem('refreshToken', '${currentRefreshToken}');
-      true;
-    `;
-
-    const baseUrl = 'https://finscope.app/wallet';
-    const params = new URLSearchParams();
-    if (email) params.append('email', email);
-    if (lastAddress) params.append('lastActiveAddress', lastAddress);
-    const finalUrl = `${baseUrl}?${params.toString()}`;
-
-    setViewData({ url: finalUrl, injectedJS: jsToInject });
-    setStatus('ready');
-    
-    console.log("[RN] WebView data loaded successfully with token:", userToken.substring(0, 20) + "...");
-    
-  } catch (e) {
-    console.error('Error preparing WebView:', e);
-    Alert.alert(
-      "Unexpected Error", 
-      e.message || "Something went wrong. Please log in again.", 
-      [{ text: "OK", onPress: () => navigation.navigate('Login') }]
-    );
-  }
-}, [navigation]);
-
-  // Initial load
   useEffect(() => {
     loadWebViewData();
   }, [loadWebViewData]);
 
-  // Pull-to-refresh function
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setWebViewError(null);
-    await loadWebViewData();
-    setRefreshing(false);
-  }, [loadWebViewData]);
-
-  // Back button handling
   useEffect(() => {
     const backAction = () => {
       if (webViewRef.current) {
@@ -155,7 +138,7 @@ const WalletScreen = ({ navigation }) => {
     setWebViewError(null);
   };
 
-  if (status === 'preparing' && !refreshing) {
+  if (status === 'preparing') {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
@@ -173,18 +156,13 @@ const WalletScreen = ({ navigation }) => {
         <LinearGradient colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]} style={styles.gradientContainer}>
           <LinearGradient colors={getCornerGradientColors()} style={styles.topRightGradient} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} />
           <LinearGradient colors={getCornerGradientColors().reverse()} style={styles.bottomLeftGradient} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} />
-          
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.PRIMARY} colors={[COLORS.PRIMARY]} />
-            }
-          >
+
+          <ScrollView contentContainerStyle={styles.scrollContent}>
             {webViewError ? (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>Page could not be loaded</Text>
                 <Text style={styles.errorSubText}>{webViewError.description}</Text>
-                <Text style={styles.errorSubText}>Pull down to refresh</Text>
+                <Text style={styles.errorSubText}>Please try again later.</Text>
               </View>
             ) : (
               <WebView
