@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   StyleSheet,
   Alert,
@@ -7,83 +7,93 @@ import {
   ActivityIndicator,
   View,
   Text,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Constants
+import { jwtDecode } from 'jwt-decode';
+import { refreshAuthToken } from '../../services/api';
 import { COLORS, getCornerGradientColors } from '../../constants/colorConstants';
 
 const LAST_ACTIVE_WALLET_KEY = '@last_active_wallet';
 
 const WalletScreen = ({ navigation }) => {
-  // --- NEW AND MORE ROBUST STATE STRUCTURE ---
-  // 'preparing': Reading data from AsyncStorage.
-  // 'ready': Data read, WebView ready to display.
-  // 'error': Error occurred while reading data.
   const [status, setStatus] = useState('preparing');
-  const [viewData, setViewData] = useState({
-    url: '',
-    injectedJS: '',
-  });
+  const [viewData, setViewData] = useState({ url: '', injectedJS: '' });
   const [webViewError, setWebViewError] = useState(null);
   const webViewRef = useRef(null);
 
-  useEffect(() => {
-    const prepareWebView = async () => {
-      try {
-        const userDataStr = await AsyncStorage.getItem('userData');
-        const userToken = await AsyncStorage.getItem('userToken');
-        const refreshToken = await AsyncStorage.getItem('refreshToken');
-        const lastAddress = await AsyncStorage.getItem(LAST_ACTIVE_WALLET_KEY);
+  const loadWebViewData = useCallback(async () => {
+    try {
+      let userToken = await AsyncStorage.getItem('userToken');
+      const refreshToken = await AsyncStorage.getItem('refreshToken');
 
-        // If no token, there's no point in continuing. This is a critical check.
-        if (!userToken) {
-          throw new Error("Session token (userToken) not found. Please log in again.");
-        }
-        
-        let email = null;
-        if (userDataStr) {
-          email = JSON.parse(userDataStr)?.email;
-        }
-
-        let jsToInject = '';
-        jsToInject += `localStorage.setItem('userToken', '${userToken}');`;
-        if (refreshToken) {
-          jsToInject += `localStorage.setItem('refreshToken', '${refreshToken}');`;
-        }
-        jsToInject += 'true;';
-        
-        const baseUrl = 'https://finscope.app/wallet'; // Your IP address
-        const params = new URLSearchParams();
-        if (email) params.append('email', email);
-        if (lastAddress) params.append('lastActiveAddress', lastAddress);
-        
-        const finalUrl = `${baseUrl}?${params.toString()}`;
-        
-        console.log("[RN] WebView Ready. URL:", finalUrl);
-        console.log("[RN] JS to inject:", jsToInject);
-
-        // When all data is ready, update state in one go.
-        setViewData({
-          url: finalUrl,
-          injectedJS: jsToInject,
-        });
-        setStatus('ready');
-
-      } catch (e) {
-        console.error('Error preparing WebView:', e);
-        Alert.alert("Session Error", e.message);
-        setStatus('error');
+      if (!userToken || !refreshToken) {
+        Alert.alert("Login Required", "Please log in to view this page.", [
+          { text: "OK", onPress: () => navigation.navigate('Login') }
+        ]);
+        return;
       }
-    };
 
-    prepareWebView();
-  }, []);
+      const decodedToken = jwtDecode(userToken);
+      const isExpired = decodedToken.exp * 1000 < Date.now();
 
-  // Back button and WebView message management (same as before)
+      if (isExpired) {
+        console.log("[RN] Access token has expired. Refreshing...");
+        const result = await refreshAuthToken();
+        if (result.success) {
+          userToken = result.accessToken;
+          console.log("[RN] Token successfully refreshed.");
+        } else {
+          console.error("[RN] Token refresh failed:", result.error);
+          Alert.alert(
+            "Session Expired",
+            "For your security, your session has been terminated. Please log in again.",
+            [{ text: "OK", onPress: () => navigation.navigate('Login') }],
+            { cancelable: false }
+          );
+          return;
+        }
+      }
+
+      const userDataStr = await AsyncStorage.getItem('userData');
+      const lastAddress = await AsyncStorage.getItem(LAST_ACTIVE_WALLET_KEY);
+      let email = userDataStr ? JSON.parse(userDataStr)?.email : null;
+
+      const currentRefreshToken = await AsyncStorage.getItem('refreshToken');
+
+      let jsToInject = `
+        localStorage.setItem('userToken', '${userToken}');
+        localStorage.setItem('refreshToken', '${currentRefreshToken}');
+        true;
+      `;
+
+      const baseUrl = 'https://finscope.app/wallet';
+      const params = new URLSearchParams();
+      if (email) params.append('email', email);
+      if (lastAddress) params.append('lastActiveAddress', lastAddress);
+      const finalUrl = `${baseUrl}?${params.toString()}`;
+
+      setViewData({ url: finalUrl, injectedJS: jsToInject });
+      setStatus('ready');
+
+      console.log("[RN] WebView data loaded successfully with token:", userToken.substring(0, 20) + "...");
+    } catch (e) {
+      console.error('Error preparing WebView:', e);
+      Alert.alert(
+        "Unexpected Error",
+        e.message || "Something went wrong. Please log in again.",
+        [{ text: "OK", onPress: () => navigation.navigate('Login') }]
+      );
+    }
+  }, [navigation]);
+
+  useEffect(() => {
+    loadWebViewData();
+  }, [loadWebViewData]);
+
   useEffect(() => {
     const backAction = () => {
       if (webViewRef.current) {
@@ -101,64 +111,39 @@ const WalletScreen = ({ navigation }) => {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'WALLET_VERIFIED_AND_CONNECTED' && data.address) {
         await AsyncStorage.setItem(LAST_ACTIVE_WALLET_KEY, data.address);
-        Alert.alert("Success", "Your new wallet has been added to your account.");
+        Alert.alert("Success", "Your new wallet has been linked to your account.");
       }
-      // ...other message types...
     } catch (e) {
-      console.error('Error processing WebView message:', e);
+      console.error('Error handling WebView message:', e);
     }
   };
-  
+
   const handleShouldStartLoadWithRequest = (request) => {
     const { url } = request;
-    const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://'];
+    const walletSchemes = ['metamask://', 'trust://', 'wc:', 'walletconnect://', 'rainbow://', 'uniswap://', 'coinbase://'];
     if (walletSchemes.some(scheme => url.startsWith(scheme))) {
-      Linking.openURL(url).catch(err => {
-        Alert.alert('App Not Found', 'Please make sure the relevant wallet app is installed on your phone.');
-      });
+      Linking.openURL(url).catch(() =>
+        Alert.alert('App Not Found', 'Please make sure the corresponding wallet app is installed.')
+      );
       return false;
     }
     return true;
   };
 
   const handleWebViewError = (syntheticEvent) => {
-    const { nativeEvent } = syntheticEvent;
-    console.error('WebView error:', nativeEvent);
-    setWebViewError(nativeEvent);
+    setWebViewError(syntheticEvent.nativeEvent);
   };
 
-  const handleWebViewLoadEnd = (syntheticEvent) => {
-    const { nativeEvent } = syntheticEvent;
-    console.log('WebView loaded:', nativeEvent.url);
+  const handleWebViewLoadEnd = () => {
     setWebViewError(null);
   };
 
-  // --- NEW RENDER LOGIC ---
   if (status === 'preparing') {
     return (
       <View style={styles.container}>
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
-          <LinearGradient
-            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-            style={styles.gradientContainer}
-          >
+        <SafeAreaView style={styles.safeArea}>
+          <LinearGradient colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]} style={styles.gradientContainer}>
             <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-          </LinearGradient>
-        </SafeAreaView>
-      </View>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
-          <LinearGradient
-            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-            style={styles.gradientContainer}
-          >
-            <Text style={styles.errorText}>Wallet page could not be loaded.</Text>
-            <Text style={styles.errorSubText}>Please restart the app or log in again.</Text>
           </LinearGradient>
         </SafeAreaView>
       </View>
@@ -168,51 +153,35 @@ const WalletScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <LinearGradient
-          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-          style={styles.gradientContainer}
-        >
-          {/* Corner Gradients - Daha yumuşak */}
-          <LinearGradient
-            colors={getCornerGradientColors()}
-            style={styles.topRightGradient}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 0, y: 1 }}
-          />
-          <LinearGradient
-            colors={getCornerGradientColors().reverse()}
-            style={styles.bottomLeftGradient}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-          />
-          
-          {webViewError ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>Failed to load wallet page</Text>
-              <Text style={styles.errorSubText}>Error: {webViewError.description}</Text>
-            </View>
-          ) : (
-            <WebView
-              ref={webViewRef}
-              source={{ uri: viewData.url }}
-              style={styles.webview}
-              injectedJavaScript={viewData.injectedJS}
-              onMessage={handleWebViewMessage}
-              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-              onError={handleWebViewError}
-              onLoadEnd={handleWebViewLoadEnd}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              startInLoadingState={true}
-              renderLoading={() => <ActivityIndicator size="large" color={COLORS.PRIMARY} style={StyleSheet.absoluteFill} />}
-              originWhitelist={['*']}
-              allowsInlineMediaPlayback={true}
-              mediaPlaybackRequiresUserAction={false}
-              mixedContentMode="compatibility"
-              allowsBackForwardNavigationGestures={true}
-              incognito={false}
-            />
-          )}
+        <LinearGradient colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]} style={styles.gradientContainer}>
+          <LinearGradient colors={getCornerGradientColors()} style={styles.topRightGradient} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} />
+          <LinearGradient colors={getCornerGradientColors().reverse()} style={styles.bottomLeftGradient} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} />
+
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {webViewError ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>Page could not be loaded</Text>
+                <Text style={styles.errorSubText}>{webViewError.description}</Text>
+                <Text style={styles.errorSubText}>Please try again later.</Text>
+              </View>
+            ) : (
+              <WebView
+                ref={webViewRef}
+                source={{ uri: viewData.url }}
+                style={styles.webview}
+                injectedJavaScriptBeforeContentLoaded={viewData.injectedJS}
+                onMessage={handleWebViewMessage}
+                onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+                onError={handleWebViewError}
+                onLoadEnd={handleWebViewLoadEnd}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                startInLoadingState={true}
+                renderLoading={() => <ActivityIndicator size="large" color={COLORS.PRIMARY} style={StyleSheet.absoluteFill} />}
+                originWhitelist={['*']}
+              />
+            )}
+          </ScrollView>
         </LinearGradient>
       </SafeAreaView>
     </View>
@@ -220,54 +189,16 @@ const WalletScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND, // Main background for the whole screen
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND // SafeArea background
-  },
-  gradientContainer: { // New style
-    flex: 1,
-  },
-  topRightGradient: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 250,
-    height: 250,
-    borderBottomLeftRadius: 125,
-  },
-  bottomLeftGradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: 250,
-    height: 250,
-    borderTopRightRadius: 125,
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND
-  },
-  errorText: {
-    fontSize: 18,
-    color: COLORS.ERROR,
-    textAlign: 'center'
-  },
-  errorSubText: {
-    fontSize: 14,
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: 'center',
-    marginTop: 10
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+  safeArea: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+  gradientContainer: { flex: 1, justifyContent: 'center' },
+  scrollContent: { flex: 1 },
+  topRightGradient: { position: 'absolute', top: 0, right: 0, width: 250, height: 250, borderBottomLeftRadius: 125 },
+  bottomLeftGradient: { position: 'absolute', bottom: 0, left: 0, width: 250, height: 250, borderTopRightRadius: 125 },
+  webview: { flex: 1, backgroundColor: 'transparent' },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  errorText: { fontSize: 18, color: COLORS.ERROR, textAlign: 'center' },
+  errorSubText: { fontSize: 14, color: COLORS.TEXT_SECONDARY, textAlign: 'center', marginTop: 10 },
 });
 
 export default WalletScreen;

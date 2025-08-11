@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 
 // Data and Utils
 import { QUIZ_CONFIG } from '../data/quizData';
@@ -40,6 +41,10 @@ import QuizOptions from '../components/Quiz/QuizOptions';
 import QuizNavigation from '../components/Quiz/QuizNavigation';
 import QuizResultModal from '../components/Quiz/QuizResultModal';
 // import QuizPenaltyModal from '../components/Quiz/QuizPenaltyModal'; // Removed penalty modal
+
+// Constants
+import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
+import { getFontFamily } from '../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -316,105 +321,178 @@ const QuizScreen = ({ navigation, route }) => {
   // Loading state
   if (quizState.loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366f1" />
-          <Text style={styles.loadingText}>Loading questions...</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <LinearGradient
+            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+            style={styles.gradientContainer}
+          >
+            <View style={styles.loadingContainer}>
+              <LinearGradient
+                colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+                style={styles.loadingGradient}
+              >
+                <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+                <Text style={styles.loadingText}>Loading questions...</Text>
+              </LinearGradient>
+            </View>
+          </LinearGradient>
+        </SafeAreaView>
+      </View>
     );
   }
 
   // Error state
   if (quizState.error) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{quizState.error}</Text>
-          <TouchableOpacity 
-            style={styles.retryButton}
-            onPress={loadQuestions}
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <LinearGradient
+            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+            style={styles.gradientContainer}
           >
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+            <View style={styles.errorContainer}>
+              <LinearGradient
+                colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+                style={styles.errorGradient}
+              >
+                <Text style={styles.errorText}>{quizState.error}</Text>
+                <TouchableOpacity 
+                  style={styles.retryButton}
+                  onPress={loadQuestions}
+                >
+                  <LinearGradient
+                    colors={[COLORS.PRIMARY, COLORS.PRIMARY]}
+                    style={styles.retryButtonGradient}
+                  >
+                    <Text style={styles.retryButtonText}>Try Again</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+          </LinearGradient>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <QuizHeader
-        campaignTitle={campaignTitle}
-        reward={reward}
-        onExit={onExit}
-        penaltyTime={isPenaltyActive ? penaltyTime : null}
-      />
-      
-      <QuizProgress
-        currentQuestionIndex={quizState.currentQuestionIndex}
-        totalQuestions={quizState.questions.length}
-        progressValue={progress}
-        isPenaltyActive={isPenaltyActive}
-        penaltyTime={penaltyTime}
-      />
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <QuizQuestion
-          questionNumber={quizState.currentQuestionIndex + 1}
-          questionText={currentQuestion?.questionText || currentQuestion?.question}
-        />
-        
-        <QuizOptions
-          options={currentQuestion?.options || []}
-          selectedAnswer={quizState.selectedAnswers[quizState.currentQuestionIndex]}
-          onAnswerSelect={handleAnswerSelect}
-          disabled={isPenaltyActive}
-          showCorrectAnswer={showCorrectAnswer}
-          correctAnswerIndex={correctAnswerIndex}
-        />
-        
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LinearGradient
+          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+          style={styles.gradientContainer}
+        >
+          {/* Corner Gradients */}
+          <LinearGradient
+            colors={getCornerGradientColors()}
+            style={styles.topRightGradient}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <LinearGradient
+            colors={getCornerGradientColors().reverse()}
+            style={styles.bottomLeftGradient}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+          />
+          
+          <QuizHeader
+            campaignTitle={campaignTitle}
+            reward={reward}
+            onExit={onExit}
+            penaltyTime={isPenaltyActive ? penaltyTime : null}
+          />
+          
+          <QuizProgress
+            currentQuestionIndex={quizState.currentQuestionIndex}
+            totalQuestions={quizState.questions.length}
+            progressValue={progress}
+            isPenaltyActive={isPenaltyActive}
+            penaltyTime={penaltyTime}
+          />
+          
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <QuizQuestion
+              questionNumber={quizState.currentQuestionIndex + 1}
+              questionText={currentQuestion?.questionText || currentQuestion?.question}
+            />
+            
+            <QuizOptions
+              options={currentQuestion?.options || []}
+              selectedAnswer={quizState.selectedAnswers[quizState.currentQuestionIndex]}
+              onAnswerSelect={handleAnswerSelect}
+              disabled={isPenaltyActive}
+              showCorrectAnswer={showCorrectAnswer}
+              correctAnswerIndex={correctAnswerIndex}
+            />
+            
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
 
-      <QuizNavigation
-        currentQuestionIndex={quizState.currentQuestionIndex}
-        totalQuestions={quizState.questions.length}
-        hasSelectedAnswer={hasSelectedAnswer}
-        onPrevious={handlePreviousQuestion}
-        onNext={handleNextQuestion}
-        disabled={isPenaltyActive}
-      />
+          <QuizNavigation
+            currentQuestionIndex={quizState.currentQuestionIndex}
+            totalQuestions={quizState.questions.length}
+            hasSelectedAnswer={hasSelectedAnswer}
+            onPrevious={handlePreviousQuestion}
+            onNext={handleNextQuestion}
+            disabled={isPenaltyActive}
+          />
 
-      <QuizResultModal
-        visible={showResult}
-        score={score}
-        campaignTitle={campaignTitle}
-        reward={reward}
-        onRetry={handleRestartQuiz}
-        onHome={() => {
-          // Navigate back to main tabs and select campaigns tab
-          navigation.navigate('MainTabs', {
-            screen: 'Campaigns',
-            params: {
-              refreshCampaigns: true,
-              completedCampaignId: campaignId
-            }
-          });
-        }}
-        passPercentage={100} // All questions must be correct
-        timeSpent={quizState.completionTime}
-      />
+          <QuizResultModal
+            visible={showResult}
+            score={score}
+            campaignTitle={campaignTitle}
+            reward={reward}
+            onRetry={handleRestartQuiz}
+            onHome={() => {
+              // Navigate back to main tabs and select campaigns tab
+              navigation.navigate('MainTabs', {
+                screen: 'Campaigns',
+                params: {
+                  refreshCampaigns: true,
+                  completedCampaignId: campaignId
+                }
+              });
+            }}
+            passPercentage={100} // All questions must be correct
+            timeSpent={quizState.completionTime}
+          />
 
-      {/* Removed QuizPenaltyModal */}
-    </SafeAreaView>
+          {/* Removed QuizPenaltyModal */}
+        </LinearGradient>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0f1c',
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  gradientContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 250,
+    height: 250,
+    borderBottomLeftRadius: 125,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: 250,
+    height: 250,
+    borderTopRightRadius: 125,
   },
   content: {
     flex: 1,
@@ -426,36 +504,69 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0a0f1c',
+  },
+  loadingGradient: {
+    padding: Math.max(40, width * 0.1),
+    borderRadius: Math.max(20, width * 0.05),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   loadingText: {
-    marginTop: 10,
-    color: '#fff',
-    fontSize: 18,
+    marginTop: Math.max(10, width * 0.025),
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_PRIMARY,
+    fontSize: Math.max(18, width * 0.045),
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0a0f1c',
-    padding: 20,
+    padding: Math.max(20, width * 0.05),
+  },
+  errorGradient: {
+    padding: Math.max(40, width * 0.1),
+    borderRadius: Math.max(20, width * 0.05),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    alignItems: 'center',
   },
   errorText: {
-    color: '#ff6b6b',
-    fontSize: 18,
+    color: COLORS.ERROR,
+    fontSize: Math.max(18, width * 0.045),
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: Math.max(20, width * 0.05),
+    ...getFontFamily('MEDIUM'),
   },
   retryButton: {
-    backgroundColor: '#6366f1',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: Math.max(8, width * 0.02),
+    overflow: 'hidden',
+    shadowColor: COLORS.SHADOW_PRIMARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  retryButtonGradient: {
+    paddingVertical: Math.max(10, width * 0.025),
+    paddingHorizontal: Math.max(20, width * 0.05),
+    borderRadius: Math.max(8, width * 0.02),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_PRIMARY,
   },
   retryButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: COLORS.TEXT_PRIMARY,
+    fontSize: Math.max(18, width * 0.045),
+    ...getFontFamily('BOLD'),
   },
 });
 

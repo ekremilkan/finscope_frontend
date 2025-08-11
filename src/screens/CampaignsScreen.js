@@ -246,45 +246,45 @@ const CampaignsScreen = ({ navigation, route }) => {
             end={{ x: 1, y: 0 }}
           />
           
-          <UserCampaignHeader
-            navigation={navigation}
-            campaignCount={filteredCampaigns.length}
-          />
-          
-          {/* UserCampaignSearchBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          /> */}
-          
-          <UserCampaignFilters
-            selectedFilter={selectedFilter}
-            onFilterChange={setSelectedFilter}
-          />
-          
-          {loading ? (
-            renderSkeletonLoading()
-          ) : error ? (
-            renderErrorState()
-          ) : (
-            <FlatList
-              data={filteredCampaigns}
-              renderItem={renderCampaignCard}
-              keyExtractor={keyExtractor}
-              contentContainerStyle={styles.listContainer}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
+      <UserCampaignHeader
+        navigation={navigation}
+        campaignCount={filteredCampaigns.length}
+      />
+      
+      {/* UserCampaignSearchBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      /> */}
+      
+      <UserCampaignFilters
+        selectedFilter={selectedFilter}
+        onFilterChange={setSelectedFilter}
+      />
+      
+      {loading ? (
+        renderSkeletonLoading()
+      ) : error ? (
+        renderErrorState()
+      ) : (
+        <FlatList
+          data={filteredCampaigns}
+          renderItem={renderCampaignCard}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
                   colors={[COLORS.PRIMARY]}
                   tintColor={COLORS.PRIMARY}
-                />
-              }
-              ListEmptyComponent={!loading ? renderEmptyState : null}
             />
-          )}
+          }
+          ListEmptyComponent={!loading ? renderEmptyState : null}
+        />
+      )}
         </LinearGradient>
-      </SafeAreaView>
+    </SafeAreaView>
     </View>
   );
 };

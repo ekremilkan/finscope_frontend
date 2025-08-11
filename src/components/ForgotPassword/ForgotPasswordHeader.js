@@ -1,7 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import LinearGradient from 'react-native-linear-gradient';
+
 import { FORGOT_PASSWORD_DATA } from '../../data/forgotPasswordData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 import { handleBackToLogin } from '../../utils/forgotPasswordUtils';
 
 const { width } = Dimensions.get('window');
@@ -17,20 +21,28 @@ const ForgotPasswordHeader = ({ navigation, step }) => {
         onPress={() => handleBackToLogin(navigation)}
         activeOpacity={0.7}
       >
-        <View style={styles.backButtonContent}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </View>
+        <LinearGradient
+          colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+          style={styles.backButtonGradient}
+        >
+          <Ionicons name="arrow-back" size={24} color={COLORS.TEXT_PRIMARY} />
+        </LinearGradient>
       </TouchableOpacity>
 
       {/* Header Content */}
       <View style={styles.headerContent}>
         {/* Icon */}
         <View style={styles.iconContainer}>
-          <Ionicons 
-            name={isEmailSent ? "mail-outline" : "lock-closed-outline"} 
-            size={48} 
-            color="#6366f1" 
-          />
+          <LinearGradient
+            colors={[COLORS.PRIMARY + '20', COLORS.PRIMARY + '10']}
+            style={styles.iconGradient}
+          >
+            <Ionicons 
+              name={isEmailSent ? "mail-outline" : "lock-closed-outline"} 
+              size={48} 
+              color={COLORS.PRIMARY} 
+            />
+          </LinearGradient>
         </View>
 
         {/* Title */}
@@ -56,52 +68,57 @@ const styles = StyleSheet.create({
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: Math.max(20, width * 0.05),
-  },
-  backButtonContent: {
-    width: Math.max(44, width * 0.11),
-    height: Math.max(44, width * 0.11),
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
     borderRadius: Math.max(22, width * 0.055),
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
+  backButtonGradient: {
+    width: Math.max(44, width * 0.11),
+    height: Math.max(44, width * 0.11),
+    borderRadius: Math.max(22, width * 0.055),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   headerContent: {
     alignItems: 'center',
   },
   iconContainer: {
-    width: Math.max(80, width * 0.2),
-    height: Math.max(80, width * 0.2),
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
     borderRadius: Math.max(40, width * 0.1),
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Math.max(24, width * 0.06),
-    shadowColor: '#6366f1',
+    borderColor: COLORS.BORDER_PRIMARY,
+    shadowColor: COLORS.SHADOW_PRIMARY,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
+    marginBottom: Math.max(24, width * 0.06),
+  },
+  iconGradient: {
+    width: Math.max(80, width * 0.2),
+    height: Math.max(80, width * 0.2),
+    borderRadius: Math.max(40, width * 0.1),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: Math.max(24, Math.min(32, width * 0.08)),
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
     marginBottom: Math.max(12, width * 0.03),
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: Math.max(14, Math.min(18, width * 0.045)),
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: Math.max(20, width * 0.055),
     maxWidth: width * 0.8,

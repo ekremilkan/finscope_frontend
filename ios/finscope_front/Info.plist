@@ -31,6 +31,16 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	 <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>metamask</string>
+        <string>wc</string>
+        <string>walletconnect</string>
+        <string>trust</string>
+        <string>rainbow</string>
+        <string>coinbase</string>
+        <!-- … diğer walletSchemes -->
+    </array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string/>
 	<key>RCTNewArchEnabled</key>

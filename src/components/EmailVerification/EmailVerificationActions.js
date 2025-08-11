@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+
 import { EMAIL_VERIFICATION_DATA, VERIFICATION_STATES } from '../../data/emailVerificationData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 import { shouldShowResendButton, formatTime } from '../../utils/emailVerificationUtils';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -69,31 +73,46 @@ const EmailVerificationActions = ({
         disabled={!canClickVerify}
         activeOpacity={0.8}
       >
-        {isLoading ? (
-          <ActivityIndicator 
-            color={EMAIL_VERIFICATION_DATA.colors.text} 
-            size="small" 
-          />
-        ) : (
-          <>
-            <Ionicons
-              name="checkmark-circle"
-              size={Math.max(20, width * 0.05)}
-              color={EMAIL_VERIFICATION_DATA.colors.text}
-              style={styles.buttonIcon}
+        <LinearGradient
+          colors={canClickVerify 
+            ? [COLORS.PRIMARY, COLORS.PRIMARY] 
+            : [COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80']
+          }
+          style={styles.verifyButtonGradient}
+        >
+          {isLoading ? (
+            <ActivityIndicator 
+              color={COLORS.TEXT_PRIMARY} 
+              size="small" 
             />
-            <Text style={styles.verifyButtonText}>
-              {EMAIL_VERIFICATION_DATA.buttons.verify}
-            </Text>
-          </>
-        )}
+          ) : (
+            <>
+              <Ionicons
+                name="checkmark-circle"
+                size={Math.max(20, width * 0.05)}
+                color={COLORS.TEXT_PRIMARY}
+                style={styles.buttonIcon}
+              />
+              <Text style={styles.verifyButtonText}>
+                {EMAIL_VERIFICATION_DATA.buttons.verify}
+              </Text>
+            </>
+          )}
+        </LinearGradient>
       </TouchableOpacity>
 
       {/* Attempt Counter */}
       {attemptCount > 0 && getAttemptText() && (
-        <Text style={styles.attemptText}>
-          {getAttemptText()}
-        </Text>
+        <View style={styles.attemptContainer}>
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+            style={styles.attemptGradient}
+          >
+            <Text style={styles.attemptText}>
+              {getAttemptText()}
+            </Text>
+          </LinearGradient>
+        </View>
       )}
 
       {/* Action Buttons Row */}
@@ -105,21 +124,26 @@ const EmailVerificationActions = ({
           disabled={!canClickResend}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name="refresh"
-            size={Math.max(16, width * 0.04)}
-            color={canClickResend 
-              ? EMAIL_VERIFICATION_DATA.colors.primary 
-              : EMAIL_VERIFICATION_DATA.colors.textSecondary
-            }
-            style={styles.buttonIcon}
-          />
-          <Text style={[
-            styles.resendButtonText,
-            !canClickResend && styles.buttonTextDisabled
-          ]}>
-            {getResendButtonText()}
-          </Text>
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+            style={styles.resendButtonGradient}
+          >
+            <Ionicons
+              name="refresh"
+              size={Math.max(16, width * 0.04)}
+              color={canClickResend 
+                ? COLORS.PRIMARY 
+                : COLORS.TEXT_SECONDARY
+              }
+              style={styles.buttonIcon}
+            />
+            <Text style={[
+              styles.resendButtonText,
+              !canClickResend && styles.buttonTextDisabled
+            ]}>
+              {getResendButtonText()}
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         {/* Change Email Button */}
@@ -129,15 +153,20 @@ const EmailVerificationActions = ({
           disabled={isLoading}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name="mail-outline"
-            size={Math.max(16, width * 0.04)}
-            color={EMAIL_VERIFICATION_DATA.colors.textSecondary}
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.changeEmailButtonText}>
-            {EMAIL_VERIFICATION_DATA.buttons.changeEmail}
-          </Text>
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+            style={styles.changeEmailButtonGradient}
+          >
+            <Ionicons
+              name="mail-outline"
+              size={Math.max(16, width * 0.04)}
+              color={COLORS.TEXT_SECONDARY}
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.changeEmailButtonText}>
+              {EMAIL_VERIFICATION_DATA.buttons.changeEmail}
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
@@ -150,75 +179,113 @@ const styles = StyleSheet.create({
     paddingVertical: Math.max(20, width * 0.05),
   },
   verifyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: EMAIL_VERIFICATION_DATA.colors.primary,
     borderRadius: Math.max(16, width * 0.04),
-    paddingVertical: Math.max(16, width * 0.04),
-    paddingHorizontal: Math.max(24, width * 0.06),
-    marginBottom: Math.max(12, width * 0.03),
-    shadowColor: EMAIL_VERIFICATION_DATA.colors.primary,
+    overflow: 'hidden',
+    shadowColor: COLORS.SHADOW_PRIMARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+    marginBottom: Math.max(12, width * 0.03),
+  },
+  verifyButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Math.max(16, width * 0.04),
+    paddingVertical: Math.max(16, width * 0.04),
+    paddingHorizontal: Math.max(24, width * 0.06),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_PRIMARY,
   },
   buttonActive: {
-    backgroundColor: EMAIL_VERIFICATION_DATA.colors.primary,
+    // Gradient already applied
   },
   buttonDisabled: {
-    backgroundColor: EMAIL_VERIFICATION_DATA.colors.textSecondary + '40',
     shadowOpacity: 0,
     elevation: 0,
   },
   verifyButtonText: {
     fontSize: Math.max(16, Math.min(18, width * 0.045)),
-    fontWeight: 'bold',
-    color: EMAIL_VERIFICATION_DATA.colors.text,
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+  },
+  attemptContainer: {
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    marginBottom: Math.max(16, width * 0.04),
+  },
+  attemptGradient: {
+    paddingVertical: Math.max(8, width * 0.02),
+    paddingHorizontal: Math.max(16, width * 0.04),
   },
   attemptText: {
     fontSize: Math.max(12, Math.min(14, width * 0.035)),
-    color: EMAIL_VERIFICATION_DATA.colors.warning,
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.WARNING,
     textAlign: 'center',
-    marginBottom: Math.max(16, width * 0.04),
-    fontWeight: '500',
   },
   actionButtonsRow: {
     gap: Math.max(12, width * 0.03),
   },
   resendButton: {
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_PRIMARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    marginBottom: Math.max(8, width * 0.02),
+  },
+  resendButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: EMAIL_VERIFICATION_DATA.colors.primary + '60',
     borderRadius: Math.max(12, width * 0.03),
     paddingVertical: Math.max(12, width * 0.03),
     paddingHorizontal: Math.max(16, width * 0.04),
-    marginBottom: Math.max(8, width * 0.02),
   },
   resendButtonText: {
     fontSize: Math.max(14, Math.min(16, width * 0.04)),
-    color: EMAIL_VERIFICATION_DATA.colors.primary,
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.PRIMARY,
   },
   changeEmailButton: {
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  changeEmailButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    borderRadius: Math.max(12, width * 0.03),
     paddingVertical: Math.max(12, width * 0.03),
     paddingHorizontal: Math.max(16, width * 0.04),
   },
   changeEmailButtonText: {
     fontSize: Math.max(14, Math.min(16, width * 0.04)),
-    color: EMAIL_VERIFICATION_DATA.colors.textSecondary,
-    fontWeight: '500',
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_SECONDARY,
   },
   buttonTextDisabled: {
-    color: EMAIL_VERIFICATION_DATA.colors.textSecondary + '80',
+    color: COLORS.TEXT_SECONDARY + '80',
   },
   buttonIcon: {
     marginRight: Math.max(8, width * 0.02),

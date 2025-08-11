@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
+
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -27,8 +31,13 @@ const QuizNavigation = ({
         disabled={isFirstQuestion || disabled}
         activeOpacity={0.8}
       >
-        <Icon name="chevron-left" size={24} color="#ffffff" />
-        <Text style={styles.navButtonText}>Previous</Text>
+        <LinearGradient
+          colors={getPrevButtonColors(isFirstQuestion || disabled)}
+          style={styles.navButtonGradient}
+        >
+          <Icon name="chevron-left" size={24} color={COLORS.TEXT_PRIMARY} />
+          <Text style={styles.navButtonText}>Previous</Text>
+        </LinearGradient>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -41,13 +50,32 @@ const QuizNavigation = ({
         disabled={!hasSelectedAnswer || disabled}
         activeOpacity={0.8}
       >
-        <Text style={styles.navButtonText}>
-          {isLastQuestion ? 'Finish' : 'Next'}
-        </Text>
-        <Icon name="chevron-right" size={24} color="#ffffff" />
+        <LinearGradient
+          colors={getNextButtonColors(!hasSelectedAnswer || disabled)}
+          style={styles.navButtonGradient}
+        >
+          <Text style={styles.navButtonText}>
+            {isLastQuestion ? 'Finish' : 'Next'}
+          </Text>
+          <Icon name="chevron-right" size={24} color={COLORS.TEXT_PRIMARY} />
+        </LinearGradient>
       </TouchableOpacity>
     </View>
   );
+};
+
+const getPrevButtonColors = (disabled) => {
+  if (disabled) {
+    return [COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80'];
+  }
+  return [COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND];
+};
+
+const getNextButtonColors = (disabled) => {
+  if (disabled) {
+    return [COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80'];
+  }
+  return [COLORS.PRIMARY, COLORS.PRIMARY];
 };
 
 const styles = StyleSheet.create({
@@ -57,32 +85,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(148, 163, 184, 0.2)',
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    borderTopColor: COLORS.BORDER_SECONDARY,
+    backgroundColor: COLORS.GLASS_BACKGROUND,
   },
   navButton: {
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  navButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: Math.max(12, width * 0.03),
-    borderRadius: 12,
+    borderRadius: Math.max(12, width * 0.03),
     minWidth: Math.max(100, width * 0.25),
     justifyContent: 'center',
   },
   prevButton: {
-    backgroundColor: 'rgba(148, 163, 184, 0.2)',
+    // Gradient already applied
   },
   nextButton: {
-    backgroundColor: '#6366f1',
+    // Gradient already applied
   },
   disabledButton: {
-    backgroundColor: 'rgba(148, 163, 184, 0.1)',
-    opacity: 0.5,
+    // Gradient already applied
   },
   navButtonText: {
     fontSize: Math.max(14, width * 0.035),
-    fontWeight: '600',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginHorizontal: 4,
   },
 });

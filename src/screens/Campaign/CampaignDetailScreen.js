@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Services
@@ -25,6 +26,10 @@ import { navigateToQuiz } from '../../utils/navigationUtils';
 
 // Components
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+
+// Constants
+import { COLORS, getCornerGradientColors } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -131,50 +136,80 @@ const CampaignDetailScreen = ({ navigation, route }) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-        activeOpacity={0.7}
+      <LinearGradient
+        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+        style={styles.headerGradient}
       >
-        <Icon name="arrow-back" size={24} color="#6366f1" />
-      </TouchableOpacity>
-      
-      <View style={styles.headerCenter}>
-        <Text style={styles.headerTitle}>Campaign Details</Text>
-      </View>
-      
-      <View style={styles.headerRight}>
-        <Icon name="campaign" size={24} color="#6366f1" />
-      </View>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+            style={styles.backButtonGradient}
+          >
+            <Icon name="arrow-back" size={24} color={COLORS.PRIMARY} />
+          </LinearGradient>
+        </TouchableOpacity>
+        
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Campaign Details</Text>
+        </View>
+        
+        <View style={styles.headerRight}>
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+            style={styles.headerRightGradient}
+          >
+            <Icon name="campaign" size={24} color={COLORS.PRIMARY} />
+          </LinearGradient>
+        </View>
+      </LinearGradient>
     </View>
   );
 
   const renderHeroSection = () => (
     <View style={styles.heroSection}>
-      {campaign.videoUrl ? (
-        <TouchableOpacity 
-          style={styles.videoContainer}
-          onPress={handleVideoPress}
-          activeOpacity={0.8}
-        >
-          <View style={styles.videoPlaceholder}>
-            <Icon name="play-circle-outline" size={64} color="#6366f1" />
-            <Text style={styles.videoPlaceholderText}>Watch Video</Text>
-            <Text style={styles.videoSubtext}>Tap to open video</Text>
+      <LinearGradient
+        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+        style={styles.heroGradient}
+      >
+        {campaign.videoUrl ? (
+          <TouchableOpacity 
+            style={styles.videoContainer}
+            onPress={handleVideoPress}
+            activeOpacity={0.8}
+          >
+            <View style={styles.videoPlaceholder}>
+              <LinearGradient
+                colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+                style={styles.videoPlaceholderGradient}
+              >
+                <Icon name="play-circle-outline" size={64} color={COLORS.PRIMARY} />
+                <Text style={styles.videoPlaceholderText}>Watch Video</Text>
+                <Text style={styles.videoSubtext}>Tap to open video</Text>
+              </LinearGradient>
+            </View>
+          </TouchableOpacity>
+        ) : campaign.imageUrls && campaign.imageUrls.length > 0 ? (
+          <Image
+            source={{ uri: campaign.imageUrls[0] }}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.heroPlaceholder}>
+            <LinearGradient
+              colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+              style={styles.heroPlaceholderGradient}
+            >
+              <Icon name="campaign" size={64} color={COLORS.PRIMARY} />
+              <Text style={styles.heroPlaceholderText}>Campaign Image</Text>
+            </LinearGradient>
           </View>
-        </TouchableOpacity>
-      ) : campaign.imageUrls && campaign.imageUrls.length > 0 ? (
-        <Image
-          source={{ uri: campaign.imageUrls[0] }}
-          style={styles.heroImage}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={styles.heroPlaceholder}>
-          <Icon name="campaign" size={64} color="#6366f1" />
-          <Text style={styles.heroPlaceholderText}>Campaign Image</Text>
-        </View>
-      )}
+        )}
+      </LinearGradient>
     </View>
   );
 
@@ -184,33 +219,58 @@ const CampaignDetailScreen = ({ navigation, route }) => {
       <Text style={styles.campaignDescription}>{campaign.description}</Text>
       
       <View style={styles.campaignStats}>
-        <View style={styles.statItem}>
-          <Icon name="people" size={20} color="#6366f1" />
-          <Text style={styles.statLabel}>Participants</Text>
-          <Text style={styles.statValue}>
-            {campaign.participants}/{campaign.maxParticipants}
-          </Text>
-        </View>
-        
-        <View style={styles.statItem}>
-          <Icon name="quiz" size={20} color="#8b5cf6" />
-          <Text style={styles.statLabel}>Questions</Text>
-          <Text style={styles.statValue}>{campaign.questions}</Text>
-        </View>
-        
-        <View style={styles.statItem}>
-          <Icon name="monetization-on" size={20} color="#10b981" />
-          <Text style={styles.statLabel}>Reward</Text>
-          <Text style={styles.statValue}>{campaign.reward} USDT</Text>
-        </View>
+        <LinearGradient
+          colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+          style={styles.statsGradient}
+        >
+          <View style={styles.statItem}>
+            <LinearGradient
+              colors={[COLORS.PRIMARY + '20', COLORS.PRIMARY + '10']}
+              style={styles.statIconGradient}
+            >
+              <Icon name="people" size={20} color={COLORS.PRIMARY} />
+            </LinearGradient>
+            <Text style={styles.statLabel}>Participants</Text>
+            <Text style={styles.statValue}>
+              {campaign.participants}/{campaign.maxParticipants}
+            </Text>
+          </View>
+          
+          <View style={styles.statItem}>
+            <LinearGradient
+              colors={['#8b5cf620', '#8b5cf610']}
+              style={styles.statIconGradient}
+            >
+              <Icon name="quiz" size={20} color="#8b5cf6" />
+            </LinearGradient>
+            <Text style={styles.statLabel}>Questions</Text>
+            <Text style={styles.statValue}>{campaign.questions}</Text>
+          </View>
+          
+          <View style={styles.statItem}>
+            <LinearGradient
+              colors={[COLORS.SUCCESS + '20', COLORS.SUCCESS + '10']}
+              style={styles.statIconGradient}
+            >
+              <Icon name="monetization-on" size={20} color={COLORS.SUCCESS} />
+            </LinearGradient>
+            <Text style={styles.statLabel}>Reward</Text>
+            <Text style={styles.statValue}>{campaign.reward} USDT</Text>
+          </View>
+        </LinearGradient>
       </View>
     </View>
   );
 
   const renderCampaignContent = () => (
     <View style={styles.campaignContent}>
-      <Text style={styles.contentTitle}>Campaign Content</Text>
-      <Text style={styles.contentText}>{campaign.content}</Text>
+      <LinearGradient
+        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+        style={styles.contentGradient}
+      >
+        <Text style={styles.contentTitle}>Campaign Content</Text>
+        <Text style={styles.contentText}>{campaign.content}</Text>
+      </LinearGradient>
     </View>
   );
 
@@ -219,17 +279,22 @@ const CampaignDetailScreen = ({ navigation, route }) => {
     
     return (
       <View style={styles.imageGallery}>
-        <Text style={styles.galleryTitle}>Campaign Images</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {campaign.imageUrls.map((imageUrl, index) => (
-            <Image
-              key={index}
-              source={{ uri: imageUrl }}
-              style={styles.galleryImage}
-              resizeMode="cover"
-            />
-          ))}
-        </ScrollView>
+        <LinearGradient
+          colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+          style={styles.galleryGradient}
+        >
+          <Text style={styles.galleryTitle}>Campaign Images</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {campaign.imageUrls.map((imageUrl, index) => (
+              <Image
+                key={index}
+                source={{ uri: imageUrl }}
+                style={styles.galleryImage}
+                resizeMode="cover"
+              />
+            ))}
+          </ScrollView>
+        </LinearGradient>
       </View>
     );
   };
@@ -245,10 +310,15 @@ const CampaignDetailScreen = ({ navigation, route }) => {
     if (campaign.status !== 'active') {
       return (
         <TouchableOpacity style={[styles.actionButton, styles.disabledButton]} disabled>
-          <Icon name="block" size={20} color="#ffffff" />
-          <Text style={styles.actionButtonText}>
-            {campaign.status === 'expired' ? 'Campaign Expired' : 'Campaign Not Active'}
-          </Text>
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80']}
+            style={styles.actionButtonGradient}
+          >
+            <Icon name="block" size={20} color={COLORS.TEXT_PRIMARY} />
+            <Text style={styles.actionButtonText}>
+              {campaign.status === 'expired' ? 'Campaign Expired' : 'Campaign Not Active'}
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
       );
     }
@@ -256,8 +326,13 @@ const CampaignDetailScreen = ({ navigation, route }) => {
     if (campaign.userCompleted) {
       return (
         <TouchableOpacity style={[styles.actionButton, styles.completedButton]} disabled>
-          <Icon name="check-circle" size={20} color="#ffffff" />
-          <Text style={styles.actionButtonText}>Completed</Text>
+          <LinearGradient
+            colors={[COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80']}
+            style={styles.actionButtonGradient}
+          >
+            <Icon name="check-circle" size={20} color={COLORS.TEXT_PRIMARY} />
+            <Text style={styles.actionButtonText}>Completed</Text>
+          </LinearGradient>
         </TouchableOpacity>
       );
     }
@@ -268,8 +343,13 @@ const CampaignDetailScreen = ({ navigation, route }) => {
           style={[styles.actionButton, styles.continueButton]}
           onPress={handleStartQuiz}
         >
-          <Icon name="play-arrow" size={20} color="#ffffff" />
-          <Text style={styles.actionButtonText}>Continue Quiz</Text>
+          <LinearGradient
+            colors={[COLORS.SUCCESS, COLORS.SUCCESS]}
+            style={styles.actionButtonGradient}
+          >
+            <Icon name="play-arrow" size={20} color={COLORS.TEXT_PRIMARY} />
+            <Text style={styles.actionButtonText}>Continue Quiz</Text>
+          </LinearGradient>
         </TouchableOpacity>
       );
     }
@@ -280,14 +360,22 @@ const CampaignDetailScreen = ({ navigation, route }) => {
         onPress={handleJoinCampaign}
         disabled={joining}
       >
-        {joining ? (
-          <ActivityIndicator size="small" color="#ffffff" />
-        ) : (
-          <Icon name="add" size={20} color="#ffffff" />
-        )}
-        <Text style={styles.actionButtonText}>
-          {joining ? 'Joining...' : 'Start Campaign'}
-        </Text>
+        <LinearGradient
+          colors={joining 
+            ? [COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80']
+            : [COLORS.PRIMARY, COLORS.PRIMARY]
+          }
+          style={styles.actionButtonGradient}
+        >
+          {joining ? (
+            <ActivityIndicator size="small" color={COLORS.TEXT_PRIMARY} />
+          ) : (
+            <Icon name="add" size={20} color={COLORS.TEXT_PRIMARY} />
+          )}
+          <Text style={styles.actionButtonText}>
+            {joining ? 'Joining...' : 'Start Campaign'}
+          </Text>
+        </LinearGradient>
       </TouchableOpacity>
     );
   };
@@ -300,87 +388,186 @@ const CampaignDetailScreen = ({ navigation, route }) => {
 
   const renderErrorState = () => (
     <View style={styles.errorContainer}>
-      <Icon name="error" size={48} color="#ef4444" />
-      <Text style={styles.errorText}>{error}</Text>
-      <TouchableOpacity 
-        style={styles.retryButton}
-        onPress={loadCampaignDetails}
+      <LinearGradient
+        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+        style={styles.errorGradient}
       >
-        <Text style={styles.retryButtonText}>Try Again</Text>
-      </TouchableOpacity>
+        <Icon name="error" size={48} color={COLORS.ERROR} />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={loadCampaignDetails}
+        >
+          <LinearGradient
+            colors={[COLORS.PRIMARY, COLORS.PRIMARY]}
+            style={styles.retryButtonGradient}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </LinearGradient>
     </View>
   );
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        {renderHeader()}
-        {renderLoadingState()}
-      </SafeAreaView>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <LinearGradient
+            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+            style={styles.gradientContainer}
+          >
+            {renderHeader()}
+            {renderLoadingState()}
+          </LinearGradient>
+        </SafeAreaView>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
-        {renderHeader()}
-        {renderErrorState()}
-      </SafeAreaView>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <LinearGradient
+            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+            style={styles.gradientContainer}
+          >
+            {renderHeader()}
+            {renderErrorState()}
+          </LinearGradient>
+        </SafeAreaView>
+      </View>
     );
   }
 
   if (!campaign) {
     return (
-      <SafeAreaView style={styles.container}>
-        {renderHeader()}
-        <View style={styles.errorContainer}>
-          <Icon name="campaign" size={48} color="#94a3b8" />
-          <Text style={styles.errorText}>Campaign not found</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <LinearGradient
+            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+            style={styles.gradientContainer}
+          >
+            {renderHeader()}
+            <View style={styles.errorContainer}>
+              <LinearGradient
+                colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
+                style={styles.errorGradient}
+              >
+                <Icon name="campaign" size={48} color={COLORS.TEXT_SECONDARY} />
+                <Text style={styles.errorText}>Campaign not found</Text>
+              </LinearGradient>
+            </View>
+          </LinearGradient>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {renderHeader()}
-      
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {renderHeroSection()}
-        {renderCampaignInfo()}
-        {renderCampaignContent()}
-        {renderImageGallery()}
-      </ScrollView>
-      
-      <View style={styles.actionContainer}>
-        {renderActionButton()}
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <LinearGradient
+          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
+          style={styles.gradientContainer}
+        >
+          {/* Corner Gradients */}
+          <LinearGradient
+            colors={getCornerGradientColors()}
+            style={styles.topRightGradient}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <LinearGradient
+            colors={getCornerGradientColors().reverse()}
+            style={styles.bottomLeftGradient}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+          />
+          
+          {renderHeader()}
+          
+          <ScrollView 
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            {renderHeroSection()}
+            {renderCampaignInfo()}
+            {renderCampaignContent()}
+            {renderImageGallery()}
+          </ScrollView>
+          
+          <View style={styles.actionContainer}>
+            {renderActionButton()}
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0f1c',
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  gradientContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  topRightGradient: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 250,
+    height: 250,
+    borderBottomLeftRadius: 125,
+  },
+  bottomLeftGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: 250,
+    height: 250,
+    borderTopRightRadius: 125,
   },
   header: {
+    borderRadius: Math.max(16, width * 0.04),
+    margin: Math.max(16, width * 0.04),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  headerGradient: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: Math.max(16, width * 0.04),
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.1)',
   },
   backButton: {
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  backButtonGradient: {
     padding: Math.max(8, width * 0.02),
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: Math.max(12, width * 0.03),
   },
   headerCenter: {
     flex: 1,
@@ -388,23 +575,43 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: Math.max(18, width * 0.045),
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
   },
   headerRight: {
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  headerRightGradient: {
     padding: Math.max(8, width * 0.02),
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: Math.max(12, width * 0.03),
   },
   scrollView: {
     flex: 1,
   },
   heroSection: {
     height: Math.max(200, height * 0.25),
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
     margin: Math.max(16, width * 0.04),
-    borderRadius: 20,
+    borderRadius: Math.max(20, width * 0.05),
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  heroGradient: {
+    width: '100%',
+    height: '100%',
   },
   videoContainer: {
     width: '100%',
@@ -412,19 +619,22 @@ const styles = StyleSheet.create({
   },
   videoPlaceholder: {
     flex: 1,
+  },
+  videoPlaceholderGradient: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
   },
   videoPlaceholderText: {
     fontSize: Math.max(18, width * 0.045),
-    color: '#6366f1',
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.PRIMARY,
     marginTop: Math.max(8, width * 0.02),
   },
   videoSubtext: {
     fontSize: Math.max(14, width * 0.035),
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     marginTop: Math.max(4, width * 0.01),
   },
   heroImage: {
@@ -433,13 +643,16 @@ const styles = StyleSheet.create({
   },
   heroPlaceholder: {
     flex: 1,
+  },
+  heroPlaceholderGradient: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
   },
   heroPlaceholderText: {
     fontSize: Math.max(16, width * 0.04),
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     marginTop: Math.max(8, width * 0.02),
   },
   campaignInfo: {
@@ -447,102 +660,152 @@ const styles = StyleSheet.create({
   },
   campaignTitle: {
     fontSize: Math.max(24, width * 0.06),
-    fontWeight: '700',
-    color: '#ffffff',
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: Math.max(12, width * 0.03),
   },
   campaignDescription: {
     fontSize: Math.max(16, width * 0.04),
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     lineHeight: 24,
     marginBottom: Math.max(20, width * 0.05),
   },
   campaignStats: {
+    borderRadius: Math.max(16, width * 0.04),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  statsGradient: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    borderRadius: 16,
+    borderRadius: Math.max(16, width * 0.04),
     padding: Math.max(16, width * 0.04),
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
   },
+  statIconGradient: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Math.max(8, width * 0.02),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+  },
   statLabel: {
     fontSize: Math.max(12, width * 0.03),
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     marginTop: Math.max(4, width * 0.01),
   },
   statValue: {
     fontSize: Math.max(14, width * 0.035),
-    fontWeight: '600',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginTop: Math.max(2, width * 0.005),
   },
   campaignContent: {
     padding: Math.max(20, width * 0.05),
   },
+  contentGradient: {
+    padding: Math.max(20, width * 0.05),
+    borderRadius: Math.max(16, width * 0.04),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   contentTitle: {
     fontSize: Math.max(18, width * 0.045),
-    fontWeight: '600',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: Math.max(12, width * 0.03),
   },
   contentText: {
     fontSize: Math.max(16, width * 0.04),
-    color: '#94a3b8',
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
     lineHeight: 24,
   },
   imageGallery: {
     padding: Math.max(20, width * 0.05),
   },
+  galleryGradient: {
+    padding: Math.max(20, width * 0.05),
+    borderRadius: Math.max(16, width * 0.04),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   galleryTitle: {
     fontSize: Math.max(18, width * 0.045),
-    fontWeight: '600',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: Math.max(12, width * 0.03),
   },
   galleryImage: {
     width: Math.max(120, width * 0.3),
     height: Math.max(80, height * 0.1),
-    borderRadius: 12,
+    borderRadius: Math.max(12, width * 0.03),
     marginRight: Math.max(12, width * 0.03),
   },
   actionContainer: {
     padding: Math.max(20, width * 0.05),
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    backgroundColor: COLORS.GLASS_BACKGROUND,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(148, 163, 184, 0.1)',
+    borderTopColor: COLORS.BORDER_SECONDARY,
   },
   actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Math.max(16, width * 0.04),
-    borderRadius: 16,
-    shadowColor: '#000',
+    borderRadius: Math.max(16, width * 0.04),
+    overflow: 'hidden',
+    shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
+  actionButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Math.max(16, width * 0.04),
+    borderRadius: Math.max(16, width * 0.04),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_PRIMARY,
+  },
   joinButton: {
-    backgroundColor: '#6366f1',
+    // Gradient already applied
   },
   continueButton: {
-    backgroundColor: '#10b981',
+    // Gradient already applied
   },
   completedButton: {
-    backgroundColor: '#6b7280',
+    // Gradient already applied
   },
   disabledButton: {
-    backgroundColor: '#4b5563',
-    opacity: 0.7,
+    // Gradient already applied
   },
   actionButtonText: {
     fontSize: Math.max(16, width * 0.04),
-    fontWeight: '600',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
     marginLeft: Math.max(8, width * 0.02),
   },
   loadingContainer: {
@@ -556,23 +819,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: Math.max(20, width * 0.05),
   },
+  errorGradient: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Math.max(20, width * 0.05),
+    borderRadius: Math.max(20, width * 0.05),
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   errorText: {
     fontSize: Math.max(16, width * 0.04),
-    color: '#ef4444',
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.ERROR,
     textAlign: 'center',
     marginTop: Math.max(16, width * 0.04),
   },
   retryButton: {
-    backgroundColor: '#6366f1',
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    marginTop: Math.max(16, width * 0.04),
+  },
+  retryButtonGradient: {
     paddingHorizontal: Math.max(20, width * 0.05),
     paddingVertical: Math.max(12, width * 0.03),
-    borderRadius: 12,
-    marginTop: Math.max(16, width * 0.04),
+    borderRadius: Math.max(12, width * 0.03),
   },
   retryButtonText: {
     fontSize: Math.max(14, width * 0.035),
-    fontWeight: '600',
-    color: '#ffffff',
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.TEXT_PRIMARY,
   },
 });
 

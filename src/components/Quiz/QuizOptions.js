@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
+
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -26,37 +30,74 @@ const QuizOptions = ({ options, selectedAnswer, onAnswerSelect, disabled = false
             activeOpacity={disabled ? 1 : 0.8}
             disabled={disabled}
         >
-          <View style={styles.optionContent}>
-            <View style={[
-              styles.optionCircle,
-                isSelected && styles.selectedCircle,
-                disabled && styles.disabledCircle,
-                isCorrect && styles.correctCircle,
-                isWrong && styles.wrongCircle
-            ]}>
-                {isSelected && (
-                  <Icon 
-                    name={isCorrect ? "check" : "close"} 
-                    size={16} 
-                    color="#ffffff" 
-                  />
-              )}
+          <LinearGradient
+            colors={getOptionGradientColors(isSelected, disabled, isCorrect, isWrong)}
+            style={styles.optionGradient}
+          >
+            <View style={styles.optionContent}>
+              <View style={[
+                styles.optionCircle,
+                  isSelected && styles.selectedCircle,
+                  disabled && styles.disabledCircle,
+                  isCorrect && styles.correctCircle,
+                  isWrong && styles.wrongCircle
+              ]}>
+                  {isSelected && (
+                    <Icon 
+                      name={isCorrect ? "check" : "close"} 
+                      size={16} 
+                      color={COLORS.TEXT_PRIMARY} 
+                    />
+                )}
+              </View>
+              <Text style={[
+                styles.optionText,
+                  isSelected && styles.selectedOptionText,
+                  disabled && styles.disabledOptionText,
+                  isCorrect && styles.correctOptionText,
+                  isWrong && styles.wrongOptionText
+              ]}>
+                  {option.text || option}
+              </Text>
             </View>
-            <Text style={[
-              styles.optionText,
-                isSelected && styles.selectedOptionText,
-                disabled && styles.disabledOptionText,
-                isCorrect && styles.correctOptionText,
-                isWrong && styles.wrongOptionText
-            ]}>
-                {option.text || option}
-            </Text>
-          </View>
+          </LinearGradient>
         </TouchableOpacity>
         );
       })}
     </View>
   );
+};
+
+const getOptionGradientColors = (isSelected, disabled, isCorrect, isWrong) => {
+  if (disabled) {
+    return [COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80'];
+  }
+  if (isCorrect) {
+    return [`${COLORS.SUCCESS}20`, `${COLORS.SUCCESS}10`];
+  }
+  if (isWrong) {
+    return [`${COLORS.ERROR}20`, `${COLORS.ERROR}10`];
+  }
+  if (isSelected) {
+    return [`${COLORS.PRIMARY}20`, `${COLORS.PRIMARY}10`];
+  }
+  return [COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND];
+};
+
+const getOptionBorderColor = (isSelected, disabled, isCorrect, isWrong) => {
+  if (disabled) {
+    return COLORS.BORDER_DISABLED;
+  }
+  if (isCorrect) {
+    return COLORS.SUCCESS;
+  }
+  if (isWrong) {
+    return COLORS.ERROR;
+  }
+  if (isSelected) {
+    return COLORS.PRIMARY;
+  }
+  return COLORS.BORDER_SECONDARY;
 };
 
 const styles = StyleSheet.create({
@@ -65,23 +106,23 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   optionButton: {
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    borderRadius: 16,
+    borderRadius: Math.max(16, width * 0.04),
+    overflow: 'hidden',
     borderWidth: 2,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  optionGradient: {
+    borderRadius: Math.max(16, width * 0.04),
     paddingVertical: Math.max(16, width * 0.04),
     paddingHorizontal: Math.max(16, width * 0.04),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 2,
   },
   selectedOption: {
-    borderColor: '#6366f1',
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    shadowColor: '#6366f1',
-    shadowOpacity: 0.3,
+    // Gradient already applied
   },
   optionContent: {
     flexDirection: 'row',
@@ -92,65 +133,58 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: 'rgba(148, 163, 184, 0.5)',
+    borderColor: COLORS.BORDER_SECONDARY,
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.GLASS_BACKGROUND,
   },
   selectedCircle: {
-    backgroundColor: '#6366f1',
-    borderColor: '#6366f1',
+    backgroundColor: COLORS.PRIMARY,
+    borderColor: COLORS.PRIMARY,
   },
   optionText: {
     fontSize: Math.max(16, width * 0.04),
-    color: '#ffffff',
-    fontWeight: '500',
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_PRIMARY,
     flex: 1,
   },
   selectedOptionText: {
-    fontWeight: '600',
+    ...getFontFamily('SEMIBOLD'),
   },
   disabledOption: {
     opacity: 0.7,
-    backgroundColor: 'rgba(148, 163, 184, 0.1)',
-    borderColor: 'rgba(148, 163, 184, 0.2)',
     shadowOpacity: 0.05,
     elevation: 1,
   },
   disabledCircle: {
-    backgroundColor: 'rgba(148, 163, 184, 0.5)',
-    borderColor: 'rgba(148, 163, 184, 0.5)',
+    backgroundColor: COLORS.BORDER_DISABLED,
+    borderColor: COLORS.BORDER_DISABLED,
   },
   disabledOptionText: {
-    color: 'rgba(148, 163, 184, 0.7)',
+    color: COLORS.TEXT_DISABLED,
   },
   correctOption: {
-    borderColor: '#22c55e',
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    shadowColor: '#22c55e',
-    shadowOpacity: 0.3,
+    // Gradient already applied
   },
   correctCircle: {
-    backgroundColor: '#22c55e',
-    borderColor: '#22c55e',
+    backgroundColor: COLORS.SUCCESS,
+    borderColor: COLORS.SUCCESS,
   },
   wrongOption: {
-    borderColor: '#ef4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    shadowColor: '#ef4444',
-    shadowOpacity: 0.3,
+    // Gradient already applied
   },
   wrongCircle: {
-    backgroundColor: '#ef4444',
-    borderColor: '#ef4444',
+    backgroundColor: COLORS.ERROR,
+    borderColor: COLORS.ERROR,
   },
   correctOptionText: {
-    color: '#22c55e',
-    fontWeight: '600',
+    color: COLORS.SUCCESS,
+    ...getFontFamily('SEMIBOLD'),
   },
   wrongOptionText: {
-    color: '#ef4444',
-    fontWeight: '600',
+    color: COLORS.ERROR,
+    ...getFontFamily('SEMIBOLD'),
   },
 });
 

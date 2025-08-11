@@ -1,6 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import { View, TextInput, StyleSheet, Dimensions, Keyboard } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+
 import { EMAIL_VERIFICATION_DATA } from '../../data/emailVerificationData';
+import { COLORS } from '../../constants/colorConstants';
+import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
@@ -83,27 +87,60 @@ const EmailVerificationInput = ({
     return baseStyle;
   };
 
+  const getGradientColors = (index) => {
+    if (disabled) {
+      return [COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80'];
+    } else if (hasError) {
+      return [`${COLORS.ERROR}20`, `${COLORS.ERROR}10`];
+    } else if (code[index]) {
+      return [`${COLORS.PRIMARY}20`, `${COLORS.PRIMARY}10`];
+    } else {
+      return [COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND];
+    }
+  };
+
+  const getBorderColor = (index) => {
+    if (disabled) {
+      return COLORS.BORDER_DISABLED;
+    } else if (hasError) {
+      return COLORS.ERROR;
+    } else if (code[index]) {
+      return COLORS.PRIMARY;
+    } else {
+      return COLORS.BORDER_SECONDARY;
+    }
+  };
+
   return (
     <View style={styles.container}>
       {Array.from({ length: codeLength }, (_, index) => (
-        <TextInput
-          key={index}
-          ref={(ref) => (inputRefs.current[index] = ref)}
-          style={getInputStyle(index)}
-          value={code[index] || ''}
-          onChangeText={(text) => handleTextChange(text, index)}
-          onKeyPress={(e) => handleKeyPress(e, index)}
-          onFocus={() => handleFocus(index)}
-          keyboardType="numeric"
-          maxLength={1}
-          selectTextOnFocus
-          editable={!disabled}
-          placeholder="0"
-          placeholderTextColor={EMAIL_VERIFICATION_DATA.colors.textSecondary + '60'}
-          textAlign="center"
-          returnKeyType={index === codeLength - 1 ? 'done' : 'next'}
-          blurOnSubmit={index === codeLength - 1}
-        />
+        <View key={index} style={styles.inputWrapper}>
+          <LinearGradient
+            colors={getGradientColors(index)}
+            style={[
+              styles.inputGradient,
+              { borderColor: getBorderColor(index) }
+            ]}
+          >
+            <TextInput
+              ref={(ref) => (inputRefs.current[index] = ref)}
+              style={getInputStyle(index)}
+              value={code[index] || ''}
+              onChangeText={(text) => handleTextChange(text, index)}
+              onKeyPress={(e) => handleKeyPress(e, index)}
+              onFocus={() => handleFocus(index)}
+              keyboardType="numeric"
+              maxLength={1}
+              selectTextOnFocus
+              editable={!disabled}
+              placeholder="0"
+              placeholderTextColor={COLORS.TEXT_SECONDARY + '60'}
+              textAlign="center"
+              returnKeyType={index === codeLength - 1 ? 'done' : 'next'}
+              blurOnSubmit={index === codeLength - 1}
+            />
+          </LinearGradient>
+        </View>
       ))}
     </View>
   );
@@ -117,44 +154,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: Math.max(16, width * 0.04),
     marginVertical: Math.max(20, width * 0.05),
   },
-  input: {
+  inputWrapper: {
+    borderRadius: Math.max(12, width * 0.03),
+    overflow: 'hidden',
+    shadowColor: COLORS.SHADOW_SECONDARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  inputGradient: {
     width: Math.max(45, width * 0.12),
     height: Math.max(55, width * 0.14),
-    backgroundColor: EMAIL_VERIFICATION_DATA.colors.inputBackground,
     borderRadius: Math.max(12, width * 0.03),
     borderWidth: 2,
-    borderColor: EMAIL_VERIFICATION_DATA.colors.borderColor,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  input: {
+    width: '100%',
+    height: '100%',
     fontSize: Math.max(20, Math.min(24, width * 0.06)),
-    fontWeight: 'bold',
-    color: EMAIL_VERIFICATION_DATA.colors.text,
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: 'transparent',
   },
   inputFilled: {
-    borderColor: EMAIL_VERIFICATION_DATA.colors.borderActive,
-    backgroundColor: `${EMAIL_VERIFICATION_DATA.colors.primary}15`,
-    shadowColor: EMAIL_VERIFICATION_DATA.colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    // Gradient already applied
   },
   inputError: {
-    borderColor: EMAIL_VERIFICATION_DATA.colors.error,
-    backgroundColor: `${EMAIL_VERIFICATION_DATA.colors.error}15`,
-    shadowColor: EMAIL_VERIFICATION_DATA.colors.error,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    // Gradient already applied
   },
   inputDisabled: {
     opacity: 0.5,
-    backgroundColor: EMAIL_VERIFICATION_DATA.colors.inputBackground + '80',
   },
 });
 

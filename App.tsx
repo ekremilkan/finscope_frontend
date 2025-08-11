@@ -10,12 +10,13 @@ const App = () => {
   useEffect(() => {
     const prepareApp = async () => {
       try {
-        // Async operations (data loading, token check, etc.)
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        // Gerekli async işlemler burada yapılabilir
+        // Örneğin: font yükleme, config yükleme, vs.
+        // Şimdilik hiç bekleme yok - hemen hazır
+        setIsAppReady(true);
       } catch (e) {
         console.warn('App preparation error:', e);
-      } finally {
-        setIsAppReady(true);
+        setIsAppReady(true); // Hata durumunda da hazır ol
       }
     };
 
