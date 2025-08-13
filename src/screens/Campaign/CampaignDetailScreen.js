@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,862 +6,222 @@ import {
   ScrollView,
   Dimensions,
   TouchableOpacity,
-  Image,
-  Alert,
   ActivityIndicator,
-  Linking,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-// Services
-import campaignService from '../../services/campaignService';
-
-// Utils
-import { handleApiError } from '../../utils/campaignUtils';
-import { getCampaignDetails } from '../../utils/userCampaignUtils';
-import { navigateToQuiz } from '../../utils/navigationUtils';
-
-// Components
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-
-// Constants
-import { COLORS, getCornerGradientColors } from '../../constants/colorConstants';
-import { getFontFamily } from '../../constants/fontConstants';
+// --- TEMA RENKLERİ ---
+const COLORS = {
+  BACKGROUND: '#181818',
+  PRIMARY: '#F7D648',
+  TEXT_PRIMARY: '#FFFFFF',
+  TEXT_SECONDARY: '#A9A9A9',
+  CARD_BACKGROUND: '#2A2A2A',
+  BORDER: 'rgba(247, 214, 72, 0.2)',
+  BLACK_TEXT_ON_PRIMARY: '#181818',
+};
 
 const { width, height } = Dimensions.get('window');
 
+// --- Ana Ekran Bileşeni ---
 const CampaignDetailScreen = ({ navigation, route }) => {
-  const { campaignId } = route.params;
-  
+  // const { campaignId } = route.params;
+
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [joining, setJoining] = useState(false);
 
-  // Load campaign details on mount and when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      loadCampaignDetails();
-    }, [campaignId])
-  );
+  const [activeContentIndex, setActiveContentIndex] = useState(0);
+  const horizontalScrollViewRef = useRef(null);
 
-  const loadCampaignDetails = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('🔄 Loading campaign details for ID:', campaignId);
-      const campaignData = await getCampaignDetails(campaignId);
-      
-      if (campaignData) {
-        setCampaign(campaignData);
-        console.log('✅ Campaign details loaded successfully');
-      } else {
-        setError('Kampanya detayları yüklenemedi');
-      }
-    } catch (error) {
-      console.error('❌ Load campaign details error:', error);
-      setError('Kampanya detayları yüklenirken bir hata oluştu');
-      handleApiError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleJoinCampaign = async () => {
-    if (!campaign) return;
-    
-    // Check if campaign is active
-    if (campaign.status !== 'active') {
-      Alert.alert(
-        'Campaign Not Active',
-        campaign.status === 'expired' 
-          ? 'This campaign has expired and is no longer accepting participants.'
-          : 'This campaign is not currently active.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-    
-    try {
-      setJoining(true);
-      
-      console.log('🔄 Joining campaign:', campaignId);
-      const success = await campaignService.joinCampaign(campaignId);
-      
-      if (success) {
-        console.log('✅ Successfully joined campaign, navigating to quiz...');
-        // Use navigation utility for quiz navigation
-        navigateToQuiz(navigation, {
-          campaignId: campaign._id,
-          campaignTitle: campaign.title,
-          reward: campaign.reward
-        });
-      } else {
-        Alert.alert('Error', 'Failed to join campaign');
-      }
-    } catch (error) {
-      console.error('Join campaign error:', error);
-      
-      // Handle specific error cases
-      if (error.response?.data?.message) {
-        Alert.alert('Error', error.response.data.message);
-      } else {
-        Alert.alert('Error', 'Failed to join campaign');
-      }
-    } finally {
-      setJoining(false);
-    }
-  };
-
-  const handleStartQuiz = () => {
-    if (!campaign) return;
-    
-    // Use navigation utility for quiz navigation
-    navigateToQuiz(navigation, {
-      campaignId: campaign._id,
-      campaignTitle: campaign.title,
-      reward: campaign.reward
-    });
-  };
-
-  const handleVideoPress = () => {
-    if (campaign?.videoUrl) {
-      Linking.openURL(campaign.videoUrl);
-    }
-  };
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <LinearGradient
-        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-        style={styles.headerGradient}
-      >
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.7}
-        >
-          <LinearGradient
-            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-            style={styles.backButtonGradient}
-          >
-            <Icon name="arrow-back" size={24} color={COLORS.PRIMARY} />
-          </LinearGradient>
-        </TouchableOpacity>
-        
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Campaign Details</Text>
-        </View>
-        
-        <View style={styles.headerRight}>
-          <LinearGradient
-            colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-            style={styles.headerRightGradient}
-          >
-            <Icon name="campaign" size={24} color={COLORS.PRIMARY} />
-          </LinearGradient>
-        </View>
-      </LinearGradient>
-    </View>
-  );
-
-  const renderHeroSection = () => (
-    <View style={styles.heroSection}>
-      <LinearGradient
-        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-        style={styles.heroGradient}
-      >
-        {campaign.videoUrl ? (
-          <TouchableOpacity 
-            style={styles.videoContainer}
-            onPress={handleVideoPress}
-            activeOpacity={0.8}
-          >
-            <View style={styles.videoPlaceholder}>
-              <LinearGradient
-                colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-                style={styles.videoPlaceholderGradient}
-              >
-                <Icon name="play-circle-outline" size={64} color={COLORS.PRIMARY} />
-                <Text style={styles.videoPlaceholderText}>Watch Video</Text>
-                <Text style={styles.videoSubtext}>Tap to open video</Text>
-              </LinearGradient>
-            </View>
-          </TouchableOpacity>
-        ) : campaign.imageUrls && campaign.imageUrls.length > 0 ? (
-          <Image
-            source={{ uri: campaign.imageUrls[0] }}
-            style={styles.heroImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.heroPlaceholder}>
-            <LinearGradient
-              colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-              style={styles.heroPlaceholderGradient}
-            >
-              <Icon name="campaign" size={64} color={COLORS.PRIMARY} />
-              <Text style={styles.heroPlaceholderText}>Campaign Image</Text>
-            </LinearGradient>
-          </View>
-        )}
-      </LinearGradient>
-    </View>
-  );
-
-  const renderCampaignInfo = () => (
-    <View style={styles.campaignInfo}>
-      <Text style={styles.campaignTitle}>{campaign.title}</Text>
-      <Text style={styles.campaignDescription}>{campaign.description}</Text>
-      
-      <View style={styles.campaignStats}>
-        <LinearGradient
-          colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-          style={styles.statsGradient}
-        >
-          <View style={styles.statItem}>
-            <LinearGradient
-              colors={[COLORS.PRIMARY + '20', COLORS.PRIMARY + '10']}
-              style={styles.statIconGradient}
-            >
-              <Icon name="people" size={20} color={COLORS.PRIMARY} />
-            </LinearGradient>
-            <Text style={styles.statLabel}>Participants</Text>
-            <Text style={styles.statValue}>
-              {campaign.participants}/{campaign.maxParticipants}
-            </Text>
-          </View>
-          
-          <View style={styles.statItem}>
-            <LinearGradient
-              colors={['#8b5cf620', '#8b5cf610']}
-              style={styles.statIconGradient}
-            >
-              <Icon name="quiz" size={20} color="#8b5cf6" />
-            </LinearGradient>
-            <Text style={styles.statLabel}>Questions</Text>
-            <Text style={styles.statValue}>{campaign.questions}</Text>
-          </View>
-          
-          <View style={styles.statItem}>
-            <LinearGradient
-              colors={[COLORS.SUCCESS + '20', COLORS.SUCCESS + '10']}
-              style={styles.statIconGradient}
-            >
-              <Icon name="monetization-on" size={20} color={COLORS.SUCCESS} />
-            </LinearGradient>
-            <Text style={styles.statLabel}>Reward</Text>
-            <Text style={styles.statValue}>{campaign.reward} USDT</Text>
-          </View>
-        </LinearGradient>
-      </View>
-    </View>
-  );
-
-  const renderCampaignContent = () => (
-    <View style={styles.campaignContent}>
-      <LinearGradient
-        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-        style={styles.contentGradient}
-      >
-        <Text style={styles.contentTitle}>Campaign Content</Text>
-        <Text style={styles.contentText}>{campaign.content}</Text>
-      </LinearGradient>
-    </View>
-  );
-
-  const renderImageGallery = () => {
-    if (!campaign.imageUrls || campaign.imageUrls.length === 0) return null;
-    
-    return (
-      <View style={styles.imageGallery}>
-        <LinearGradient
-          colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-          style={styles.galleryGradient}
-        >
-          <Text style={styles.galleryTitle}>Campaign Images</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {campaign.imageUrls.map((imageUrl, index) => (
-              <Image
-                key={index}
-                source={{ uri: imageUrl }}
-                style={styles.galleryImage}
-                resizeMode="cover"
-              />
-            ))}
-          </ScrollView>
-        </LinearGradient>
-      </View>
-    );
-  };
-
-  const renderActionButton = () => {
-    console.log('🔍 Campaign state:', {
-      userCompleted: campaign.userCompleted,
-      userJoined: campaign.userJoined,
-      status: campaign.status
-    });
-
-    // Check if campaign is active
-    if (campaign.status !== 'active') {
-      return (
-        <TouchableOpacity style={[styles.actionButton, styles.disabledButton]} disabled>
-          <LinearGradient
-            colors={[COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80']}
-            style={styles.actionButtonGradient}
-          >
-            <Icon name="block" size={20} color={COLORS.TEXT_PRIMARY} />
-            <Text style={styles.actionButtonText}>
-              {campaign.status === 'expired' ? 'Campaign Expired' : 'Campaign Not Active'}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      );
-    }
-
-    if (campaign.userCompleted) {
-      return (
-        <TouchableOpacity style={[styles.actionButton, styles.completedButton]} disabled>
-          <LinearGradient
-            colors={[COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80']}
-            style={styles.actionButtonGradient}
-          >
-            <Icon name="check-circle" size={20} color={COLORS.TEXT_PRIMARY} />
-            <Text style={styles.actionButtonText}>Completed</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      );
-    }
-    
-    if (campaign.userJoined && campaign.userJoined === true) {
-      return (
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.continueButton]}
-          onPress={handleStartQuiz}
-        >
-          <LinearGradient
-            colors={[COLORS.SUCCESS, COLORS.SUCCESS]}
-            style={styles.actionButtonGradient}
-          >
-            <Icon name="play-arrow" size={20} color={COLORS.TEXT_PRIMARY} />
-            <Text style={styles.actionButtonText}>Continue Quiz</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      );
-    }
-    
-    return (
-      <TouchableOpacity 
-        style={[styles.actionButton, styles.joinButton]}
-        onPress={handleJoinCampaign}
-        disabled={joining}
-      >
-        <LinearGradient
-          colors={joining 
-            ? [COLORS.GLASS_BACKGROUND + '80', COLORS.GLASS_BACKGROUND + '80']
-            : [COLORS.PRIMARY, COLORS.PRIMARY]
+  useEffect(() => {
+    const loadCampaignDetails = async () => {
+      try {
+        setLoading(true);
+        // --- BAŞLANGIÇ: VERİTABANI ODAKLI SAHTE VERİ ---
+        const mockCampaign = {
+          _id: '686a80ad4df8b694b1e90140',
+          title: 'Stratejik Varlık Yönetimi',
+          description: 'Varlıklarınızı en verimli şekilde nasıl yöneteceğinizi ve portföyünüzü nasıl optimize edeceğinizi öğrenin.',
+          image: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=870',
+          content: [
+            { itemImage: 'https://images.unsplash.com/photo-1554224155-8d044b408226?q=80&w=870', itemTitle: 'Giriş: Varlık Yönetimi Nedir?', itemDescription: 'Varlık yönetimi, bir bireyin veya kurumun sahip olduğu değerli varlıkların sistematik bir şekilde yönetilmesi sürecidir...' },
+            { itemImage: '', itemTitle: 'Risk ve Getiri Dengesi', itemDescription: 'Her yatırımın bir riski ve potansiyel bir getirisi vardır...' },
+            { itemImage: 'https://images.unsplash.com/photo-1642792691530-056778438b9b?q=80&w=870', itemTitle: 'Teknolojinin Rolü: Robo-Danışmanlar', itemDescription: 'Yapay zeka ve algoritmalarla desteklenen robo-danışmanlar, yatırım dünyasını değiştiriyor...' }
+          ],
+          reward: 75,
+          maxParticipants: { A: 1000, B: 500, C: 200, D: 0 },
+          currentParticipants: { A: 450, B: 120, C: 30, D: 0 },
+          questions: 12,
+          estimatedDuration: 20,
+          tags: ['Portföy', 'Varlık Yönetimi', 'Finans', 'Risk'],
+          ui_labels: {
+              header_default_title: "Kampanya Detayı",
+              est_duration_label: "Tahmini Süre",
+              questions_label: "Soru",
+              participants_label: "Katılımcı",
+              content_header: "Kampanya İçeriği",
+              duration_unit: "dk",
+              reward_unit: "USDT",
           }
-          style={styles.actionButtonGradient}
-        >
-          {joining ? (
-            <ActivityIndicator size="small" color={COLORS.TEXT_PRIMARY} />
-          ) : (
-            <Icon name="add" size={20} color={COLORS.TEXT_PRIMARY} />
-          )}
-          <Text style={styles.actionButtonText}>
-            {joining ? 'Joining...' : 'Start Campaign'}
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
+        };
+        // --- SON: SAHTE VERİ ---
+        setTimeout(() => {
+          setCampaign(mockCampaign);
+          setLoading(false);
+        }, 1000);
+      } catch (err) {
+        setError('An error occurred while loading campaign details.');
+        setLoading(false);
+      }
+    };
+    loadCampaignDetails();
+  }, []);
+
+  const handleNext = () => { if (campaign && activeContentIndex < campaign.content.length - 1) { horizontalScrollViewRef.current?.scrollTo({ x: (activeContentIndex + 1) * width, animated: true }); }};
+  const handlePrev = () => { if (activeContentIndex > 0) { horizontalScrollViewRef.current?.scrollTo({ x: (activeContentIndex - 1) * width, animated: true }); }};
+  
+  // --- DÜZELTİLEN FONKSİYON ---
+  const handleStartQuiz = () => {
+    if (!campaign) return; // Güvenlik kontrolü
+    
+    // Quiz ekranına yönlendirme ve gerekli parametreleri gönderme
+    navigation.navigate('QuizScreen', {
+        campaignId: campaign._id,
+        campaignTitle: campaign.title,
+    });
+  };
+
+  const onScroll = (event) => { setActiveContentIndex(Math.round(event.nativeEvent.contentOffset.x / width)); };
+  const getTotalParticipants = (p) => p ? Object.values(p).reduce((s, v) => s + v, 0) : 0;
+
+  // --- RENDER FONKSİYONLARI ---
+  // (Render fonksiyonları bir önceki cevaptaki ile aynı, değişiklik yok)
+
+  const renderDetailHeader = () => (
+    <View style={styles.header}><TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}><Icon name="arrow-back" size={24} color={COLORS.PRIMARY} /></TouchableOpacity><Text style={styles.headerTitle} numberOfLines={1}>{campaign?.title || campaign?.ui_labels?.header_default_title}</Text><TouchableOpacity style={styles.headerButton}><Icon name="bookmark-border" size={24} color={COLORS.PRIMARY} /></TouchableOpacity></View>
+  );
+
+  const renderHeroImage = () => campaign?.image ? <Image source={{ uri: campaign.image }} style={styles.heroImage} /> : null;
+
+  const renderCampaignInfo = () => {
+    const labels = campaign?.ui_labels || {};
+    const totalCurrent = getTotalParticipants(campaign?.currentParticipants);
+    const totalMax = getTotalParticipants(campaign?.maxParticipants);
+
+    return (
+      <View style={styles.infoContainer}>
+        <Text style={styles.mainTitle}>{campaign?.title}</Text>
+        <Text style={styles.descriptionText}>{campaign?.description}</Text>
+        <View style={styles.tagsContainer}>
+            {campaign?.tags?.map((tag, index) => (
+                <View key={index} style={styles.tag}><Text style={styles.tagText}>{tag}</Text></View>
+            ))}
+        </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}><Icon name="timer" size={20} color={COLORS.PRIMARY} /><Text style={styles.statValue}>{`${campaign?.estimatedDuration || 0} ${labels.duration_unit || 'min'}`}</Text><Text style={styles.statLabel}>{labels.est_duration_label || 'Est. Duration'}</Text></View>
+          <View style={styles.statItem}><Icon name="quiz" size={20} color={COLORS.PRIMARY} /><Text style={styles.statValue}>{campaign?.questions || 0}</Text><Text style={styles.statLabel}>{labels.questions_label || 'Questions'}</Text></View>
+          <View style={styles.statItem}><Icon name="people" size={20} color={COLORS.PRIMARY} /><Text style={styles.statValue}>{`${totalCurrent}/${totalMax}`}</Text><Text style={styles.statLabel}>{labels.participants_label || 'Participants'}</Text></View>
+        </View>
+      </View>
     );
   };
 
-  const renderLoadingState = () => (
-    <View style={styles.loadingContainer}>
-      <LoadingSpinner text="Loading campaign details..." />
-    </View>
-  );
-
-  const renderErrorState = () => (
-    <View style={styles.errorContainer}>
-      <LinearGradient
-        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-        style={styles.errorGradient}
-      >
-        <Icon name="error" size={48} color={COLORS.ERROR} />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity 
-          style={styles.retryButton}
-          onPress={loadCampaignDetails}
-        >
-          <LinearGradient
-            colors={[COLORS.PRIMARY, COLORS.PRIMARY]}
-            style={styles.retryButtonGradient}
-          >
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </LinearGradient>
-    </View>
-  );
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
-          <LinearGradient
-            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-            style={styles.gradientContainer}
-          >
-            {renderHeader()}
-            {renderLoadingState()}
-          </LinearGradient>
-        </SafeAreaView>
+  const renderContentSlider = () => (
+    <View style={styles.sliderContainer}>
+      <View style={styles.sliderHeader}>
+        <Text style={styles.areaTitle}>{campaign?.ui_labels?.content_header || 'Content'}</Text>
+        <Text style={styles.progressText}>{`${activeContentIndex + 1} / ${campaign?.content?.length || 0}`}</Text>
       </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
-          <LinearGradient
-            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-            style={styles.gradientContainer}
-          >
-            {renderHeader()}
-            {renderErrorState()}
-          </LinearGradient>
-        </SafeAreaView>
-      </View>
-    );
-  }
-
-  if (!campaign) {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
-          <LinearGradient
-            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-            style={styles.gradientContainer}
-          >
-            {renderHeader()}
-            <View style={styles.errorContainer}>
-              <LinearGradient
-                colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-                style={styles.errorGradient}
-              >
-                <Icon name="campaign" size={48} color={COLORS.TEXT_SECONDARY} />
-                <Text style={styles.errorText}>Campaign not found</Text>
-              </LinearGradient>
+      <ScrollView ref={horizontalScrollViewRef} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16} style={styles.horizontalScrollView}>
+        {campaign?.content?.map((item, index) => (
+          <View key={index} style={styles.pageContainer}>
+            <View style={styles.contentCard}>
+              {item.itemImage && <Image source={{ uri: item.itemImage }} style={styles.itemImage} />}
+              <ScrollView nestedScrollEnabled contentContainerStyle={styles.cardTextContainer}>
+                <Text style={styles.itemTitle}>{item.itemTitle}</Text>
+                <Text style={styles.itemDescription}>{item.itemDescription}</Text>
+              </ScrollView>
             </View>
-          </LinearGradient>
-        </SafeAreaView>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+
+  const renderFooter = () => {
+    const isLastPage = campaign && activeContentIndex === campaign.content.length - 1;
+    return (
+      <View style={styles.footer}>
+        <TouchableOpacity style={[styles.navButton, { opacity: activeContentIndex === 0 ? 0.4 : 1 }]} onPress={handlePrev} disabled={activeContentIndex === 0}>
+          <Icon name="chevron-left" size={24} color={COLORS.PRIMARY} />
+          <Text style={styles.navButtonText}>Previous</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.navButton, isLastPage ? styles.startQuizButton : {}]} onPress={isLastPage ? handleStartQuiz : handleNext}>
+          <Text style={[styles.navButtonText, isLastPage && styles.startQuizButtonText]}>{isLastPage ? "Start Quiz" : 'Next'}</Text>
+          <Icon name={isLastPage ? "play-arrow" : "chevron-right"} size={24} color={isLastPage ? COLORS.BLACK_TEXT_ON_PRIMARY : COLORS.PRIMARY} />
+        </TouchableOpacity>
       </View>
     );
-  }
+  };
+  
+  if (loading) return (<View style={styles.fullScreenContainer}><ActivityIndicator size="large" color={COLORS.PRIMARY} /><Text style={styles.loadingText}>Loading Campaign...</Text></View>);
+  if (error) return (<View style={styles.fullScreenContainer}><Icon name="error-outline" size={48} color={'#ef4444'} /><Text style={styles.errorText}>{error}</Text></View>);
+  if (!campaign) return (<View style={styles.fullScreenContainer}><Text style={styles.errorText}>Campaign not found.</Text></View>);
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <LinearGradient
-          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-          style={styles.gradientContainer}
-        >
-          {/* Corner Gradients */}
-          <LinearGradient
-            colors={getCornerGradientColors()}
-            style={styles.topRightGradient}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 0, y: 1 }}
-          />
-          <LinearGradient
-            colors={getCornerGradientColors().reverse()}
-            style={styles.bottomLeftGradient}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-          />
-          
-          {renderHeader()}
-          
-          <ScrollView 
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            {renderHeroSection()}
-            {renderCampaignInfo()}
-            {renderCampaignContent()}
-            {renderImageGallery()}
-          </ScrollView>
-          
-          <View style={styles.actionContainer}>
-            {renderActionButton()}
-          </View>
-        </LinearGradient>
-      </SafeAreaView>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={{ flex: 1, backgroundColor: COLORS.BACKGROUND }}>
+        {renderDetailHeader()}
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+          {renderHeroImage()}
+          {renderCampaignInfo()}
+          {renderContentSlider()}
+        </ScrollView>
+        {renderFooter()}
+      </View>
+    </SafeAreaView>
   );
 };
 
+// --- STİLLER ---
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  gradientContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  topRightGradient: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 250,
-    height: 250,
-    borderBottomLeftRadius: 125,
-  },
-  bottomLeftGradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: 250,
-    height: 250,
-    borderTopRightRadius: 125,
-  },
-  header: {
-    borderRadius: Math.max(16, width * 0.04),
-    margin: Math.max(16, width * 0.04),
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  headerGradient: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingVertical: Math.max(16, width * 0.04),
-  },
-  backButton: {
-    borderRadius: Math.max(12, width * 0.03),
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  backButtonGradient: {
-    padding: Math.max(8, width * 0.02),
-    borderRadius: Math.max(12, width * 0.03),
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: Math.max(18, width * 0.045),
-    ...getFontFamily('BOLD'),
-    color: COLORS.TEXT_PRIMARY,
-  },
-  headerRight: {
-    borderRadius: Math.max(12, width * 0.03),
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  headerRightGradient: {
-    padding: Math.max(8, width * 0.02),
-    borderRadius: Math.max(12, width * 0.03),
-  },
-  scrollView: {
-    flex: 1,
-  },
-  heroSection: {
-    height: Math.max(200, height * 0.25),
-    margin: Math.max(16, width * 0.04),
-    borderRadius: Math.max(20, width * 0.05),
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  heroGradient: {
-    width: '100%',
-    height: '100%',
-  },
-  videoContainer: {
-    width: '100%',
-    height: '100%',
-  },
-  videoPlaceholder: {
-    flex: 1,
-  },
-  videoPlaceholderGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoPlaceholderText: {
-    fontSize: Math.max(18, width * 0.045),
-    ...getFontFamily('SEMIBOLD'),
-    color: COLORS.PRIMARY,
-    marginTop: Math.max(8, width * 0.02),
-  },
-  videoSubtext: {
-    fontSize: Math.max(14, width * 0.035),
-    ...getFontFamily('REGULAR'),
-    color: COLORS.TEXT_SECONDARY,
-    marginTop: Math.max(4, width * 0.01),
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  heroPlaceholder: {
-    flex: 1,
-  },
-  heroPlaceholderGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroPlaceholderText: {
-    fontSize: Math.max(16, width * 0.04),
-    ...getFontFamily('REGULAR'),
-    color: COLORS.TEXT_SECONDARY,
-    marginTop: Math.max(8, width * 0.02),
-  },
-  campaignInfo: {
-    padding: Math.max(20, width * 0.05),
-  },
-  campaignTitle: {
-    fontSize: Math.max(24, width * 0.06),
-    ...getFontFamily('BOLD'),
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: Math.max(12, width * 0.03),
-  },
-  campaignDescription: {
-    fontSize: Math.max(16, width * 0.04),
-    ...getFontFamily('REGULAR'),
-    color: COLORS.TEXT_SECONDARY,
-    lineHeight: 24,
-    marginBottom: Math.max(20, width * 0.05),
-  },
-  campaignStats: {
-    borderRadius: Math.max(16, width * 0.04),
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  statsGradient: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderRadius: Math.max(16, width * 0.04),
-    padding: Math.max(16, width * 0.04),
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statIconGradient: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Math.max(8, width * 0.02),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-  },
-  statLabel: {
-    fontSize: Math.max(12, width * 0.03),
-    ...getFontFamily('REGULAR'),
-    color: COLORS.TEXT_SECONDARY,
-    marginTop: Math.max(4, width * 0.01),
-  },
-  statValue: {
-    fontSize: Math.max(14, width * 0.035),
-    ...getFontFamily('SEMIBOLD'),
-    color: COLORS.TEXT_PRIMARY,
-    marginTop: Math.max(2, width * 0.005),
-  },
-  campaignContent: {
-    padding: Math.max(20, width * 0.05),
-  },
-  contentGradient: {
-    padding: Math.max(20, width * 0.05),
-    borderRadius: Math.max(16, width * 0.04),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  contentTitle: {
-    fontSize: Math.max(18, width * 0.045),
-    ...getFontFamily('SEMIBOLD'),
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: Math.max(12, width * 0.03),
-  },
-  contentText: {
-    fontSize: Math.max(16, width * 0.04),
-    ...getFontFamily('REGULAR'),
-    color: COLORS.TEXT_SECONDARY,
-    lineHeight: 24,
-  },
-  imageGallery: {
-    padding: Math.max(20, width * 0.05),
-  },
-  galleryGradient: {
-    padding: Math.max(20, width * 0.05),
-    borderRadius: Math.max(16, width * 0.04),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  galleryTitle: {
-    fontSize: Math.max(18, width * 0.045),
-    ...getFontFamily('SEMIBOLD'),
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: Math.max(12, width * 0.03),
-  },
-  galleryImage: {
-    width: Math.max(120, width * 0.3),
-    height: Math.max(80, height * 0.1),
-    borderRadius: Math.max(12, width * 0.03),
-    marginRight: Math.max(12, width * 0.03),
-  },
-  actionContainer: {
-    padding: Math.max(20, width * 0.05),
-    backgroundColor: COLORS.GLASS_BACKGROUND,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.BORDER_SECONDARY,
-  },
-  actionButton: {
-    borderRadius: Math.max(16, width * 0.04),
-    overflow: 'hidden',
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  actionButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Math.max(16, width * 0.04),
-    borderRadius: Math.max(16, width * 0.04),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_PRIMARY,
-  },
-  joinButton: {
-    // Gradient already applied
-  },
-  continueButton: {
-    // Gradient already applied
-  },
-  completedButton: {
-    // Gradient already applied
-  },
-  disabledButton: {
-    // Gradient already applied
-  },
-  actionButtonText: {
-    fontSize: Math.max(16, width * 0.04),
-    ...getFontFamily('SEMIBOLD'),
-    color: COLORS.TEXT_PRIMARY,
-    marginLeft: Math.max(8, width * 0.02),
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Math.max(20, width * 0.05),
-  },
-  errorGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Math.max(20, width * 0.05),
-    borderRadius: Math.max(20, width * 0.05),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  errorText: {
-    fontSize: Math.max(16, width * 0.04),
-    ...getFontFamily('MEDIUM'),
-    color: COLORS.ERROR,
-    textAlign: 'center',
-    marginTop: Math.max(16, width * 0.04),
-  },
-  retryButton: {
-    borderRadius: Math.max(12, width * 0.03),
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-    marginTop: Math.max(16, width * 0.04),
-  },
-  retryButtonGradient: {
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingVertical: Math.max(12, width * 0.03),
-    borderRadius: Math.max(12, width * 0.03),
-  },
-  retryButtonText: {
-    fontSize: Math.max(14, width * 0.035),
-    ...getFontFamily('SEMIBOLD'),
-    color: COLORS.TEXT_PRIMARY,
-  },
+  safeArea: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+  fullScreenContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.BACKGROUND },
+  loadingText: { marginTop: 16, fontSize: 16, color: COLORS.TEXT_SECONDARY },
+  errorText: { marginTop: 16, fontSize: 16, color: '#ef4444', textAlign: 'center' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: COLORS.CARD_BACKGROUND },
+  headerButton: { padding: 8 },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '700', color: COLORS.TEXT_PRIMARY, marginHorizontal: 12 },
+  heroImage: { width: '100%', height: width * 0.5, resizeMode: 'cover' },
+  infoContainer: { paddingHorizontal: 20, paddingTop: 20 },
+  mainTitle: { fontSize: 26, fontWeight: 'bold', color: COLORS.TEXT_PRIMARY, marginBottom: 8 },
+  descriptionText: { fontSize: 15, color: COLORS.TEXT_SECONDARY, lineHeight: 22, marginBottom: 20 },
+  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20, gap: 8 },
+  tag: { backgroundColor: 'rgba(247, 214, 72, 0.15)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: COLORS.BORDER },
+  tagText: { color: COLORS.PRIMARY, fontSize: 12, fontWeight: '600' },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: COLORS.CARD_BACKGROUND, borderRadius: 16, paddingVertical: 20 },
+  statItem: { alignItems: 'center', gap: 8, flex: 1 },
+  statValue: { fontSize: 16, fontWeight: '700', color: COLORS.TEXT_PRIMARY, textAlign: 'center' },
+  statLabel: { fontSize: 12, color: COLORS.TEXT_SECONDARY, textTransform: 'uppercase', marginTop: 4 },
+  sliderContainer: { marginTop: 20, height: height * 0.5 },
+  sliderHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 15 },
+  areaTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.TEXT_PRIMARY },
+  progressText: { fontSize: 14, color: COLORS.TEXT_SECONDARY, fontWeight: '600' },
+  horizontalScrollView: { flex: 1 },
+  pageContainer: { width: width, paddingHorizontal: 20, paddingBottom: 10 },
+  contentCard: { flex: 1, borderRadius: 16, backgroundColor: COLORS.CARD_BACKGROUND, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.BORDER },
+  itemImage: { width: '100%', height: 150, resizeMode: 'cover' },
+  cardTextContainer: { flexGrow: 1, padding: 20 },
+  itemTitle: { fontSize: 20, fontWeight: '700', color: COLORS.TEXT_PRIMARY, marginBottom: 12 },
+  itemDescription: { fontSize: 16, color: COLORS.TEXT_SECONDARY, lineHeight: 24 },
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, paddingBottom: 25, backgroundColor: COLORS.BACKGROUND, borderTopWidth: 1, borderTopColor: COLORS.CARD_BACKGROUND },
+  navButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 52, borderRadius: 12, paddingHorizontal: 20, backgroundColor: COLORS.CARD_BACKGROUND, borderWidth: 1, borderColor: COLORS.BORDER },
+  navButtonText: { fontSize: 16, fontWeight: '700', color: COLORS.PRIMARY, marginHorizontal: 5 },
+  startQuizButton: { backgroundColor: COLORS.PRIMARY },
+  startQuizButtonText: { color: COLORS.BLACK_TEXT_ON_PRIMARY },
 });
 
-export default CampaignDetailScreen; 
+export default CampaignDetailScreen;

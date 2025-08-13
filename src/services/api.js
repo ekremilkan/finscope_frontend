@@ -21,8 +21,11 @@ api.interceptors.request.use(async (config) => {
   // Authentication gerektirmeyen endpoint'ler
   const publicEndpoints = [
     '/health',
+    '/user/login',
+    '/user/register',
     '/user/verify-login',
-    '/user/resend-verification-code'
+    '/user/resend-verification-code',
+    '/user/forgot-password',
   ];
   
   console.log('🔧 API Request Debug:', {

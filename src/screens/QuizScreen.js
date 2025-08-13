@@ -2,188 +2,132 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
-  ScrollView,
-  Dimensions,
   Animated,
-  Alert,
   ActivityIndicator,
   Text,
-  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 
-// Data and Utils
-import { QUIZ_CONFIG } from '../data/quizData';
-import { 
-  calculateScore, 
-  handleQuizExit, 
-  loadCampaignQuestions,
-  updateQuizProgress,
-  submitQuizCompletion,
-  getUserQuizProgress,
-  getInitialQuizState,
-  checkAnswer,
-  startPenalty,
-  formatTime,
-  trackQuizCompletion,
-  calculateQuizProgress,
-  validateQuizCompletion,
-  calculateQuizScore
-} from '../utils/quizUtils';
-import { handleQuizCompletion } from '../utils/navigationUtils';
+// Utils
+import { checkAnswer } from '../utils/quizUtils';
 
 // Components
 import QuizHeader from '../components/Quiz/QuizHeader';
 import QuizProgress from '../components/Quiz/QuizProgress';
 import QuizQuestion from '../components/Quiz/QuizQuestion';
 import QuizOptions from '../components/Quiz/QuizOptions';
-import QuizNavigation from '../components/Quiz/QuizNavigation';
 import QuizResultModal from '../components/Quiz/QuizResultModal';
-// import QuizPenaltyModal from '../components/Quiz/QuizPenaltyModal'; // Removed penalty modal
 
 // Constants
-import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
-import { getFontFamily } from '../constants/fontConstants';
-
-const { width } = Dimensions.get('window');
+const COLORS = {
+  BACKGROUND: '#181818',
+  PRIMARY: '#F7D648',
+  TEXT_PRIMARY: '#FFFFFF',
+  TEXT_SECONDARY: '#A9A9A9',
+  CARD_BACKGROUND: '#2A2A2A',
+  BORDER: 'rgba(247, 214, 72, 0.2)',
+  SUCCESS: '#10b981',
+  ERROR: '#ef4444',
+};
 
 const QuizScreen = ({ navigation, route }) => {
   const { campaignId, campaignTitle, reward } = route.params;
 
-  // Quiz state
-  const [quizState, setQuizState] = useState(getInitialQuizState());
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [showResult, setShowResult] = useState(false);
   const [progress] = useState(new Animated.Value(0));
   
-  // Penalty state
-  const [penaltyTime, setPenaltyTime] = useState(0);
+  const [showAnswerFeedback, setShowAnswerFeedback] = useState(false);
+  const [feedbackIndex, setFeedbackIndex] = useState(null);
   const [isPenaltyActive, setIsPenaltyActive] = useState(false);
-  
-  // Answer feedback state
-  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
-  const [correctAnswerIndex, setCorrectAnswerIndex] = useState(null);
-  
-  // Timer refs
+  const [penaltyTime, setPenaltyTime] = useState(0);
+
   const penaltyTimerRef = useRef(null);
-  const startTimeRef = useRef(null);
 
-  // Load questions on mount
   useEffect(() => {
-    loadQuestions();
-  }, [campaignId]);
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (showResult || loading) {
+        return;
+      }
+      e.preventDefault();
 
-  // Progress bar animation
-  useEffect(() => {
-    if (quizState.questions.length === 0) return;
-    
-    Animated.timing(progress, {
-      toValue: ((quizState.currentQuestionIndex + 1) / quizState.questions.length) * 100,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [quizState.currentQuestionIndex, quizState.questions.length]);
-
-  const loadQuestions = async () => {
-    try {
-      setQuizState(prev => ({ ...prev, loading: true, error: null }));
-      
-      console.log('🔄 Loading questions for campaign:', campaignId);
-      const questions = await loadCampaignQuestions(campaignId);
-      
-      const startTime = Date.now();
-      startTimeRef.current = startTime; // Set start time ref
-      
-      setQuizState(prev => ({
-        ...prev,
-        questions,
-        loading: false,
-        startTime: startTime
-      }));
-      
-      console.log('✅ Questions loaded successfully:', questions.length);
-    } catch (error) {
-      console.error('❌ Load questions error:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        campaignId: campaignId
-      });
-      
-      setQuizState(prev => ({
-        ...prev,
-        loading: false,
-        error: 'Failed to load questions. Please try again.'
-      }));
-      
       Alert.alert(
-        'Error',
-        `Failed to load questions: ${error.message}`,
+        "Exit Quiz", // Başlık
+        "Your current progress will be lost. Are you sure you want to exit?", // Mesaj
         [
+          { text: "Cancel", style: 'cancel', onPress: () => {} },
           {
-            text: 'Go Back',
-            onPress: () => navigation.goBack()
-          }
+            text: "Exit",
+            style: 'destructive',
+            onPress: () => navigation.dispatch(e.data.action),
+          },
         ]
       );
-    }
-  };
+    });
 
-  const handleAnswerSelect = async (optionIndex) => {
-    if (isPenaltyActive) return; // Prevent selection during penalty
-    
-    const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
+    return unsubscribe;
+  }, [navigation, showResult, loading]);
+
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        const fetchedQuestions = [
+          { _id: 'q1', question: 'Finansal okuryazarlıkta ilk adım nedir?', options: [{_id: 'q1o1', text: 'Bütçe yapmak', isTrue: true}, {_id: 'q1o2', text: 'Hisse senedi almak'}, {_id: 'q1o3', text: 'Kredi çekmek'},{_id: 'q1o4', text: 'Döviz almak'}] },
+          { _id: 'q2', question: 'Hangisi bir "sabit gider" örneğidir?', options: [{_id: 'q2o1', text: 'Restoran harcaması'}, {_id: 'q2o2', text: 'Kira', isTrue: true}, {_id: 'q2o3', text: 'Sinema bileti'},{_id: 'q2o4', text: 'Giyim alışverişi'}] },
+          { _id: 'q3', question: 'Enflasyonun tanımı nedir?', options: [{_id: 'q3o1', text: 'Paranın değer kazanması'}, {_id: 'q3o2', text: 'Fiyatlar genel düzeyinin düşmesi'}, {_id: 'q3o3', text: 'Fiyatlar genel düzeyinin sürekli artması', isTrue: true},{_id: 'q3o4', text: 'Faiz oranlarının artması'}] },
+          { _id: 'q4', question: '"Ayı Piyasası" (Bear Market) ne anlama gelir?', options: [{_id: 'q4o1', text: 'Piyasaların yükseliş trendinde olması'}, {_id: 'q4o2', text: 'Piyasaların kararsız olması'}, {_id: 'q4o3', text: 'Altın fiyatlarının artması'},{_id: 'q4o4', text: 'Piyasaların düşüş trendinde olması', isTrue: true}] },
+          { _id: 'q5', question: 'Portföy çeşitlendirmesi neden önemlidir?', options: [{_id: 'q5o1', text: 'Tek bir varlığa odaklanmak için'}, {_id: 'q5o2', text: 'Riski dağıtmak için', isTrue: true}, {_id: 'q5o3', text: 'Daha hızlı kar etmek için'},{_id: 'q5o4', text: 'Vergiden kaçınmak için'}] },
+          { _id: 'q6', question: 'Kredi notunu en çok ne etkiler?', options: [{_id: 'q6o1', text: 'Yaş'}, {_id: 'q6o2', text: 'Aylık gelir'}, {_id: 'q6o3', text: 'Borçların düzenli ödenmesi', isTrue: true},{_id: 'q6o4', text: 'Medeni durum'}] },
+          { _id: 'q7', question: 'Hangisi bir pasif gelir kaynağı değildir?', options: [{_id: 'q7o1', text: 'Maaşlı bir işte çalışmak', isTrue: true}, {_id: 'q7o2', text: 'Temettü (hisse kar payı)'}, {_id: 'q7o3', text: 'Kira geliri'},{_id: 'q7o4', text: 'Faiz geliri'}] }
+        ];
+        setTimeout(() => { setQuestions(fetchedQuestions); setLoading(false); }, 500);
+      } catch (e) { setError('An error occurred while loading questions.'); setLoading(false); }
+    };
+    fetchQuestions();
+    return () => { if (penaltyTimerRef.current) clearInterval(penaltyTimerRef.current); };
+  }, [campaignId]);
+
+  useEffect(() => {
+    if (questions.length === 0) return;
+    Animated.timing(progress, {
+      toValue: ((currentQuestionIndex + 1) / questions.length) * 100,
+      useNativeDriver: false,
+      duration: 300,
+    }).start();
+  }, [currentQuestionIndex, questions.length]);
+
+  const handleAnswerSelect = (optionIndex) => {
+    if (isPenaltyActive || showAnswerFeedback) return;
+    const currentQuestion = questions[currentQuestionIndex];
     const isCorrect = checkAnswer(currentQuestion, optionIndex);
-    
-    // Update selected answers
-    setQuizState(prev => ({
-      ...prev,
-      selectedAnswers: {
-        ...prev.selectedAnswers,
-        [quizState.currentQuestionIndex]: optionIndex
-      }
-    }));
-
-    // Find correct answer index
-    const correctIndex = currentQuestion.options.findIndex(option => option.isTrue === true);
-    setCorrectAnswerIndex(correctIndex);
-    setShowCorrectAnswer(true);
-
+    setFeedbackIndex(optionIndex);
+    setShowAnswerFeedback(true);
     if (isCorrect) {
-      // Correct answer - proceed to next question after short delay
-      console.log('✅ Correct answer!');
-      
-      // Wait 1 second to show correct answer, then proceed
-      setTimeout(async () => {
-        setShowCorrectAnswer(false);
-        setCorrectAnswerIndex(null);
-        await handleNextQuestion();
-      }, 1000);
+      setTimeout(() => proceedToNextStep(), 1200);
     } else {
-      // Wrong answer - start penalty
-      console.log('❌ Wrong answer! Starting penalty...');
-      startPenaltyTimer();
+      setTimeout(() => {
+        setShowAnswerFeedback(false);
+        setFeedbackIndex(null);
+        startPenaltyTimer();
+      }, 1200);
     }
   };
-
+  
   const startPenaltyTimer = () => {
     setIsPenaltyActive(true);
-    setPenaltyTime(20); // 20 second penalty
-    
-    console.log('⏰ Starting 20 second penalty timer...');
-    
+    setPenaltyTime(20);
     penaltyTimerRef.current = setInterval(() => {
       setPenaltyTime(prev => {
-        console.log('⏰ Penalty time remaining:', prev - 1);
         if (prev <= 1) {
-          console.log('✅ Penalty timer completed');
+          clearInterval(penaltyTimerRef.current);
           setIsPenaltyActive(false);
-          setShowCorrectAnswer(false); // Hide correct answer
-          setCorrectAnswerIndex(null);
-          if (penaltyTimerRef.current) {
-            clearInterval(penaltyTimerRef.current);
-          }
           return 0;
         }
         return prev - 1;
@@ -191,383 +135,58 @@ const QuizScreen = ({ navigation, route }) => {
     }, 1000);
   };
 
-  const handlePenaltyComplete = () => {
-    console.log('✅ Penalty completed manually');
-    setIsPenaltyActive(false);
-    setPenaltyTime(0);
-    setShowCorrectAnswer(false);
-    setCorrectAnswerIndex(null);
-    if (penaltyTimerRef.current) {
-      clearInterval(penaltyTimerRef.current);
-    }
-  };
-
-  const handleNextQuestion = async () => {
-    if (quizState.currentQuestionIndex < quizState.questions.length - 1) {
-      // Update progress
-      try {
-        const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
-        const selectedAnswerIndex = quizState.selectedAnswers[quizState.currentQuestionIndex];
-        
-        // Check if answer is selected
-        if (selectedAnswerIndex === undefined) {
-          console.log('⚠️ No answer selected for current question, skipping progress update');
-          setQuizState(prev => ({
-            ...prev,
-            currentQuestionIndex: prev.currentQuestionIndex + 1
-          }));
-          return;
-        }
-        
-        const isCorrect = checkAnswer(currentQuestion, selectedAnswerIndex);
-        
-        // Calculate actual time spent (since timer is disabled)
-        const actualTimeSpent = quizState.startTime ? 
-          Math.floor((Date.now() - quizState.startTime) / 1000) : 0;
-        
-        console.log('🔄 Updating progress with data:', {
-          questionId: currentQuestion._id,
-          selectedAnswer: selectedAnswerIndex,
-          isCorrect: isCorrect,
-          timeSpent: actualTimeSpent
-        });
-        
-        await updateQuizProgress(campaignId, {
-          questionId: currentQuestion._id,
-          selectedAnswer: selectedAnswerIndex,
-          isCorrect: isCorrect,
-          timeSpent: actualTimeSpent,
-          completed: false
-        });
-      } catch (error) {
-        console.error('❌ Update progress error:', error);
-      }
-      
-      setQuizState(prev => ({
-        ...prev,
-        currentQuestionIndex: prev.currentQuestionIndex + 1
-      }));
+  const proceedToNextStep = () => {
+    setShowAnswerFeedback(false);
+    setFeedbackIndex(null);
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      // Quiz completed
-      await handleQuizComplete();
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (quizState.currentQuestionIndex > 0) {
-      setQuizState(prev => ({
-        ...prev,
-        currentQuestionIndex: prev.currentQuestionIndex - 1
-      }));
-    }
-  };
-
-  const handleQuizComplete = async () => {
-    try {
-      // Stop timers
-      if (penaltyTimerRef.current) {
-        clearInterval(penaltyTimerRef.current);
-      }
-      
-      const completionTime = Date.now();
-      const totalTimeSpent = startTimeRef.current ? 
-        trackQuizCompletion(startTimeRef.current, completionTime) : 0;
-      
-      setQuizState(prev => ({
-        ...prev,
-        quizCompleted: true,
-        completionTime: totalTimeSpent
-      }));
-      
-      // Submit completion to backend
-      const completionData = {
-        totalTimeSpent,
-        score: 100, // All questions must be answered correctly
-        questionsAnswered: quizState.questions.length,
-        totalQuestions: quizState.questions.length
-      };
-      
-      console.log('🔄 Submitting quiz completion:', completionData);
-      await submitQuizCompletion(campaignId, completionData);
-      
       setShowResult(true);
-    } catch (error) {
-      console.error('❌ Submit completion error:', error);
-      Alert.alert('Error', 'Failed to submit quiz completion');
     }
   };
+  
+  if (loading) return (<View style={styles.centerContainer}><ActivityIndicator size="large" color={COLORS.PRIMARY} /></View>);
+  if (error) return (<View style={styles.centerContainer}><Text style={styles.errorText}>{error}</Text></View>);
+  if (questions.length === 0) return (<View style={styles.centerContainer}><Text style={styles.errorText}>No questions found.</Text></View>);
 
-  const handleRestartQuiz = () => {
-    setQuizState(getInitialQuizState());
-    setShowResult(false);
-    setPenaltyTime(0);
-    setIsPenaltyActive(false);
-    progress.setValue(0);
-    startTimeRef.current = null;
-    loadQuestions();
-  };
-
-  const onExit = () => {
-    handleQuizExit(navigation);
-  };
-
-  // Calculate score (should always be 100% if completed)
-  const score = quizState.quizCompleted ? 
-    { correct: quizState.questions.length, total: quizState.questions.length, percentage: 100 } :
-    calculateScore(quizState.questions, quizState.selectedAnswers);
-  const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
-  const hasSelectedAnswer = quizState.selectedAnswers[quizState.currentQuestionIndex] !== undefined;
-
-  // Loading state
-  if (quizState.loading) {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
-          <LinearGradient
-            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-            style={styles.gradientContainer}
-          >
-            <View style={styles.loadingContainer}>
-              <LinearGradient
-                colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-                style={styles.loadingGradient}
-              >
-                <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-                <Text style={styles.loadingText}>Loading questions...</Text>
-              </LinearGradient>
-            </View>
-          </LinearGradient>
-        </SafeAreaView>
-      </View>
-    );
-  }
-
-  // Error state
-  if (quizState.error) {
-    return (
-      <View style={styles.container}>
-        <SafeAreaView style={styles.safeArea} edges={['top']}>
-          <LinearGradient
-            colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-            style={styles.gradientContainer}
-          >
-            <View style={styles.errorContainer}>
-              <LinearGradient
-                colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-                style={styles.errorGradient}
-              >
-                <Text style={styles.errorText}>{quizState.error}</Text>
-                <TouchableOpacity 
-                  style={styles.retryButton}
-                  onPress={loadQuestions}
-                >
-                  <LinearGradient
-                    colors={[COLORS.PRIMARY, COLORS.PRIMARY]}
-                    style={styles.retryButtonGradient}
-                  >
-                    <Text style={styles.retryButtonText}>Try Again</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </LinearGradient>
-            </View>
-          </LinearGradient>
-        </SafeAreaView>
-      </View>
-    );
-  }
+  const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <LinearGradient
-          colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
-          style={styles.gradientContainer}
-        >
-          {/* Corner Gradients */}
-          <LinearGradient
-            colors={getCornerGradientColors()}
-            style={styles.topRightGradient}
-            start={{ x: 1, y: 0 }}
-            end={{ x: 0, y: 1 }}
-          />
-          <LinearGradient
-            colors={getCornerGradientColors().reverse()}
-            style={styles.bottomLeftGradient}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-          />
-          
-          <QuizHeader
-            campaignTitle={campaignTitle}
-            reward={reward}
-            onExit={onExit}
-            penaltyTime={isPenaltyActive ? penaltyTime : null}
-          />
-          
-          <QuizProgress
-            currentQuestionIndex={quizState.currentQuestionIndex}
-            totalQuestions={quizState.questions.length}
-            progressValue={progress}
-            isPenaltyActive={isPenaltyActive}
-            penaltyTime={penaltyTime}
-          />
-          
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            <QuizQuestion
-              questionNumber={quizState.currentQuestionIndex + 1}
-              questionText={currentQuestion?.questionText || currentQuestion?.question}
-            />
-            
-            <QuizOptions
-              options={currentQuestion?.options || []}
-              selectedAnswer={quizState.selectedAnswers[quizState.currentQuestionIndex]}
-              onAnswerSelect={handleAnswerSelect}
-              disabled={isPenaltyActive}
-              showCorrectAnswer={showCorrectAnswer}
-              correctAnswerIndex={correctAnswerIndex}
-            />
-            
-            <View style={styles.bottomSpacing} />
-          </ScrollView>
-
-          <QuizNavigation
-            currentQuestionIndex={quizState.currentQuestionIndex}
-            totalQuestions={quizState.questions.length}
-            hasSelectedAnswer={hasSelectedAnswer}
-            onPrevious={handlePreviousQuestion}
-            onNext={handleNextQuestion}
-            disabled={isPenaltyActive}
-          />
-
-          <QuizResultModal
-            visible={showResult}
-            score={score}
-            campaignTitle={campaignTitle}
-            reward={reward}
-            onRetry={handleRestartQuiz}
-            onHome={() => {
-              // Navigate back to main tabs and select campaigns tab
-              navigation.navigate('MainTabs', {
-                screen: 'Campaigns',
-                params: {
-                  refreshCampaigns: true,
-                  completedCampaignId: campaignId
-                }
-              });
-            }}
-            passPercentage={100} // All questions must be correct
-            timeSpent={quizState.completionTime}
-          />
-
-          {/* Removed QuizPenaltyModal */}
-        </LinearGradient>
-      </SafeAreaView>
-    </View>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <QuizHeader campaignTitle={campaignTitle} reward={reward} onExit={() => navigation.goBack()} />
+      <QuizProgress
+        currentQuestionIndex={currentQuestionIndex}
+        totalQuestions={questions.length}
+        progressValue={progress}
+        isPenaltyActive={isPenaltyActive}
+        penaltyTime={penaltyTime}
+      />
+      <View style={styles.content}>
+        <QuizQuestion questionNumber={currentQuestionIndex + 1} questionText={currentQuestion?.question} />
+        <QuizOptions
+          options={currentQuestion?.options || []}
+          onAnswerSelect={handleAnswerSelect}
+          disabled={isPenaltyActive || showAnswerFeedback}
+          showAnswerFeedback={showAnswerFeedback}
+          feedbackIndex={feedbackIndex}
+        />
+      </View>
+      <QuizResultModal
+        visible={showResult}
+        score={{ correct: questions.length, total: questions.length, percentage: 100 }}
+        campaignTitle={campaignTitle}
+        reward={reward}
+        onHome={() => navigation.navigate('MainTabs', { screen: 'Campaigns' })}
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  gradientContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  topRightGradient: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 250,
-    height: 250,
-    borderBottomLeftRadius: 125,
-  },
-  bottomLeftGradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: 250,
-    height: 250,
-    borderTopRightRadius: 125,
-  },
-  content: {
-    flex: 1,
-  },
-  bottomSpacing: {
-    height: 100,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingGradient: {
-    padding: Math.max(40, width * 0.1),
-    borderRadius: Math.max(20, width * 0.05),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  loadingText: {
-    marginTop: Math.max(10, width * 0.025),
-    ...getFontFamily('MEDIUM'),
-    color: COLORS.TEXT_PRIMARY,
-    fontSize: Math.max(18, width * 0.045),
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Math.max(20, width * 0.05),
-  },
-  errorGradient: {
-    padding: Math.max(40, width * 0.1),
-    borderRadius: Math.max(20, width * 0.05),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    alignItems: 'center',
-  },
-  errorText: {
-    color: COLORS.ERROR,
-    fontSize: Math.max(18, width * 0.045),
-    textAlign: 'center',
-    marginBottom: Math.max(20, width * 0.05),
-    ...getFontFamily('MEDIUM'),
-  },
-  retryButton: {
-    borderRadius: Math.max(8, width * 0.02),
-    overflow: 'hidden',
-    shadowColor: COLORS.SHADOW_PRIMARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  retryButtonGradient: {
-    paddingVertical: Math.max(10, width * 0.025),
-    paddingHorizontal: Math.max(20, width * 0.05),
-    borderRadius: Math.max(8, width * 0.02),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_PRIMARY,
-  },
-  retryButtonText: {
-    color: COLORS.TEXT_PRIMARY,
-    fontSize: Math.max(18, width * 0.045),
-    ...getFontFamily('BOLD'),
-  },
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.BACKGROUND },
+  content: { flex: 1, paddingVertical: 10 },
+  errorText: { color: 'white', textAlign: 'center', fontSize: 18 }
 });
 
-export default QuizScreen; 
+export default QuizScreen;

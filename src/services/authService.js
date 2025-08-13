@@ -4,29 +4,45 @@ import { storageService } from './AsyncStorage';
 import { refreshAuthToken, logout, isAuthenticated } from './api';
 
 export const authService = {
-  // Login
-  login: async (email, password) => {
-    try {
-      console.log('🔄 Attempting login for:', email);
-      
-      const response = await api.post('/user/login', {
-        email,
-        password,
-      });
-      
-      console.log('✅ Login response received:', {
-        success: response.data?.success,
-        isVerified: response.data?.data?.isVerified,
-        hasUser: !!response.data?.data?.user,
-        hasToken: !!response.data?.data?.token
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error('❌ Login error:', error);
-      throw error.response?.data || error.message;
+  
+login: async (email, password) => {
+  try {
+    console.log('🔄 Attempting login for:', email);
+    
+    const response = await api.post('/user/login', {
+      email,
+      password,
+    });
+
+    console.log('✅ Login response received:', {
+      success: response.data?.success,
+      isVerified: response.data?.data?.isVerified,
+      hasUser: !!response.data?.data?.user,
+      hasToken: !!response.data?.data?.token
+    });
+
+    if (response.data?.success) {
+      const { token, refreshToken, user } = response.data.data;
+
+      // Token ve refresh token kaydet
+      await storageService.setToken(token);
+      await storageService.setRefreshToken(refreshToken);
+
+      // Kullanıcı bilgilerini kaydet
+      if (user) {
+        await storageService.setUser(user);
+      }
+
+      console.log('💾 Tokens & user info saved to storage');
     }
-  },
+
+    return response.data;
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    throw error.response?.data || error.message;
+  }
+},
+
 
   // Register
   register: async userData => {

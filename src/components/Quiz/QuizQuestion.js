@@ -1,58 +1,62 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { View, Text, StyleSheet } from 'react-native';
 
-import { COLORS } from '../../constants/colorConstants';
-import { getFontFamily } from '../../constants/fontConstants';
-
-const { width } = Dimensions.get('window');
+const COLORS = {
+  PRIMARY: '#F7D648',
+  TEXT_PRIMARY: '#FFFFFF',
+  CARD_BACKGROUND: '#2A2A2A',
+  BORDER: 'rgba(247, 214, 72, 0.2)',
+};
 
 const QuizQuestion = ({ questionNumber, questionText }) => {
   return (
-    <View style={styles.questionContainer}>
-      <LinearGradient
-        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-        style={styles.questionGradient}
-      >
-        <Text style={styles.questionNumber}>
-          Question {questionNumber}
-        </Text>
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <View style={styles.numberContainer}>
+          <Text style={styles.numberText}>{questionNumber}</Text>
+        </View>
         <Text style={styles.questionText}>
           {questionText}
         </Text>
-      </LinearGradient>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  questionContainer: {
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingVertical: 24,
+  container: {
+    paddingHorizontal: 20,
+    marginVertical: 10,
   },
-  questionGradient: {
-    padding: Math.max(20, width * 0.05),
-    borderRadius: Math.max(16, width * 0.04),
+  card: {
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    borderColor: COLORS.BORDER,
   },
-  questionNumber: {
-    fontSize: Math.max(14, width * 0.035),
-    ...getFontFamily('SEMIBOLD'),
+  numberContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(247, 214, 72, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+    marginBottom: 16,
+  },
+  numberText: {
     color: COLORS.PRIMARY,
-    marginBottom: 8,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   questionText: {
-    fontSize: Math.max(18, width * 0.045),
-    ...getFontFamily('BOLD'),
     color: COLORS.TEXT_PRIMARY,
-    lineHeight: Math.max(26, width * 0.065),
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
   },
 });
 
-export default QuizQuestion; 
+export default QuizQuestion;

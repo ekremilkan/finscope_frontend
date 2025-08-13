@@ -1,128 +1,76 @@
 import React from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import LinearGradient from 'react-native-linear-gradient';
 
-import { COLORS } from '../../constants/colorConstants';
-import { getFontFamily } from '../../constants/fontConstants';
-
-const { width } = Dimensions.get('window');
+const COLORS = {
+  PRIMARY: '#F7D648',
+  TEXT_PRIMARY: '#FFFFFF',
+  TEXT_SECONDARY: '#A9A9A9',
+  CARD_BACKGROUND: '#2A2A2A',
+  ERROR: '#ef4444',
+};
 
 const QuizProgress = ({ 
   currentQuestionIndex, 
   totalQuestions, 
-  progressValue, 
-  isPenaltyActive = false,
-  penaltyTime = 0 
+  progressValue,
+  isPenaltyActive,
+  penaltyTime,
 }) => {
   return (
-    <View style={styles.progressContainer}>
-      <LinearGradient
-        colors={[COLORS.GLASS_BACKGROUND, COLORS.GLASS_BACKGROUND]}
-        style={styles.progressGradient}
-      >
-        <View style={styles.progressBar}>
-          <Animated.View 
-            style={[
-              styles.progressFill,
-              {
-                width: progressValue.interpolate({
-                  inputRange: [0, 100],
-                  outputRange: ['0%', '100%']
-                })
-              }
-            ]} 
-          />
-        </View>
+    <View style={styles.container}>
+      <View style={styles.progressTrack}>
+        <Animated.View 
+          style={[
+            styles.progressFill,
+            {
+              width: progressValue.interpolate({
+                inputRange: [0, 100],
+                outputRange: ['0%', '100%']
+              })
+            }
+          ]} 
+        />
+      </View>
+      <View style={styles.infoContainer}>
+        <Text style={styles.infoLabel}>PROGRESS</Text>
         
-        <View style={styles.progressInfo}>
-          <Text style={styles.progressText}>
-            {currentQuestionIndex + 1} / {totalQuestions}
+        {isPenaltyActive ? (
+          <View style={styles.penaltyContainer}>
+            <Icon name="timer-off" size={14} color={COLORS.ERROR} />
+            <Text style={styles.penaltyText}>{penaltyTime}s PENALTY</Text>
+          </View>
+        ) : (
+          <Text style={styles.infoCounter}>
+            Question {currentQuestionIndex + 1} / {totalQuestions}
           </Text>
-          
-          {isPenaltyActive && (
-            <View style={styles.penaltyIndicator}>
-              <LinearGradient
-                colors={[`${COLORS.ERROR}20`, `${COLORS.ERROR}10`]}
-                style={styles.penaltyGradient}
-              >
-                <Icon name="warning" size={16} color={COLORS.ERROR} />
-                <Text style={styles.penaltyText}>{penaltyTime}s</Text>
-              </LinearGradient>
-            </View>
-          )}
-        </View>
-      </LinearGradient>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  progressContainer: {
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  progressGradient: {
-    width: '100%',
-    padding: Math.max(16, width * 0.04),
-    borderRadius: Math.max(12, width * 0.03),
-    borderWidth: 1,
-    borderColor: COLORS.BORDER_SECONDARY,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  progressBar: {
-    width: '100%',
-    height: 8,
-    backgroundColor: COLORS.BORDER_SECONDARY,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: COLORS.PRIMARY,
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: Math.max(12, width * 0.03),
-    ...getFontFamily('MEDIUM'),
-    color: COLORS.TEXT_SECONDARY,
-  },
-  progressInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  },
-  penaltyIndicator: {
-    borderRadius: Math.max(8, width * 0.02),
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.ERROR,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  penaltyGradient: {
+  container: { paddingHorizontal: 20, paddingVertical: 16 },
+  progressTrack: { height: 10, backgroundColor: COLORS.CARD_BACKGROUND, borderRadius: 5, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: COLORS.PRIMARY, borderRadius: 5 },
+  infoContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
+  infoLabel: { color: COLORS.TEXT_SECONDARY, fontSize: 12, fontWeight: '600', letterSpacing: 1 },
+  infoCounter: { color: COLORS.TEXT_PRIMARY, fontSize: 14, fontWeight: '700' },
+  penaltyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: Math.max(8, width * 0.02),
-    paddingHorizontal: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    paddingHorizontal: 10,
     paddingVertical: 4,
+    borderRadius: 6,
   },
   penaltyText: {
     color: COLORS.ERROR,
-    fontSize: Math.max(10, width * 0.02),
-    ...getFontFamily('SEMIBOLD'),
-    marginLeft: 4,
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 6,
   },
 });
 
-export default QuizProgress; 
+export default QuizProgress;
