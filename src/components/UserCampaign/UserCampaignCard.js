@@ -7,7 +7,7 @@ import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
-// Geri sayım sayacı - Bu bileşende değişiklik yok.
+// Geri sayım sayacı
 const CountdownTimer = ({ startDate, endDate, status }) => {
   const [timeLeft, setTimeLeft] = useState('');
   useEffect(() => {
@@ -48,7 +48,7 @@ const CountdownTimer = ({ startDate, endDate, status }) => {
 const UserCampaignCard = ({ campaign, onPress }) => {
   if (!campaign) return null;
 
-  // --- 1. Veri ve Durum Değişkenlerini Tanımla ---
+  // --- Veri ve Durum Değişkenleri ---
   const toDisplayValue = (value, fallback = 0) => (typeof value === 'object' && value !== null) ? fallback : (value || fallback);
   const totalCurrentParticipants = toDisplayValue(campaign.participants);
   const totalMaxParticipants = toDisplayValue(campaign.maxParticipants, 1);
@@ -71,9 +71,9 @@ const UserCampaignCard = ({ campaign, onPress }) => {
 
   const handlePressAction = () => { if (onPress) { onPress(); } };
 
-  // --- 2. Tüm Mantığı Tek Bir Yerde Topla ---
+  // --- Tüm Durum ve Buton Mantığı ---
   const getCardState = () => {
-    // ÖNCELİK 1: Kullanıcı tamamladıysa, her şey biter.
+    // 1. ÖNCELİK: Kullanıcı tamamladıysa.
     if (isCompleted) {
       return {
         statusText: 'Success',
@@ -84,30 +84,30 @@ const UserCampaignCard = ({ campaign, onPress }) => {
       };
     }
 
-    // ÖNCELİK 2: Kampanya süresi bittiyse ve tamamlanmadıysa.
+    // 2. ÖNCELİK: Kampanya süresi bittiyse (ve tamamlanmadıysa).
     if (isExpired) {
       return {
         statusText: 'Missed',
         statusColor: COLORS.ERROR,
         buttonText: 'View Details',
         buttonIcon: 'visibility',
-        isButtonDisabled: false, // Detayları görebilir
+        isButtonDisabled: false,
       };
     }
     
-    // ÖNCELİK 3: Kampanya aktifse.
+    // 3. ÖNCELİK: Kampanya aktifse.
     if (isActive) {
-      // Eğer kullanıcı katılmış ama bitirmemişse
+      // ✅ DEĞİŞİKLİK: Eğer kullanıcı katılmış ama bitirmemişse buton "Continue" olur.
       if (userJoined) {
         return {
-          statusText: 'Active', // "In Progress" yazısı kaldırıldı
+          statusText: 'Active',
           statusColor: COLORS.PRIMARY,
           buttonText: 'Continue',
           buttonIcon: 'play-arrow',
           isButtonDisabled: false,
         };
       }
-      // Eğer aktif ama kullanıcı henüz katılmamışsa
+      // Eğer aktif ama kullanıcı henüz katılmamışsa buton "View Details" olur.
       return {
         statusText: 'Active',
         statusColor: COLORS.PRIMARY,
@@ -117,7 +117,7 @@ const UserCampaignCard = ({ campaign, onPress }) => {
       };
     }
 
-    // ÖNCELİK 4: Kampanya yaklaşıyorsa.
+    // 4. ÖNCELİK: Kampanya yaklaşıyorsa.
     if (campaignStatus === 'upcoming') {
       return {
         statusText: 'Upcoming',

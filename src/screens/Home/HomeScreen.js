@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Dimensions, StatusBar, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Dimensions, StatusBar, RefreshControl } from 'react-native'; // RefreshControl import edildi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { useFocusEffect } from '@react-navigation/native'; // useFocusEffect import edildi
+import { useFocusEffect } from '@react-navigation/native';
 
 // Data imports
 import { HOME_USER_DATA, QUICK_ACTIONS } from '../../data/homeData';
@@ -28,57 +28,80 @@ const HomeScreen = ({ navigation }) => {
   const [userData, setUserData] = useState(HOME_USER_DATA);
   const [activeCampaigns, setActiveCampaigns] = useState([]);
   const [loadingCampaigns, setLoadingCampaigns] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // ✅ YENİ: Yenileme durumu için state
   const [activeTab, setActiveTab] = useState('home');
 
-  // ✅ DEĞİŞİKLİK 1: Veri çekme mantığı useFocusEffect içine alındı.
-  // Bu sayede kullanıcı ana sayfaya her döndüğünde en güncel veriler çekilir.
-  useFocusEffect(
-    useCallback(() => {
-      loadUserData(setUserData);
-      loadActiveCampaigns();
-    }, [])
-  );
-
-  // ✅ DEĞİŞİKLİK 2: Fonksiyon artık kullanıcı ilerlemesini de çekip birleştiriyor.
-  const loadActiveCampaigns = async () => {
-    try {
+  const loadActiveCampaigns = useCallback(async () => {
+    // Sadece ilk yüklemede loading indicator göster, refresh sırasında değil.
+    if (!refreshing) {
       setLoadingCampaigns(true);
+    }
+    try {
       const allCampaigns = await campaignService.getAllCampaigns();
-      if (!Array.isArray(allCampaigns) || allCampaigns.length === 0) {
+      if (!Array.isArray(allCampaigns)) {
         setActiveCampaigns([]);
         return;
       }
 
-      // Her kampanya için kullanıcı ilerlemesini çek
+      // ✅ DEĞİŞİKLİK: Veri birleştirme mantığı güncellendi
       const progressPromises = allCampaigns.map(campaign =>
         campaignService.getUserProgress(campaign._id).catch(() => null)
       );
       const userProgressResults = await Promise.all(progressPromises);
 
-      // Verileri birleştir
       const mergedCampaigns = allCampaigns.map((campaign, index) => {
         const progress = userProgressResults[index];
         let userStatus = null;
         if (progress) {
-          userStatus = progress.completed ? 'completed' : 'in-progress';
+          if (progress.completed) {
+            // Tamamlanmışsa
+            userStatus = 'completed';
+          } else if (progress.progress && progress.progress.currentQuestion > 0) {
+            // Katılmış VE en az 1 soru cevaplamışsa (yarım bırakmışsa)
+            userStatus = 'in-progress';
+          }
+          // Not: Eğer progress var ama currentQuestion = 0 ise, userStatus 'null' kalır
+          // ve kart bunu "henüz başlanmamış" olarak yorumlar.
         }
         return { ...campaign, userStatus };
       });
       
-      // Ana sayfada gösterilecek kampanyaları filtrele (örneğin sadece ilk 4 tanesi)
       const campaignsToShow = mergedCampaigns
-        .filter(campaign => ['active', 'upcoming', 'completed', 'in-progress'].includes(campaign?.userStatus) || ['active', 'upcoming', 'expired'].includes(campaign?.status) )
+        .filter(c => ['active', 'upcoming', 'completed', 'in-progress'].includes(c?.userStatus) || ['active', 'upcoming', 'expired'].includes(c?.status))
         .slice(0, 4);
         
       setActiveCampaigns(campaignsToShow);
-
     } catch (error) {
-      console.error('❌ Load campaigns error on Home:', error);
+      console.error('⌐ Load campaigns error on Home:', error);
       setActiveCampaigns([]);
     } finally {
       setLoadingCampaigns(false);
+      setRefreshing(false); // Yenileme işlemini bitir
     }
-  };
+  }, [refreshing]); // refreshing state'ine bağlandı
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData(setUserData);
+      loadActiveCampaigns();
+    }, [loadActiveCampaigns])
+  );
+
+  // Real-time güncelleme için useEffect (kampanya sürelerini güncellemek için)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Kampanya sürelerini güncellemek için component'ları yeniden render et
+      setActiveCampaigns(prev => [...prev]);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ✅ YENİ: Yenileme işlemini başlatan fonksiyon
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Yenileme başladığında loadActiveCampaigns tekrar çağrılır.
+  }, []);
 
   const handleTabPress = (itemId) => {
     handleTabNavigation(itemId, activeTab, setActiveTab, navigation);
@@ -113,11 +136,20 @@ const HomeScreen = ({ navigation }) => {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            // ✅ YENİ: ScrollView'a RefreshControl eklendi
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={[COLORS.PRIMARY]}
+                tintColor={COLORS.PRIMARY}
+              />
+            }
           >
             <View style={styles.contentWrapper}>
               <HomeActiveCampaigns 
                 activeCampaigns={activeCampaigns}
-                onCampaignPress={handleCampaignPress} // Prop adı onCampaignPress olarak güncellendi
+                onCampaignPress={handleCampaignPress}
                 isLoading={loadingCampaigns}
               />
               
@@ -134,15 +166,15 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
-  safeArea: { flex: 1 },
-  gradientContainer: { flex: 1 },
-  topRightGradient: { position: 'absolute', top: 0, right: 0, width: width * 0.7, height: height * 0.6, borderBottomLeftRadius: 200 },
-  bottomLeftGradient: { position: 'absolute', bottom: 0, left: 0, width: width * 0.7, height: height * 0.6, borderTopRightRadius: 200 },
-  scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: Math.max(32, height * 0.08) },
-  contentWrapper: { paddingHorizontal: Math.max(20, width * 0.05) },
-  sectionSpacer: { height: Math.max(24, height * 0.03) },
+  container: { flex: 1, backgroundColor: COLORS.BACKGROUND, },
+  safeArea: { flex: 1, },
+  gradientContainer: { flex: 1, },
+  topRightGradient: { position: 'absolute', top: 0, right: 0, width: width * 0.7, height: height * 0.6, borderBottomLeftRadius: 200, },
+  bottomLeftGradient: { position: 'absolute', bottom: 0, left: 0, width: width * 0.7, height: height * 0.6, borderTopRightRadius: 200, },
+  scrollView: { flex: 1, },
+  scrollContent: { paddingBottom: Math.max(32, height * 0.08), },
+  contentWrapper: { paddingHorizontal: Math.max(20, width * 0.05), },
+  sectionSpacer: { height: Math.max(24, height * 0.03), },
 });
 
 export default HomeScreen;

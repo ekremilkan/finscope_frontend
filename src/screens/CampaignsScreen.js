@@ -12,8 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
-// ✅ HATA BURADAYDI: Eksik olan import satırı eklendi.
 import LinearGradient from 'react-native-linear-gradient';
 
 import campaignService from '../services/campaignService';
@@ -48,18 +46,26 @@ const CampaignsScreen = ({ navigation }) => {
 
       const progressPromises = campaignsData.map(campaign =>
         campaignService.getUserProgress(campaign._id).catch(err => {
-          console.log(`'${campaign.title}' için progress alınamadı, muhtemelen kullanıcı katılmamış.`);
           return null;
         })
       );
       
       const userProgressResults = await Promise.all(progressPromises);
 
+      // ✅ DEĞİŞİKLİK: Veri birleştirme mantığı güncellendi.
       const mergedCampaigns = campaignsData.map((campaign, index) => {
         const progress = userProgressResults[index];
         let userStatus = null;
         if (progress) {
-          userStatus = progress.completed ? 'completed' : 'in-progress';
+          if (progress.completed) {
+            // Tamamlanmışsa
+            userStatus = 'completed';
+          } else if (progress.progress && progress.progress.currentQuestion > 0) {
+            // Katılmış VE en az 1 soru cevaplamışsa (yarım bırakmışsa)
+            userStatus = 'in-progress';
+          }
+          // Not: Eğer progress var ama currentQuestion = 0 ise, userStatus 'null' kalır
+          // ve kart bunu "henüz başlanmamış" olarak yorumlar.
         }
         return { ...campaign, userStatus };
       });
@@ -128,7 +134,6 @@ const CampaignsScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Bu bileşen artık sorunsuz çalışacak */}
         <LinearGradient colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]} style={styles.gradientContainer}>
           <UserCampaignHeader navigation={navigation} campaignCount={filteredCampaigns.length} />
           <UserCampaignFilters selectedFilter={selectedFilter} onFilterChange={setSelectedFilter} />

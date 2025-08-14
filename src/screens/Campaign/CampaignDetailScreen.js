@@ -9,7 +9,9 @@ import {
   ActivityIndicator,
   Image,
   Alert,
-  Linking
+  Linking,
+  RefreshControl,
+  PanResponder
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -57,52 +59,75 @@ const CountdownTimer = ({ startDate, endDate, status, onStatusChange }) => {
 };
 
 const CampaignDetailScreen = ({ navigation, route }) => {
-  // ✅ DEĞİŞİKLİK 1: Ekranın ilk state'i, liste ekranından gelen güvenilir veri ile başlar.
-  const [campaign, setCampaign] = useState(route.params?.campaign);
-  const campaignId = campaign?._id;
+  const { campaign: initialCampaign } = route.params;
+  const campaignId = initialCampaign?._id;
 
+  const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [isJoining, setIsJoining] = useState(false);
   const [activeContentIndex, setActiveContentIndex] = useState(0);
   const horizontalScrollViewRef = useRef(null);
 
+  // ✅ DEĞİŞİKLİK: Veri çekme mantığı, önerdiğiniz gibi yeniden yapılandırıldı.
+  const fetchCampaignData = useCallback(async (isRefresh = false) => {
+    if (!campaignId) {
+      setError("Campaign ID not found.");
+      return;
+    }
+    
+    if (!isRefresh) {
+      setLoading(true);
+    }
+    setError(null);
+
+    try {
+      // 1. İki API isteğini aynı anda başlat
+      const [campaignData, userProgress] = await Promise.all([
+        campaignService.getCampaignById(campaignId),
+        campaignService.getUserProgress(campaignId).catch(() => null) // Kullanıcı katılmamışsa hata vermez, null döner
+      ]);
+
+      // 2. Gelen verileri birleştirerek nihai `campaign` objesini oluştur
+      let userStatus = null;
+      if (userProgress) {
+        userStatus = userProgress.completed ? 'completed' : 'in-progress';
+      }
+
+      setCampaign({
+        ...campaignData,
+        userStatus: userStatus,
+      });
+
+    } catch (err) {
+      setError('Failed to load campaign details.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [campaignId]);
+
   useFocusEffect(
     useCallback(() => {
-      // Güvenilir başlangıç verisini bir değişkene al
-      const initialDataFromList = route.params?.campaign;
-
-      const fetchFullCampaignDetails = async () => {
-        if (!campaignId) {
-          setError('Campaign ID not found.');
-          setLoading(false);
-          return;
-        }
-        setLoading(true);
-        try {
-          // Arka planda zengin içeriği çek
-          const fullCampaignDataFromServer = await campaignService.getCampaignById(campaignId);
-
-          // ✅ DEĞİŞİKLİK 2: Verileri akıllıca birleştir.
-          // Detaydan gelen tüm veriyi al, ama `userStatus` olarak her zaman
-          // liste ekranından gelen güvenilir veriyi kullan.
-          setCampaign({
-            ...fullCampaignDataFromServer,
-            userStatus: initialDataFromList?.userStatus 
-          });
-
-        } catch (err) {
-          setError('Failed to load full campaign details.');
-          // Hata durumunda bile ilk gelen veriyi koru
-          setCampaign(initialDataFromList);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchFullCampaignDetails();
-    }, [campaignId, route.params?.campaign])
+      fetchCampaignData();
+    }, [fetchCampaignData])
   );
+  
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchCampaignData(true);
+  }, [fetchCampaignData]);
+
+  // Real-time güncelleme için useEffect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Component'ı yeniden render etmek için state'i güncelle
+      setCampaign(prev => prev ? { ...prev } : null);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const { timeLeft } = CountdownTimer({
     startDate: campaign?.startDate,
@@ -112,6 +137,39 @@ const CampaignDetailScreen = ({ navigation, route }) => {
       setCampaign(prev => (prev ? { ...prev, status: newStatus } : null));
     },
   });
+
+  // Kampanya bitiş süresini hesaplama fonksiyonu
+  const getCampaignEndTime = () => {
+    if (!campaign?.endDate) return { text: 'N/A', icon: 'schedule', color: COLORS.TEXT_DISABLED };
+    
+    const now = new Date();
+    const end = new Date(campaign.endDate);
+    const difference = end - now;
+
+    if (difference <= 0) {
+      return { text: 'Finished', icon: 'event-busy', color: COLORS.ERROR };
+    }
+
+    // 1 saat = 3600000 ms
+    if (difference < 3600000) {
+      const minutes = Math.floor(difference / (1000 * 60));
+      const seconds = Math.floor((difference / 1000) % 60);
+      return { 
+        text: `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`, 
+        icon: 'timer', 
+        color: COLORS.WARNING 
+      };
+    }
+
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+    
+    if (days > 0) {
+      return { text: `${days}d ${hours}h`, icon: 'schedule', color: COLORS.INFO };
+    } else {
+      return { text: `${hours}h`, icon: 'schedule', color: COLORS.INFO };
+    }
+  };
 
    const handleOpenVideo = async (url) => {
     if (!url) return;
@@ -123,16 +181,29 @@ const CampaignDetailScreen = ({ navigation, route }) => {
     }
   };
 
-  if (!campaign) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.fullScreenContainer}>
-          {loading ? <ActivityIndicator size="large" color={COLORS.PRIMARY} /> : <Text style={styles.errorText}>Campaign data is missing.</Text>}
+          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         </View>
       </SafeAreaView>
     );
   }
 
+  if (error || !campaign) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.fullScreenContainer}>
+          <Icon name="error-outline" size={48} color={COLORS.PRIMARY} />
+          <Text style={styles.errorText}>{error || 'Campaign could not be loaded.'}</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const handleStartQuiz = async () => {
     if (isJoining) return;
@@ -185,20 +256,69 @@ const CampaignDetailScreen = ({ navigation, route }) => {
   
   const renderHeroImage = () => {
     const imageUrl = campaign?.images?.[0];
-    return ( <View>{imageUrl ? <Image source={{ uri: imageUrl }} style={styles.heroImage} /> : <View style={[styles.heroImage, { backgroundColor: COLORS.CARD_BACKGROUND, justifyContent: 'center', alignItems: 'center' }]}><Icon name="campaign" size={48} color={COLORS.PRIMARY} /></View>}</View> );
+    return (
+      <View>
+        {imageUrl ? (
+          <Image 
+            source={{ uri: imageUrl }} 
+            style={styles.heroImage}
+            onError={(e) => console.log('Image Load Error: ', e.nativeEvent.error)}
+          />
+        ) : (
+          <View style={[styles.heroImage, { backgroundColor: COLORS.CARD_BACKGROUND, justifyContent: 'center', alignItems: 'center' }]}>
+            <Icon name="campaign" size={48} color={COLORS.PRIMARY} />
+          </View>
+        )}
+      </View>
+    );
   };
   
   const renderCampaignInfo = () => {
-    const totalParticipants = campaign.currentParticipants ? Object.values(campaign.currentParticipants).reduce((sum, count) => sum + count, 0) : 0;
+    // Toplam katılımcı sayısını hesapla - API'den gelen currentParticipants objesi
+    const totalParticipants = campaign.currentParticipants ? 
+      Object.values(campaign.currentParticipants).reduce((sum, count) => sum + count, 0) : 0;
+    
+    // Soru sayısını al - API'den direkt sayı geliyorsa kullan, yoksa questionIds array'inin uzunluğunu al
+    const questionCount = campaign.questions || campaign.questionIds?.length || 0;
+    
+    const endTimeInfo = getCampaignEndTime();
+    
     return (
       <View style={styles.infoContainer}>
         <Text style={styles.mainTitle}>{campaign.title}</Text>
         <Text style={styles.descriptionText}>{campaign.description}</Text>
-        {campaign.tags?.length > 0 && (<View style={styles.tagsContainer}>{campaign.tags.map((tag, index) => <View key={index} style={styles.tag}><Text style={styles.tagText}>{tag}</Text></View>)}</View>)}
+        {campaign.tags?.length > 0 && (
+          <View style={styles.tagsContainer}>
+            {campaign.tags.map((tag, index) => (
+              <View key={index} style={styles.tag}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
         <View style={styles.statsContainer}>
-          <View style={styles.statItem}><Icon name="people" size={20} color={COLORS.PRIMARY} /><Text style={styles.statValue}>{totalParticipants}</Text><Text style={styles.statLabel}>Participants</Text></View>
-          <View style={styles.statItem}><Icon name="quiz" size={20} color={COLORS.INFO} /><Text style={styles.statValue}>{campaign.questions?.length || 0}</Text><Text style={styles.statLabel}>Questions</Text></View>
-          <View style={styles.statItem}><Icon name="monetization-on" size={20} color={COLORS.SUCCESS} /><Text style={styles.statValue}>{campaign.reward || 0}</Text><Text style={styles.statLabel}>USDT Reward</Text></View>
+          <View style={styles.statItem}>
+            <Icon name="people" size={20} color={COLORS.PRIMARY} />
+            <Text style={styles.statValue}>{totalParticipants}</Text>
+            <Text style={styles.statLabel}>Participants</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Icon name="quiz" size={20} color={COLORS.INFO} />
+            <Text style={styles.statValue}>{questionCount}</Text>
+            <Text style={styles.statLabel}>Questions</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Icon name="monetization-on" size={20} color={COLORS.SUCCESS} />
+            <Text style={styles.statValue}>{campaign.reward || 0}</Text>
+            <Text style={styles.statLabel}>USDT Reward</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Icon name={endTimeInfo.icon} size={20} color={endTimeInfo.color} />
+            <Text style={[styles.statValue, { color: endTimeInfo.color }]}>
+              {endTimeInfo.text}
+            </Text>
+            <Text style={styles.statLabel}>Time Left</Text>
+          </View>
         </View>
       </View>
     );
@@ -206,15 +326,93 @@ const CampaignDetailScreen = ({ navigation, route }) => {
 
   const renderContentSlider = () => {
     if (!campaign.content || campaign.content.length === 0) return null;
+    
+    const createPanResponder = (itemIndex) => {
+      return PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (evt, gestureState) => {
+          // Sadece yatay hareket için gesture'ı etkinleştir
+          return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 10;
+        },
+        onPanResponderGrant: () => {
+          // Gesture başladığında ScrollView'ı devre dışı bırak
+          horizontalScrollViewRef.current?.setNativeProps({ scrollEnabled: false });
+        },
+        onPanResponderMove: (evt, gestureState) => {
+          // Hareket sırasında herhangi bir şey yapmıyoruz, sadece izliyoruz
+        },
+        onPanResponderRelease: (evt, gestureState) => {
+          // ScrollView'ı tekrar etkinleştir
+          horizontalScrollViewRef.current?.setNativeProps({ scrollEnabled: true });
+          
+          const { dx } = gestureState;
+          const threshold = 50; // Minimum kaydırma mesafesi
+          
+          if (Math.abs(dx) > threshold) {
+            if (dx > 0) {
+              // Sağa kaydırma - önceki içeriğe git
+              if (activeContentIndex > 0) {
+                horizontalScrollViewRef.current?.scrollTo({ 
+                  x: (activeContentIndex - 1) * width, 
+                  animated: true 
+                });
+              }
+            } else {
+              // Sola kaydırma - sonraki içeriğe git
+              if (activeContentIndex < campaign.content.length - 1) {
+                horizontalScrollViewRef.current?.scrollTo({ 
+                  x: (activeContentIndex + 1) * width, 
+                  animated: true 
+                });
+              }
+            }
+          }
+        },
+        onPanResponderTerminate: () => {
+          // Gesture iptal edilirse ScrollView'ı tekrar etkinleştir
+          horizontalScrollViewRef.current?.setNativeProps({ scrollEnabled: true });
+        },
+      });
+    };
+    
     return (
       <View style={styles.sliderContainer}>
-        <View style={styles.sliderHeader}><Text style={styles.areaTitle}>Campaign Content</Text><Text style={styles.progressText}>{activeContentIndex + 1} / {campaign.content.length}</Text></View>
-        <ScrollView ref={horizontalScrollViewRef} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16} style={styles.horizontalScrollView}>
-          {campaign.content.map((item) => (
+        <View style={styles.sliderHeader}>
+          <Text style={styles.areaTitle}>Campaign Content</Text>
+          <Text style={styles.progressText}>{activeContentIndex + 1} / {campaign.content.length}</Text>
+        </View>
+        <ScrollView 
+          ref={horizontalScrollViewRef} 
+          horizontal 
+          pagingEnabled 
+          showsHorizontalScrollIndicator={false} 
+          onScroll={onScroll} 
+          scrollEventThrottle={16} 
+          style={styles.horizontalScrollView}
+        >
+          {campaign.content.map((item, index) => (
             <View key={item._id} style={styles.pageContainer}>
-              <View style={styles.contentCard}>
-                <View style={styles.cardTextContainer}><Text style={styles.itemTitle}>{item.itemTitle}</Text><Text style={styles.itemDescription}>{item.itemDescription}</Text></View>
-                {(item.itemVideo || item.itemImage) && (<View style={styles.mediaContainer}>{item.itemImage && <Image source={{ uri: item.itemImage }} style={styles.itemImage} />}{item.itemVideo && (<TouchableOpacity style={styles.videoOverlay} onPress={() => handleOpenVideo(item.itemVideo)}><Icon name="play-circle-outline" size={64} color="white" style={styles.playIcon} /></TouchableOpacity>)}</View>)}
+              <View 
+                style={styles.contentCard}
+                {...createPanResponder(index).panHandlers}
+              >
+                <View style={styles.cardTextContainer}>
+                  <Text style={styles.itemTitle}>{item.itemTitle}</Text>
+                  <Text style={styles.itemDescription}>{item.itemDescription}</Text>
+                </View>
+                {(item.itemVideo || item.itemImage) && (
+                  <View style={styles.mediaContainer}>
+                    {item.itemImage && <Image source={{ uri: item.itemImage }} style={styles.itemImage} />}
+                    {item.itemVideo && (
+                      <TouchableOpacity 
+                        style={styles.videoOverlay} 
+                        onPress={() => handleOpenVideo(item.itemVideo)}
+                      >
+                        <Icon name="play-circle-outline" size={64} color="white" style={styles.playIcon} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
               </View>
             </View>
           ))}
@@ -224,14 +422,13 @@ const CampaignDetailScreen = ({ navigation, route }) => {
   };
 
   const renderFooter = () => {
-    // Bu mantık artık her zaman doğru `campaign` objesi ile çalışacak
     if (campaign.userStatus === 'completed') {
       return (
         <View style={styles.footer}>
-            <View style={[styles.navButton, styles.completedButton]}>
-                <Icon name="check" size={24} color={COLORS.BACKGROUND} />
-                <Text style={[styles.navButtonText, styles.completedButtonText]}>Completed</Text>
-            </View>
+          <View style={[styles.navButton, styles.completedButton]}>
+            <Icon name="check" size={24} color={COLORS.BACKGROUND} />
+            <Text style={[styles.navButtonText, styles.completedButtonText]}>Completed</Text>
+          </View>
         </View>
       );
     }
@@ -272,7 +469,17 @@ const CampaignDetailScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={{ flex: 1, backgroundColor: COLORS.BACKGROUND }}>
         {renderDetailHeader()}
-        <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+        <ScrollView 
+            contentContainerStyle={{ paddingBottom: 120 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={[COLORS.PRIMARY]}
+                tintColor={COLORS.PRIMARY}
+              />
+            }
+        >
             {renderHeroImage()}
             {renderCampaignInfo()}
             {renderContentSlider()}
