@@ -21,8 +21,8 @@ const isDevelopment = __DEV__;
 export const API_CONFIG = {
   BASE_URL: isDevelopment 
     ? Platform.OS === 'ios'
-      ? `http://localhost:5005/api/v1`
-      : `http://192.168.1.107:5005/api/v1`
+      ? `https://finscope.app/api/v1`
+      : `https://finscope.app/api/v1`
     : ENV_VALUES.PRODUCTION_API_URL,
     
   TIMEOUT: 10000,
@@ -43,7 +43,7 @@ export const API_CONFIG = {
     BASE_URL: isDevelopment 
       ? Platform.OS === 'ios'
         ? `https://finscope.app/api/v1`
-        : `https://10.0.2.2:5005/api/v1`
+        : `https://finscope.app/api/v1`
       : ENV_VALUES.PRODUCTION_API_URL
   }
 };
