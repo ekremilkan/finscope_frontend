@@ -1,162 +1,97 @@
+// services/campaign.service.js
 import api from './api';
-import { storageService } from './AsyncStorage';
 
-// Campaign Service Class
 class CampaignService {
   constructor() {
     this.baseURL = '/campaigns';
-    this.cache = new Map();
-    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
   }
 
-  // Get all campaigns (Public endpoint)
-  async getAllCampaigns() {
+  async _request(method, url, data = null) {
     try {
-      console.log('🔄 Fetching campaigns from API...');
-      
-      const response = await api.get(`${this.baseURL}/all`);
-      
-      console.log('📡 API Response:', {
-        status: response.status,
-        success: response.data?.success,
-        dataType: typeof response.data?.data,
-        dataLength: response.data?.data?.length
+      console.log(`🔄 [${method.toUpperCase()}] Request: ${url}`);
+      const response = await api[method](url, data);
+
+      if (response.data && response.data.success) {
+        console.log(`✅ [${method.toUpperCase()}] Success: ${url}`);
+        return response.data.data;
+      } else {
+        const errorMessage = response.data?.message || `API error: ${url}`;
+        console.error('❌ API Response Error:', errorMessage, response.data);
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred.';
+      console.error(`❌ [${method.toUpperCase()}] Critical Error: ${url}`, {
+        message: errorMessage,
+        responseData: error.response?.data
       });
-      
-      if (response.data?.success && Array.isArray(response.data.data)) {
-        const campaigns = response.data.data;
-        console.log('✅ Campaigns fetched successfully:', campaigns.length);
-        return campaigns;
-      } else if (response.data?.success && !Array.isArray(response.data.data)) {
-        console.error('❌ API returned success but data is not an array:', response.data.data);
-        throw new Error('Invalid API response format - data is not an array');
-      } else {
-        console.error('❌ API returned error:', response.data);
-        throw new Error(response.data?.message || 'Failed to fetch campaigns');
-      }
-    } catch (error) {
-      console.error('❌ Campaign fetch error:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
-  // Get campaign by ID (Auth required)
-  async getCampaignById(campaignId) {
-    try {
-      console.log('🔄 Fetching campaign details for ID:', campaignId);
-      const response = await api.get(`${this.baseURL}/${campaignId}`);
-      
-      if (response.data.success) {
-        console.log('✅ Campaign details fetched successfully');
-        return response.data.data;
-      } else {
-        throw new Error(response.data.message || 'Failed to fetch campaign details');
-      }
-    } catch (error) {
-      console.error('❌ Campaign details fetch error:', error);
-      throw error;
-    }
+  // Kampanya oluştur (Admin / Customer)
+  createCampaign(campaignData) {
+    return this._request('post', `${this.baseURL}/create`, campaignData);
   }
 
-  // Get campaign questions (Auth required)
-  async getCampaignQuestions(campaignId) {
-    try {
-      console.log('🔄 Fetching campaign questions for ID:', campaignId);
-      const response = await api.get(`/questions/campaign/${campaignId}`);
-      
-      if (response.data.success) {
-        console.log('✅ Campaign questions fetched successfully');
-        return response.data.data;
-      } else {
-        throw new Error(response.data.message || 'Failed to fetch campaign questions');
-      }
-    } catch (error) {
-      console.error('❌ Campaign questions fetch error:', error);
-      throw error;
-    }
+  // Tüm kampanyalar (Auth required)
+   getAllCampaigns() {
+    // Önbelleği atlamak için URL'nin sonuna benzersiz bir zaman damgası ekliyoruz.
+    const urlWithCacheBust = `${this.baseURL}/all?_t=${new Date().getTime()}`;
+    return this._request('get', urlWithCacheBust);
   }
 
-  // Join campaign (Real API call)
-  async joinCampaign(campaignId) {
-    try {
-      console.log('🔄 Joining campaign:', campaignId);
-      const response = await api.post(`/campaigns/${campaignId}/join`);
-      
-      if (response.data.success) {
-        console.log('✅ Successfully joined campaign');
-        return true;
-      } else {
-        console.error('❌ Join campaign failed:', response.data.message);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ Join campaign error:', error);
-      throw error;
-    }
+
+  // ID'ye göre kampanya
+  getCampaignById(campaignId) {
+    return this._request('get', `${this.baseURL}/${campaignId}`);
   }
 
-  // Update quiz progress (Real API call)
-  async updateQuizProgress(campaignId, progressData) {
-    try {
-      console.log('🔄 Updating quiz progress for campaign:', campaignId);
-      const response = await api.put(`${this.baseURL}/${campaignId}/progress`, progressData);
-      
-      if (response.data.success) {
-        console.log('✅ Quiz progress updated successfully');
-        return response.data.data;
-      } else {
-        throw new Error(response.data.message || 'Failed to update quiz progress');
-      }
-    } catch (error) {
-      console.error('❌ Update quiz progress error:', error);
-      throw error;
-    }
+  // Kullanıcının progress'i
+  getUserProgress(campaignId) {
+    return this._request('get', `${this.baseURL}/${campaignId}/user-progress`);
   }
 
-  // Get user campaign progress (Real API call)
-  async getUserCampaignProgress(campaignId) {
-    try {
-      console.log('🔄 Getting user progress for campaign:', campaignId);
-      const response = await api.get(`${this.baseURL}/${campaignId}/user-progress`);
-      
-      if (response.data.success) {
-        console.log('✅ User progress fetched successfully');
-        return response.data.data;
-      } else {
-        throw new Error(response.data.message || 'Failed to fetch user progress');
-      }
-    } catch (error) {
-      console.error('❌ Get user progress error:', error);
-      throw error;
-    }
+  // Kampanyaya katıl
+  joinCampaign(campaignId) {
+    return this._request('post', `${this.baseURL}/${campaignId}/join`, {});
   }
 
-  // Cache management
-  setCache(key, data) {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now()
-    });
+  // Progress güncelle
+  updateProgress(campaignId, progressData) {
+    return this._request('put', `${this.baseURL}/${campaignId}/progress`, progressData);
   }
 
-  getFromCache(key) {
-    const cached = this.cache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-      return cached.data;
-    }
-    return null;
+  // Quiz tamamla
+  completeQuiz(campaignId, completionData) {
+    return this._request('post', `${this.baseURL}/${campaignId}/complete`, completionData);
   }
 
-  clearCache() {
-    this.cache.clear();
+  // Kampanya güncelle
+  updateCampaign(campaignId, campaignData) {
+    return this._request('put', `${this.baseURL}/${campaignId}`, campaignData);
+  }
+
+  // Customer'ın kampanyaları
+  getCustomerCampaigns() {
+    return this._request('get', `${this.baseURL}/customer/list`);
+  }
+
+  // Kampanya silme isteği (Customer / Admin)
+  requestDeleteCampaign(campaignId) {
+    return this._request('delete', `${this.baseURL}/${campaignId}/request-delete`);
+  }
+
+  // Kampanya sil (Admin)
+  deleteCampaign(campaignId) {
+    return this._request('delete', `${this.baseURL}/${campaignId}`);
+  }
+
+  // Silme isteklerini getir (Admin)
+  getDeleteRequests() {
+    return this._request('get', `${this.baseURL}/admin/delete-requests`);
   }
 }
 
 const campaignService = new CampaignService();
-export default campaignService; 
+export default campaignService;

@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const COLORS = {
-  BACKGROUND: '#181818',
   PRIMARY: '#F7D648',
   TEXT_PRIMARY: '#FFFFFF',
   CARD_BACKGROUND: '#2A2A2A',
@@ -17,28 +16,28 @@ const QuizOptions = ({
   onAnswerSelect, 
   disabled, 
   showAnswerFeedback, 
-  feedbackIndex 
+  selectedOptionIndex, // Sadece seçimi göstermek için
+  feedbackIndex, // Geri bildirim için (doğru/yanlış)
 }) => {
   return (
     <View style={styles.optionsContainer}>
       {options.map((option, index) => {
-        const isSelected = feedbackIndex === index;
+        const isSelected = selectedOptionIndex === index;
         const isCorrectAnswer = option.isTrue === true;
+        const isFeedbackTarget = feedbackIndex === index;
 
         let borderColor = COLORS.BORDER;
         let iconName = null;
         let iconColor = borderColor;
 
-        if (showAnswerFeedback && isSelected) {
-          if (isCorrectAnswer) {
-            borderColor = COLORS.SUCCESS;
-            iconName = 'check';
-            iconColor = COLORS.SUCCESS;
-          } else {
-            borderColor = COLORS.ERROR;
-            iconName = 'close';
-            iconColor = COLORS.ERROR;
-          }
+        if (showAnswerFeedback && isFeedbackTarget) {
+          // Geri bildirim aktif ve bu şık kontrol edilen şık ise
+          borderColor = isCorrectAnswer ? COLORS.SUCCESS : COLORS.ERROR;
+          iconName = isCorrectAnswer ? 'check' : 'close';
+          iconColor = borderColor;
+        } else if (isSelected) {
+          // Sadece seçili ama henüz kontrol edilmemişse
+          borderColor = COLORS.PRIMARY;
         }
         
         return (
@@ -68,7 +67,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: COLORS.CARD_BACKGROUND,
     borderRadius: 12,
-    borderWidth: 1.5, // Biraz daha belirgin
+    borderWidth: 1.5,
     padding: 16,
   },
   optionText: {

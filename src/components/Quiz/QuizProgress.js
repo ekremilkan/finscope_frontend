@@ -38,7 +38,7 @@ const QuizProgress = ({
         {isPenaltyActive ? (
           <View style={styles.penaltyContainer}>
             <Icon name="timer-off" size={14} color={COLORS.ERROR} />
-            <Text style={styles.penaltyText}>{penaltyTime}s PENALTY</Text>
+            <Text style={styles.penaltyText}>{penaltyTime}s </Text>
           </View>
         ) : (
           <Text style={styles.infoCounter}>
