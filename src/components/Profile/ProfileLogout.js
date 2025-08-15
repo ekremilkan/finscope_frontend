@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { getGlassMorphismStyle, getResponsiveSize, handleLogout } from '../../utils/profileUtils';
+// GÜNCELLEME: handleLogout import'u kaldırıldı çünkü artık burada kullanılmıyor.
+import { getGlassMorphismStyle, getResponsiveSize } from '../../utils/profileUtils'; 
 import { COLORS } from '../../constants/colorConstants';
 import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
-const ProfileLogout = ({ navigation, user }) => {
+// GÜNCELLEME: Component'in aldığı proplar değiştirildi. Artık 'navigation' yerine 'onLogoutPress' alıyor.
+const ProfileLogout = ({ user, onLogoutPress }) => {
   const getAppVersion = () => {
     // This would typically come from package.json or environment
     return 'Finscope v2.1.0';
@@ -24,7 +26,8 @@ const ProfileLogout = ({ navigation, user }) => {
     <View style={styles.container}>
       <TouchableOpacity 
         style={styles.logoutButton} 
-        onPress={() => handleLogout(navigation, user)}
+        // GÜNCELLEME: onPress artık doğrudan prop olarak gelen onLogoutPress fonksiyonunu çağırıyor.
+        onPress={onLogoutPress}
         activeOpacity={0.8}
       >
         <Text style={styles.logoutIcon}>🚪</Text>

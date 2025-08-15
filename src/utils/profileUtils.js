@@ -184,9 +184,9 @@ export const handleLogout = (navigation) => {
             
             // Reset navigation to Auth stack
             navigation.reset({
-              index: 0,
-              routes: [{ name: 'Login' }]
-            });
+      index: 0,
+      routes: [{ name: 'Auth', state: { routes: [{ name: 'Login' }] } }],
+    });
             
             console.log('Logout successful');
           } catch (error) {
@@ -197,6 +197,20 @@ export const handleLogout = (navigation) => {
       }
     ]
   );
+};
+
+export const confirmLogout = (navigation) => {
+  Alert.alert('Logout', 'Are you sure you want to logout?', [
+    {
+      text: 'Cancel',
+      style: 'cancel',
+    },
+    {
+      text: 'Logout',
+      style: 'destructive',
+      onPress: () => handleLogout(navigation),
+    },
+  ]);
 };
 
 // Account deletion

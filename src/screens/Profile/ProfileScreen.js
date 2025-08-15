@@ -21,7 +21,11 @@ import {
   handleNavigation,
   getUserStatus,
   updateUserProfile,
+  // GÜNCELLEME: confirmLogout buradan kaldırıldı, homeUtils'tan alınacak
+  loadUserData,
 } from '../../utils/profileUtils';
+// GÜNCELLEME: Çıkış fonksiyonu, ana sayfada kullanılanla aynı olması için homeUtils'tan import edildi
+import { confirmLogout } from '../../utils/homeUtils'; 
 
 import ProfileHeader from '../../components/Profile/ProfileHeader';
 import ProfileStats from '../../components/Profile/ProfileStats';
@@ -117,6 +121,22 @@ const ProfileScreen = ({ navigation, route }) => {
     }
   };
 
+  // GÜNCELLEME: Bu blok hatalı 'setUserData' fonksiyonunu çağırıyordu ve gereksizdi.
+  // Bu nedenle tamamen kaldırıldı.
+  /*
+   useFocusEffect(
+      useCallback(() => {
+        loadUserData(setUserData);
+      },  []),
+    );
+  */
+
+  const handleLogoutPress = () => {
+      // Artık homeUtils'tan gelen, backend'e de istek atan ve
+      // AsyncStorage'ı temizleyen fonksiyonu kullanıyor.
+      confirmLogout(navigation);
+    };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -181,11 +201,17 @@ const ProfileScreen = ({ navigation, route }) => {
           <>
             <ProfileStats stats={profileData.stats} isLoading={isLoading} />
             <ProfileMenu
-              menuItems={PROFILE_MENU_ITEMS}
+              // GÜNCELLEME: Menü listesi, 'Delete Account' (id: 8) seçeneğini içermeyecek şekilde filtrelendi.
+              menuItems={PROFILE_MENU_ITEMS.filter(item => item.id !== 8)}
               navigation={navigation}
               user={profileData.user}
             />
-            <ProfileLogout navigation={navigation} user={profileData.user} />
+            <ProfileLogout 
+              // GÜNCELLEME: Hatalı 'userData.name' kullanımı 'profileData.user.name' olarak düzeltildi.
+              userName={profileData.user.name} 
+              onLogoutPress={handleLogoutPress}
+              onNotificationPress={() => {}} 
+            />
           </>
         )}
       </ScrollView>

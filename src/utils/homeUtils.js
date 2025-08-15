@@ -9,7 +9,7 @@ export const loadUserData = async setUserData => {
     if (user) {
       setUserData(prev => ({
         ...prev,
-        name: user.name || 'Ali',
+        name: user.name,
       }));
     }
   } catch (error) {
