@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,16 +20,16 @@ import {
   handleNavigation,
   getUserStatus,
   updateUserProfile,
-  // GÜNCELLEME: confirmLogout buradan kaldırıldı, homeUtils'tan alınacak
   loadUserData,
 } from '../../utils/profileUtils';
-// GÜNCELLEME: Çıkış fonksiyonu, ana sayfada kullanılanla aynı olması için homeUtils'tan import edildi
-import { confirmLogout } from '../../utils/homeUtils'; 
+// DEĞİŞİKLİK: 'confirmLogout' yerine 'handleLogout' import ediliyor
+import { handleLogout } from '../../utils/homeUtils';
 
 import ProfileHeader from '../../components/Profile/ProfileHeader';
 import ProfileStats from '../../components/Profile/ProfileStats';
 import ProfileMenu from '../../components/Profile/ProfileMenu';
 import ProfileLogout from '../../components/Profile/ProfileLogout';
+import CustomAlertModal from '../../components/common/CustomAlertModal';
 
 // Constants
 import { COLORS, getCornerGradientColors } from '../../constants/colorConstants';
@@ -41,6 +40,8 @@ const ProfileScreen = ({ navigation, route }) => {
   const [profileData, setProfileData] = useState(PROFILE_DATA);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({ title: '', message: '', confirmText: 'Tamam', showCancelButton: false, onConfirm: () => {}, onCancel: () => {} });
 
   useEffect(() => {
     loadUserProfile();
@@ -58,25 +59,19 @@ const ProfileScreen = ({ navigation, route }) => {
   const loadUserProfile = async () => {
     setIsLoading(true);
     try {
-      // 1) AsyncStorage'dan user bilgisini al
       const cachedUser = await storageService.getUser();
       const isVerified = await storageService.getIsVerified();
-      
-      // Burada senin storageService.getUser() zaten AsyncStorage'dan JSON.parse yaparak user objesini döndürüyor varsayıyorum
 
       if (!cachedUser || !cachedUser._id) {
         throw new Error('Kullanıcı bilgisi AsyncStorage\'da yok veya eksik');
       }
 
-      // 2) Backend'den kullanıcıyı güncel olarak çek
       const freshUser = await authService.getUserById(cachedUser._id);
 
       if (!freshUser || !freshUser.name || !freshUser.email) {
         throw new Error('Sunucudan eksik kullanıcı bilgisi alındı.');
       }
 
-      // 3) Kullanıcı istatistiklerini backend'den çek (varsa)
-      // Eğer istatistik yoksa PROFILE_DATA.stats kullanılabilir
       let userStats;
       try {
         userStats = await authService.makeAuthenticatedCall('/user/stats');
@@ -84,27 +79,23 @@ const ProfileScreen = ({ navigation, route }) => {
         userStats = PROFILE_DATA.stats;
       }
 
-      // 4) Durum belirle
       const status = getUserStatus(freshUser, userStats);
 
-      // 5) State güncelle - isVerified durumunu da ekle
       setProfileData({
         user: {
           ...freshUser,
           status,
           avatar: freshUser.avatar || '👤',
-          isVerified: isVerified, // AsyncStorage'dan gelen isVerified durumu
+          isVerified: isVerified,
         },
         stats: userStats,
       });
 
-      // 6) AsyncStorage içindeki kullanıcıyı güncelle (opsiyonel)
       await storageService.setUser(freshUser);
 
     } catch (error) {
       console.error('Profil yükleme hatası:', error);
 
-      // Hata durumunda demo verisi
       setProfileData({
         user: {
           name: 'Demo User',
@@ -121,21 +112,78 @@ const ProfileScreen = ({ navigation, route }) => {
     }
   };
 
-  // GÜNCELLEME: Bu blok hatalı 'setUserData' fonksiyonunu çağırıyordu ve gereksizdi.
-  // Bu nedenle tamamen kaldırıldı.
-  /*
-   useFocusEffect(
-      useCallback(() => {
-        loadUserData(setUserData);
-      },  []),
-    );
-  */
+  const showAlert = (config) => {
+    setAlertConfig(config);
+    setAlertVisible(true);
+  };
+
+  const hideAlert = () => {
+    setAlertVisible(false);
+  };
 
   const handleLogoutPress = () => {
-      // Artık homeUtils'tan gelen, backend'e de istek atan ve
-      // AsyncStorage'ı temizleyen fonksiyonu kullanıyor.
-      confirmLogout(navigation);
-    };
+    showAlert({
+      title: 'Log Out',
+      message: 'Are you sure you want to log out of your account?',
+      showCancelButton: true,
+      confirmText: 'Log Out',
+      cancelText: 'Cancel',
+      // DEĞİŞİKLİK: 'confirmLogout' yerine 'handleLogout' çağrılıyor
+      // Önce modal'ı kapatıp sonra çıkış işlemini başlatmak daha iyi bir UX sağlar.
+      onConfirm: () => {
+        hideAlert();
+        handleLogout(navigation);
+      },
+      onCancel: hideAlert,
+    });
+  };
+
+  const handleNameUpdate = async (newName) => {
+    const userId = profileData.user?._id;
+    if (!userId) {
+      showAlert({ 
+        title: 'Error', 
+        message: 'User ID not found.', 
+        confirmText: 'OK', 
+        showCancelButton: false, 
+        onConfirm: hideAlert 
+      });
+      throw new Error('User ID not found');
+    }
+
+    try {
+      const updatedUser = await authService.updateUserName(userId, newName);
+
+      const updatedState = {
+        ...profileData,
+        user: {
+          ...profileData.user,
+          name: updatedUser.name || newName,
+        },
+      };
+      setProfileData(updatedState);
+      await storageService.setUser(updatedState.user);
+
+      showAlert({ 
+        title: 'Success', 
+        message: 'Your display name has been updated successfully.', 
+        confirmText: 'Great!', 
+        showCancelButton: false, 
+        onConfirm: hideAlert 
+      });
+
+    } catch (error) {
+      console.error('Error updating profile name:', error);
+      showAlert({ 
+        title: 'Error', 
+        message: 'There was a problem updating your name. Please try again.', 
+        confirmText: 'OK', 
+        showCancelButton: false, 
+        onConfirm: hideAlert 
+      });
+      throw error; 
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -144,7 +192,6 @@ const ProfileScreen = ({ navigation, route }) => {
           colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
           style={styles.gradientContainer}
         >
-          {/* Corner Gradients - Daha yumuşak */}
           <LinearGradient
             colors={getCornerGradientColors()}
             style={styles.topRightGradient}
@@ -157,77 +204,71 @@ const ProfileScreen = ({ navigation, route }) => {
             start={{ x: 0, y: 1 }}
             end={{ x: 1, y: 0 }}
           />
-          
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              loadUserProfile();
-            }}
+
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => {
+                  setRefreshing(true);
+                  loadUserProfile();
+                }}
                 colors={[COLORS.PRIMARY]}
                 tintColor={COLORS.PRIMARY}
-          />
-        }
-      >
-        <ProfileHeader
-          user={profileData.user}
-          onEditPress={() => {
-            handleNavigation(navigation, 'EditProfile', {
-              userData: profileData.user,
-              onUpdate: updatedData => {
-                updateUserProfile(profileData.user._id, updatedData)
-                  .then(updatedUser => {
-                    setProfileData(prev => ({
-                      ...prev,
-                      user: { ...prev.user, ...updatedUser },
-                    }));
-                    Alert.alert('Başarılı', 'Profil güncellendi.');
-                  })
-                  .catch(() => {
-                    Alert.alert('Hata', 'Profil güncellenirken hata oluştu.');
-                  });
-              },
-            });
-          }}
-          isLoading={isLoading}
-        />
-
-        {!isLoading && (
-          <>
-            <ProfileStats stats={profileData.stats} isLoading={isLoading} />
-            <ProfileMenu
-              // GÜNCELLEME: Menü listesi, 'Delete Account' (id: 8) seçeneğini içermeyecek şekilde filtrelendi.
-              menuItems={PROFILE_MENU_ITEMS.filter(item => item.id !== 8)}
-              navigation={navigation}
+              />
+            }
+          >
+            <ProfileHeader
               user={profileData.user}
+              onNameUpdate={handleNameUpdate} 
+              isLoading={isLoading}
             />
-            <ProfileLogout 
-              // GÜNCELLEME: Hatalı 'userData.name' kullanımı 'profileData.user.name' olarak düzeltildi.
-              userName={profileData.user.name} 
-              onLogoutPress={handleLogoutPress}
-              onNotificationPress={() => {}} 
-            />
-          </>
-        )}
-      </ScrollView>
+
+            {!isLoading && (
+              <>
+                <ProfileStats stats={profileData.stats} isLoading={isLoading} />
+                <ProfileMenu
+                  menuItems={PROFILE_MENU_ITEMS.filter(
+                    item => item.id !== 8 && item.route !== 'EarnRewards' && item.route !== 'UserStats'
+                  )}
+                  navigation={navigation}
+                  user={profileData.user}
+                  showAlert={showAlert}
+                  hideAlert={hideAlert}
+                />
+                <ProfileLogout
+                  user={profileData.user} // 'user' prop'unu geçiyoruz
+                  onLogoutPress={handleLogoutPress}
+                />
+              </>
+            )}
+          </ScrollView>
         </LinearGradient>
-    </SafeAreaView>
+      </SafeAreaView>
+      <CustomAlertModal
+        isVisible={alertVisible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        confirmText={alertConfig.confirmText}
+        cancelText={alertConfig.cancelText}
+        showCancelButton={alertConfig.showCancelButton}
+        onConfirm={alertConfig.onConfirm}
+        onCancel={alertConfig.onCancel}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: COLORS.BACKGROUND 
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND
   },
-  safeArea: { 
-    flex: 1 
+  safeArea: {
+    flex: 1
   },
   gradientContainer: {
     flex: 1,
@@ -248,11 +289,11 @@ const styles = StyleSheet.create({
     height: width * 0.6,
     borderTopRightRadius: width * 0.6,
   },
-  scrollView: { 
-    flex: 1 
+  scrollView: {
+    flex: 1
   },
-  scrollContent: { 
-    paddingBottom: Math.max(20, width * 0.05) 
+  scrollContent: {
+    paddingBottom: Math.max(20, width * 0.05)
   },
 });
 

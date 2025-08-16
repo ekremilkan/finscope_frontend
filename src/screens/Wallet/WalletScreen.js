@@ -1,3 +1,5 @@
+//solana isteği ile solana cüzdanı bağlanacak
+//bir cüzdan sadece bir mail adresine bağlanacak 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   StyleSheet,

@@ -1,16 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-// GÜNCELLEME: handleLogout import'u kaldırıldı çünkü artık burada kullanılmıyor.
 import { getGlassMorphismStyle, getResponsiveSize } from '../../utils/profileUtils'; 
 import { COLORS } from '../../constants/colorConstants';
 import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
-// GÜNCELLEME: Component'in aldığı proplar değiştirildi. Artık 'navigation' yerine 'onLogoutPress' alıyor.
 const ProfileLogout = ({ user, onLogoutPress }) => {
   const getAppVersion = () => {
-    // This would typically come from package.json or environment
     return 'Finscope v2.1.0';
   };
 
@@ -26,7 +23,6 @@ const ProfileLogout = ({ user, onLogoutPress }) => {
     <View style={styles.container}>
       <TouchableOpacity 
         style={styles.logoutButton} 
-        // GÜNCELLEME: onPress artık doğrudan prop olarak gelen onLogoutPress fonksiyonunu çağırıyor.
         onPress={onLogoutPress}
         activeOpacity={0.8}
       >
@@ -35,7 +31,7 @@ const ProfileLogout = ({ user, onLogoutPress }) => {
       </TouchableOpacity>
       
       <View style={styles.infoContainer}>
-        <Text style={styles.lastLoginText}>{getLastLoginInfo()}</Text>
+       
         <Text style={styles.versionText}>{getAppVersion()}</Text>
         {user?.deviceInfo && (
           <Text style={styles.deviceText}>
@@ -50,23 +46,23 @@ const ProfileLogout = ({ user, onLogoutPress }) => {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: Math.max(16, width * 0.04),
-    marginTop: Math.max(24, width * 0.06),
-    marginBottom: Math.max(32, width * 0.08),
+    marginTop: Math.max(20, width * 0.05), 
+    marginBottom: Math.max(28, width * 0.07), 
     alignItems: 'center',
   },
   logoutButton: {
     backgroundColor: 'rgba(239, 68, 68, 0.15)',
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
-    borderRadius: 16,
+    borderRadius: 8, 
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Math.max(16, width * 0.04),
+    paddingVertical: Math.max(14, width * 0.035), 
     paddingHorizontal: Math.max(32, width * 0.08),
     width: '100%',
-    marginBottom: Math.max(20, width * 0.05),
-    elevation: 4,
+    marginBottom: Math.max(16, width * 0.04), 
+    
   },
   logoutIcon: {
     fontSize: getResponsiveSize(width, 0.05, 20, 28),
@@ -79,7 +75,7 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     alignItems: 'center',
-    marginTop: Math.max(12, width * 0.03),
+    marginTop: Math.max(10, width * 0.025), 
   },
   lastLoginText: {
     fontSize: getResponsiveSize(width, 0.028, 11, 15),

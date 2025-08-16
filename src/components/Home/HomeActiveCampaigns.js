@@ -86,44 +86,46 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
       onPress={() => onCampaignPress(campaign)}
     >
       <View style={styles.cardContainer}>
-        <View style={styles.campaignInfo}>
-          <View style={[styles.campaignIconContainer, { borderColor: cardState.statusColor + '30', backgroundColor: cardState.statusColor + '15' }]}>
+        {/* Üst kısım - Icon ve başlık */}
+        <View style={styles.campaignHeader}>
+          <View style={[styles.campaignIconContainer, { 
+            borderColor: cardState.statusColor + '30', 
+            backgroundColor: cardState.statusColor + '15' 
+          }]}>
              <Text style={styles.campaignIcon}>📊</Text>
           </View>
-          <View style={styles.campaignDetails}>
-            <Text style={styles.campaignTitle} numberOfLines={2}>{campaign?.title || 'Untitled Campaign'}</Text>
-            <View style={styles.campaignMeta}>
-              <View style={styles.metaItem}>
-                <Icon name="people" size={14} color={COLORS.PRIMARY} />
-                <Text style={styles.metaText}>{totalParticipants}</Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Icon name="quiz" size={14} color={COLORS.INFO} />
-                <Text style={styles.metaText}>{questionCount}</Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Icon name="monetization-on" size={14} color={COLORS.SUCCESS} />
-                <Text style={styles.metaText}>{campaign?.reward || 0}</Text>
-              </View>
+          <View style={styles.headerContent}>
+            <Text style={styles.campaignTitle} numberOfLines={2}>
+              {campaign?.title || 'Untitled Campaign'}
+            </Text>
+            <View style={styles.statusContainer}>
+              <Text style={[styles.statusText, { color: cardState.statusColor }]}>
+                {cardState.statusText}
+              </Text>
             </View>
           </View>
         </View>
-        
-        <View style={styles.campaignFooter}>
-          <View style={styles.statusTimeContainer}>
-            <View style={styles.statusContainer}>
-              <Text style={[styles.statusText, { color: cardState.statusColor }]}>{cardState.statusText}</Text>
-            </View>
-            <View style={styles.timeContainer}>
-              <Icon name="schedule" size={12} color={endTimeInfo.color} />
-              <Text style={[styles.timeText, { color: endTimeInfo.color }]}>{endTimeInfo.text}</Text>
-            </View>
+
+        {/* Orta kısım - Meta bilgiler */}
+        <View style={styles.campaignMeta}>
+          <View style={styles.metaItem}>
+            <Icon name="monetization-on" size={16} color={COLORS.SUCCESS} />
+            <Text style={styles.metaText}>{campaign?.reward || 0} Points</Text>
           </View>
-          
-          <View style={styles.startButtonContainer}>
-            <View style={[styles.startButton, { backgroundColor: cardState.statusColor === COLORS.SUCCESS ? COLORS.SUCCESS : COLORS.PRIMARY }]}>
-              <Text style={styles.startButtonText}>{cardState.buttonText}</Text>
-            </View>
+          <View style={styles.metaItem}>
+            <Icon name="schedule" size={16} color={endTimeInfo.color} />
+            <Text style={[styles.metaText, { color: endTimeInfo.color }]}>
+              {endTimeInfo.text}
+            </Text>
+          </View>
+        </View>
+
+        {/* Alt kısım - Buton */}
+        <View style={styles.campaignFooter}>
+          <View style={[styles.startButton, { 
+            backgroundColor: cardState.statusColor === COLORS.SUCCESS ? COLORS.SUCCESS : COLORS.PRIMARY 
+          }]}>
+            <Text style={styles.startButtonText}>{cardState.buttonText}</Text>
           </View>
         </View>
       </View>
@@ -179,35 +181,164 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = fal
 };
 
 const styles = StyleSheet.create({
-  campaignsSection: { marginBottom: Math.max(24, height * .03) },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Math.max(16, height * .02), marginTop: Math.max(16, height * .02) },
-  sectionTitle: { fontSize: Math.max(22, width * .055), ...getFontFamily('BOLD'), color: COLORS.TEXT_PRIMARY },
-  sectionBadge: { backgroundColor: 'rgba(16, 185, 129, 0.15)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)' },
-  sectionBadgeText: { color: COLORS.SUCCESS, fontSize: 12, ...getFontFamily('SEMIBOLD') },
-  campaignCard: { marginBottom: 16, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: .1, shadowRadius: 10, elevation: 5 },
-  cardContainer: { borderRadius: 20, padding: 16, borderWidth: 1, borderColor: COLORS.BORDER_SECONDARY, backgroundColor: COLORS.CARD_BACKGROUND },
-  campaignInfo: { flexDirection: 'row', alignItems: 'flex-start', flex: 1, marginBottom: 16 },
-  campaignIconContainer: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 16, borderWidth: 1 },
-  campaignIcon: { fontSize: 24 },
-  campaignDetails: { flex: 1 },
-  campaignTitle: { fontSize: 16, ...getFontFamily('SEMIBOLD'), color: COLORS.TEXT_PRIMARY, marginBottom: 8 },
-  campaignMeta: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: 12, ...getFontFamily('MEDIUM'), color: COLORS.TEXT_SECONDARY },
-  campaignFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  statusTimeContainer: { flex: 1 },
-  statusContainer: { marginBottom: 4 },
-  statusText: { fontSize: 13, ...getFontFamily('SEMIBOLD') },
-  timeContainer: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  timeText: { fontSize: 11, ...getFontFamily('MEDIUM') },
-  startButtonContainer: { alignItems: 'center' },
-  startButton: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, alignItems: 'center' },
-  startButtonText: { fontSize: 13, ...getFontFamily('BOLD'), color: COLORS.SECONDARY },
-  loadingContainer: { alignItems: 'center', paddingVertical: 40 },
-  loadingText: { marginTop: 12, color: COLORS.TEXT_PRIMARY, fontSize: 16 },
-  emptyContainer: { alignItems: 'center', paddingVertical: 40, backgroundColor: COLORS.CARD_BACKGROUND, borderRadius: 20 },
-  emptyIcon: { fontSize: 40, marginBottom: 16 },
-  emptyTitle: { fontSize: 20, ...getFontFamily('BOLD'), color: COLORS.TEXT_PRIMARY, marginBottom: 8 },
-  emptyText: { fontSize: 16, color: COLORS.TEXT_SECONDARY, textAlign: 'center' },
+  campaignsSection: { 
+    marginBottom: Math.max(24, height * .03) 
+  },
+  sectionHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    marginBottom: Math.max(16, height * .02), 
+    marginTop: Math.max(16, height * .02) 
+  },
+  sectionTitle: { 
+    fontSize: Math.max(22, width * .055), 
+    ...getFontFamily('BOLD'), 
+    color: COLORS.TEXT_PRIMARY 
+  },
+  sectionBadge: { 
+    backgroundColor: 'rgba(16, 185, 129, 0.15)', 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 8, 
+    borderWidth: 1, 
+    borderColor: 'rgba(16, 185, 129, 0.3)' 
+  },
+  sectionBadgeText: { 
+    color: COLORS.SUCCESS, 
+    fontSize: 12, 
+    ...getFontFamily('SEMIBOLD') 
+  },
+
+  // Card Container
+  campaignCard: { 
+    marginBottom: 16, 
+    borderRadius: 12, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: .08, 
+    shadowRadius: 8, 
+    elevation: 3 
+  },
+  cardContainer: { 
+    borderRadius: 12, 
+    paddingTop: 20,
+    paddingHorizontal: 18,
+    paddingBottom: 16,
+    borderWidth: 1, 
+    borderColor: COLORS.BORDER_SECONDARY, 
+    backgroundColor: COLORS.CARD_BACKGROUND 
+  },
+
+  // Header Section (Icon + Title + Status)
+  campaignHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'flex-start',
+    marginBottom: 16
+  },
+  campaignIconContainer: { 
+    width: 52, 
+    height: 52, 
+    borderRadius: 10, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginRight: 14, 
+    borderWidth: 1.5 
+  },
+  campaignIcon: { 
+    fontSize: 26 
+  },
+  headerContent: { 
+    flex: 1,
+    paddingTop: 2
+  },
+  campaignTitle: { 
+    fontSize: 17, 
+    ...getFontFamily('SEMIBOLD'), 
+    color: COLORS.TEXT_PRIMARY, 
+    marginBottom: 6,
+    lineHeight: 22
+  },
+  statusContainer: { 
+    alignSelf: 'flex-start'
+  },
+  statusText: { 
+    fontSize: 13, 
+    ...getFontFamily('SEMIBOLD'),
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.05)'
+  },
+
+  // Meta Section
+  campaignMeta: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    marginBottom: 18
+  },
+  metaItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 6,
+    flex: 1
+  },
+  metaText: { 
+    fontSize: 14, 
+    ...getFontFamily('MEDIUM'), 
+    color: COLORS.TEXT_SECONDARY 
+  },
+
+  // Footer Section (Button)
+  campaignFooter: { 
+    alignItems: 'stretch'
+  },
+  startButton: { 
+    paddingVertical: 14, 
+    borderRadius: 10, 
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  startButtonText: { 
+    fontSize: 15, 
+    ...getFontFamily('BOLD'), 
+    color: COLORS.SECONDARY 
+  },
+
+  // Loading and Empty States
+  loadingContainer: { 
+    alignItems: 'center', 
+    paddingVertical: 40 
+  },
+  loadingText: { 
+    marginTop: 12, 
+    color: COLORS.TEXT_PRIMARY, 
+    fontSize: 16 
+  },
+  emptyContainer: { 
+    alignItems: 'center', 
+    paddingVertical: 40, 
+    backgroundColor: COLORS.CARD_BACKGROUND, 
+    borderRadius: 8 
+  },
+  emptyIcon: { 
+    fontSize: 40, 
+    marginBottom: 16 
+  },
+  emptyTitle: { 
+    fontSize: 20, 
+    ...getFontFamily('BOLD'), 
+    color: COLORS.TEXT_PRIMARY, 
+    marginBottom: 8 
+  },
+  emptyText: { 
+    fontSize: 16, 
+    color: COLORS.TEXT_SECONDARY, 
+    textAlign: 'center' 
+  },
 });
+
 export default HomeActiveCampaigns;

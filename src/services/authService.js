@@ -54,6 +54,16 @@ login: async (email, password) => {
     }
   },
 
+  updateUserName: async (userId, newName) => {
+    try {
+      const response = await api.put(`/user/updateUserName/${userId}`, { newName: newName });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+
   // Get user profile
   getUserProfile: async () => {
     try {

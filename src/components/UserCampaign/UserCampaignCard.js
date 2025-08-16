@@ -158,8 +158,8 @@ const UserCampaignCard = ({ campaign, onPress }) => {
         <Text style={styles.campaignDescription} numberOfLines={2}>{campaign?.description || 'No description available.'}</Text>
       </View>
       <View style={styles.campaignStats}>
-        <View style={styles.statItem}><Icon name="people" size={16} color={COLORS.PRIMARY} /><Text style={styles.statText}>{totalCurrentParticipants}/{totalMaxParticipants}</Text></View>
-        <View style={styles.statItem}><Icon name="quiz" size={16} color={COLORS.INFO} /><Text style={styles.statText}>{toDisplayValue(campaign.questions)} questions</Text></View>
+        {/* <View style={styles.statItem}><Icon name="people" size={16} color={COLORS.PRIMARY} /><Text style={styles.statText}>{totalCurrentParticipants}/{totalMaxParticipants}</Text></View>
+        <View style={styles.statItem}><Icon name="quiz" size={16} color={COLORS.INFO} /><Text style={styles.statText}>{toDisplayValue(campaign.questions)} questions</Text></View> */}
         <View style={styles.statItem}><Icon name="monetization-on" size={16} color={COLORS.SUCCESS} /><Text style={styles.statText}>{toDisplayValue(campaign.reward)} USDT</Text></View>
       </View>
       <View style={styles.progressContainer}>
@@ -197,12 +197,12 @@ const UserCampaignCard = ({ campaign, onPress }) => {
 };
 
 const styles = StyleSheet.create({
-  campaignCard: { backgroundColor: COLORS.CARD_BACKGROUND, borderRadius: 20, padding: Math.max(16, width * .04), marginBottom: 16, borderWidth: 1, borderColor: 'rgba(247, 214, 72, 0.1)' },
+  campaignCard: { backgroundColor: COLORS.CARD_BACKGROUND, borderRadius: 8, padding: Math.max(16, width * .04), marginBottom: 16, borderWidth: 1, borderColor: 'rgba(247, 214, 72, 0.1)' },
   campaignCardDisabled: { opacity: .7 },
   campaignHeader: { marginBottom: 16 },
   campaignTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   campaignTitle: { fontSize: Math.max(16, width * .04), ...getFontFamily('SEMIBOLD'), color: COLORS.TEXT_PRIMARY, flex: 1, marginRight: 12 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, minWidth: 70, alignItems: 'center' },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, minWidth: 70, alignItems: 'center' },
   statusText: { fontSize: Math.max(12, width * .03), ...getFontFamily('SEMIBOLD') },
   campaignDescription: { fontSize: Math.max(14, width * .035), color: COLORS.TEXT_SECONDARY, lineHeight: Math.max(20, width * .05), ...getFontFamily('REGULAR') },
   campaignStats: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingHorizontal: 4 },
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   footerInfo: { flex: 1, justifyContent: 'center' },
   countdownContainer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   countdownText: { fontSize: 14, ...getFontFamily('BOLD'), color: COLORS.WARNING },
-  joinButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, gap: 6 },
+  joinButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, gap: 6 },
   joinButtonText: { fontSize: Math.max(14, width * .035), ...getFontFamily('BOLD') },
 });
 

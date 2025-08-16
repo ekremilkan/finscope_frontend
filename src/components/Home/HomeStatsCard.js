@@ -49,7 +49,7 @@ const HomeStatsCard = ({ userData }) => {
 const styles = StyleSheet.create({
   statsCard: {
     padding: Math.max(24, width * 0.06),
-    borderRadius: Math.max(24, width * 0.06),
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
     backgroundColor: COLORS.CARD_BACKGROUND,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(247, 214, 72, 0.15)',
     paddingHorizontal: Math.max(12, width * 0.03),
     paddingVertical: Math.max(6, height * 0.008),
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(247, 214, 72, 0.3)',
   },
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: Math.max(16, width * 0.04),
-    borderRadius: Math.max(16, width * 0.04),
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
     backgroundColor: COLORS.SURFACE,

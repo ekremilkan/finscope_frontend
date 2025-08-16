@@ -136,7 +136,7 @@ const CampaignsScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <LinearGradient colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]} style={styles.gradientContainer}>
           <UserCampaignHeader navigation={navigation} campaignCount={filteredCampaigns.length} />
-          <UserCampaignFilters selectedFilter={selectedFilter} onFilterChange={setSelectedFilter} />
+          {/* <UserCampaignFilters selectedFilter={selectedFilter} onFilterChange={setSelectedFilter} /> */}
           {loading ? renderSkeletonLoading() : error ? renderErrorState() : (
             <FlatList
               data={filteredCampaigns}

@@ -1,13 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getFontFamily } from '../../constants/fontConstants';
 import { COLORS } from '../../constants/colorConstants';
-
+import CustomAlertModal from '../common/CustomAlertModal'; 
 const { width, height } = Dimensions.get('window');
 
 const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
+
+  const handleLogoutPress = () => {
+    console.log('🔧 Logout icon pressed!');
+    setLogoutModalVisible(true);
+  };
+
+  const confirmLogout = () => {
+    console.log('🔓 Modal onaylandı, logout yapılıyor...');
+    setLogoutModalVisible(false);
+    
+    if (onLogoutPress) {
+      onLogoutPress();
+    }
+  };
+
+  const cancelLogout = () => {
+    setLogoutModalVisible(false);
+  };
+
+  const handleNotificationPress = () => {
+    console.log('🔔 Notification icon pressed!');
+    setNotificationModalVisible(true);
+  };
+
+  const confirmNotification = () => {
+    setNotificationModalVisible(false);
+  };
+
   return (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
@@ -20,36 +50,55 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
         </View>
         <View style={styles.welcomeContainer}>
           <Text style={styles.welcomeLabel}>Welcome back</Text>
-        <Text 
-          style={styles.welcomeText}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
+          <Text 
+            style={styles.welcomeText}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {userName}!
-        </Text>
+          </Text>
         </View>
       </View>
       
       <View style={styles.headerRight}>
-        <TouchableOpacity style={styles.headerIcon} onPress={onNotificationPress}>
+        <TouchableOpacity style={styles.headerIcon} onPress={handleNotificationPress}>
           <View style={styles.iconContainer}>
             <Icon name="notifications" size={Math.max(20, Math.min(28, width * 0.06))} color={COLORS.TEXT_SECONDARY} />
-          <View style={styles.notificationDot} />
+            <View style={styles.notificationDot} />
           </View>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.headerIcon}
-          onPress={() => {
-            console.log('🔧 Logout icon pressed!');
-            onLogoutPress();
-          }}
+          onPress={handleLogoutPress}
         >
           <View style={styles.iconContainer}>
             <Icon name="logout" size={Math.max(20, Math.min(28, width * 0.06))} color={COLORS.ERROR} />
           </View>
         </TouchableOpacity>
       </View>
+
+      {/* Logout Confirmation Modal */}
+      <CustomAlertModal
+        isVisible={logoutModalVisible}
+        title="Logout Confirmation"
+        message="Are you sure you want to logout?"
+        onConfirm={confirmLogout}
+        onCancel={cancelLogout}
+        confirmText="Logout"
+        cancelText="Cancel"
+        showCancelButton={true}
+      />
+
+      {/* Notification Coming Soon Modal */}
+      <CustomAlertModal
+        isVisible={notificationModalVisible}
+        title="Coming Soon"
+        message="This feature is currently under development. Thank you for your understanding!"
+        onConfirm={confirmNotification}
+        confirmText="OK"
+        showCancelButton={false}
+      />
     </View>
   );
 };
@@ -148,4 +197,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeHeader; 
+export default HomeHeader;

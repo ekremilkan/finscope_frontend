@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Alert,
   ActivityIndicator,
   Dimensions,
   KeyboardAvoidingView,
@@ -19,6 +18,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authService } from '../services/authService';
 import { FONTS, FONT_WEIGHTS, getFontFamily } from '../constants/fontConstants';
 import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
+// YENİ: CustomAlertModal import edildi
+import CustomAlertModal from '../components/common/CustomAlertModal';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,6 +37,19 @@ const RegisterScreen = ({ navigation }) => {
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
+  // YENİ: Modal state'leri ve fonksiyonları
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({ title: '', message: '', confirmText: 'Tamam' });
+
+  const showAlert = (config) => {
+    setAlertConfig({ ...alertConfig, ...config });
+    setAlertVisible(true);
+  };
+
+  const hideAlert = () => {
+    setAlertVisible(false);
+  };
+
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -46,37 +60,36 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   const handleRegister = async () => {
-    // Enhanced validation
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert('Validation Error', 'Please fill in all fields');
+      showAlert({ title: 'Validation Error', message: 'Please fill in all fields' });
       return;
     }
 
     if (name.trim().length < 2) {
-      Alert.alert('Validation Error', 'Name must be at least 2 characters');
+      showAlert({ title: 'Validation Error', message: 'Name must be at least 2 characters' });
       return;
     }
 
     if (!validateEmail(email)) {
-      Alert.alert('Validation Error', 'Please enter a valid email address');
+      showAlert({ title: 'Validation Error', message: 'Please enter a valid email address' });
       return;
     }
 
     if (!validatePassword(password)) {
-      Alert.alert(
-        'Validation Error', 
-        'Password must be at least 8 characters with uppercase, lowercase, and number'
-      );
+      showAlert({
+        title: 'Validation Error',
+        message: 'Password must be at least 8 characters with uppercase, lowercase, and number'
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Validation Error', 'Passwords do not match');
+      showAlert({ title: 'Validation Error', message: 'Passwords do not match' });
       return;
     }
 
     if (!acceptTerms) {
-      Alert.alert('Validation Error', 'Please accept the terms and conditions');
+      showAlert({ title: 'Validation Error', message: 'Please accept the terms and conditions' });
       return;
     }
 
@@ -91,45 +104,41 @@ const RegisterScreen = ({ navigation }) => {
 
       const response = await authService.register(userData);
 
-      Alert.alert(
-        'Success',
-        'Account created successfully! Please sign in.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
-      );
+      showAlert({
+        title: 'Success',
+        message: 'Account created successfully! Please sign in.',
+        confirmText: 'OK',
+        onConfirm: () => {
+          hideAlert();
+          navigation.navigate('Login');
+        }
+      });
+
     } catch (error) {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.message || 
+      const errorMessage = error?.response?.data?.message ||
+                          error?.message ||
                           'Registration failed. Please try again.';
-      Alert.alert('Registration Failed', errorMessage);
+      showAlert({ title: 'Registration Failed', message: errorMessage });
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleRegister = async () => {
-    try {
-      setLoading(true);
-      // Google registration implementation will go here
-      Alert.alert('Coming Soon', 'Google registration will be available soon!');
-    } catch (error) {
-      Alert.alert('Error', 'Google registration failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    showAlert({ title: 'Coming Soon', message: 'Google registration will be available soon!' });
   };
 
   return (
     <View style={styles.container}>
-    <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <SafeAreaView style={styles.safeArea} edges={['top']}>
           <LinearGradient
             colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]}
             style={styles.gradientContainer}
           >
-            {/* Corner Gradients - Daha yumuşak */}
             <LinearGradient
               colors={getCornerGradientColors()}
               style={styles.topRightGradient}
@@ -142,208 +151,206 @@ const RegisterScreen = ({ navigation }) => {
               start={{ x: 0, y: 1 }}
               end={{ x: 1, y: 0 }}
             />
-            
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Header Section */}
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <View style={styles.logo}>
+
+            <ScrollView
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.header}>
+                <View style={styles.logoContainer}>
+                  <View style={styles.logo}>
                     <Image
                       source={require('../assets/images/finscope-logo.png')}
                       style={styles.logoImage}
                       resizeMode="contain"
                     />
-              </View>
-              <Text style={styles.appName}>FinScope</Text>
-            </View>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join us and start your journey</Text>
-          </View>
-
-          {/* Form Section */}
-          <View style={styles.formContainer}>
-            {/* Name Input */}
-            <View style={[
-              styles.inputWrapper,
-              nameFocused && styles.inputWrapperFocused,
-              name.length > 0 && name.length < 2 && styles.inputWrapperError
-            ]}>
-              <Icon name="person" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Full Name"
-                placeholderTextColor="#9ca3af"
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-                editable={!loading}
-                onFocus={() => setNameFocused(true)}
-                onBlur={() => setNameFocused(false)}
-              />
-            </View>
-
-            {/* Email Input */}
-            <View style={[
-              styles.inputWrapper,
-              emailFocused && styles.inputWrapperFocused,
-              !validateEmail(email) && email.length > 0 && styles.inputWrapperError
-            ]}>
-              <Icon name="email" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Email Address"
-                placeholderTextColor="#9ca3af"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                onFocus={() => setEmailFocused(true)}
-                onBlur={() => setEmailFocused(false)}
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={[
-              styles.inputWrapper,
-              passwordFocused && styles.inputWrapperFocused,
-              !validatePassword(password) && password.length > 0 && styles.inputWrapperError
-            ]}>
-              <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Password (8+ chars, A-z, 0-9)"
-                placeholderTextColor="#9ca3af"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                editable={!loading}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-                disabled={loading}
-                activeOpacity={0.7}
-              >
-                <Icon
-                  name={showPassword ? 'visibility-off' : 'visibility'}
-                  size={20}
-                  color="#6b7280"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Confirm Password Input */}
-            <View style={[
-              styles.inputWrapper,
-              confirmPasswordFocused && styles.inputWrapperFocused,
-              confirmPassword.length > 0 && password !== confirmPassword && styles.inputWrapperError
-            ]}>
-              <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Confirm Password"
-                placeholderTextColor="#9ca3af"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                editable={!loading}
-                onFocus={() => setConfirmPasswordFocused(true)}
-                onBlur={() => setConfirmPasswordFocused(false)}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={loading}
-                activeOpacity={0.7}
-              >
-                <Icon
-                  name={showConfirmPassword ? 'visibility-off' : 'visibility'}
-                  size={20}
-                  color="#6b7280"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Terms and Conditions */}
-            <TouchableOpacity 
-              style={styles.termsContainer}
-              onPress={() => setAcceptTerms(!acceptTerms)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
-                {acceptTerms && <Icon name="check" size={14} color="#ffffff" />}
-              </View>
-              <Text style={styles.termsText}>
-                I agree to the{' '}
-                <Text style={styles.termsLink}>Terms</Text>
-                {' '}and{' '}
-                <Text style={styles.termsLink}>Privacy Policy</Text>
-              </Text>
-            </TouchableOpacity>
-
-            {/* Register Button */}
-            <TouchableOpacity
-              style={[
-                styles.registerButton,
-                loading && styles.registerButtonDisabled
-              ]}
-              onPress={handleRegister}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator color="#ffffff" size="small" />
-                  <Text style={styles.loadingText}>Creating...</Text>
+                  </View>
+                  <Text style={styles.appName}>FinScope</Text>
                 </View>
-              ) : (
-                <Text style={styles.registerButtonText}>Create Account</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Google Register Button */}
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={handleGoogleRegister}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              <View style={styles.googleIconContainer}>
-                <Text style={styles.googleIcon}>G</Text>
+                <Text style={styles.title}>Create Account</Text>
+                <Text style={styles.subtitle}>Join us and start your journey</Text>
               </View>
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
-          </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Login')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.signInText}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+              <View style={styles.formContainer}>
+                <View style={[
+                  styles.inputWrapper,
+                  nameFocused && styles.inputWrapperFocused,
+                  name.length > 0 && name.length < 2 && styles.inputWrapperError
+                ]}>
+                  <Icon name="person" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Full Name"
+                    placeholderTextColor="#9ca3af"
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="words"
+                    editable={!loading}
+                    onFocus={() => setNameFocused(true)}
+                    onBlur={() => setNameFocused(false)}
+                  />
+                </View>
+
+                <View style={[
+                  styles.inputWrapper,
+                  emailFocused && styles.inputWrapperFocused,
+                  !validateEmail(email) && email.length > 0 && styles.inputWrapperError
+                ]}>
+                  <Icon name="email" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Email Address"
+                    placeholderTextColor="#9ca3af"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!loading}
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
+                  />
+                </View>
+
+                <View style={[
+                  styles.inputWrapper,
+                  passwordFocused && styles.inputWrapperFocused,
+                  !validatePassword(password) && password.length > 0 && styles.inputWrapperError
+                ]}>
+                  <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]}
+                    placeholder="Password (8+ chars, A-z, 0-9)"
+                    placeholderTextColor="#9ca3af"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    editable={!loading}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                    activeOpacity={0.7}
+                  >
+                    <Icon
+                      name={showPassword ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color="#6b7280"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={[
+                  styles.inputWrapper,
+                  confirmPasswordFocused && styles.inputWrapperFocused,
+                  confirmPassword.length > 0 && password !== confirmPassword && styles.inputWrapperError
+                ]}>
+                  <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]}
+                    placeholder="Confirm Password"
+                    placeholderTextColor="#9ca3af"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirmPassword}
+                    editable={!loading}
+                    onFocus={() => setConfirmPasswordFocused(true)}
+                    onBlur={() => setConfirmPasswordFocused(false)}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={loading}
+                    activeOpacity={0.7}
+                  >
+                    <Icon
+                      name={showConfirmPassword ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color="#6b7280"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.termsContainer}
+                  onPress={() => setAcceptTerms(!acceptTerms)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
+                    {acceptTerms && <Icon name="check" size={14} color="#ffffff" />}
+                  </View>
+                  <Text style={styles.termsText}>
+                    I agree to the{' '}
+                    <Text style={styles.termsLink}>Terms</Text>
+                    {' '}and{' '}
+                    <Text style={styles.termsLink}>Privacy Policy</Text>
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.registerButton,
+                    loading && styles.registerButtonDisabled
+                  ]}
+                  onPress={handleRegister}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                >
+                  {loading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator color="#ffffff" size="small" />
+                      <Text style={styles.loadingText}>Creating...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.registerButtonText}>Create Account</Text>
+                  )}
+                </TouchableOpacity>
+
+                <View style={styles.dividerContainer}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.googleButton}
+                  onPress={handleGoogleRegister}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.googleIconContainer}>
+                    <Text style={styles.googleIcon}>G</Text>
+                  </View>
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>Already have an account? </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Login')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.signInText}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </LinearGradient>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+      {/* YENİ: Modal bileşeni render ediliyor */}
+      <CustomAlertModal
+        isVisible={alertVisible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        confirmText={alertConfig.confirmText || 'OK'}
+        showCancelButton={false}
+        onConfirm={alertConfig.onConfirm || hideAlert}
+      />
     </View>
   );
 };
@@ -382,6 +389,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingVertical: 20,
+    paddingHorizontal: width * 0.05,
   },
   header: {
     alignItems: 'center',
@@ -418,7 +426,7 @@ const styles = StyleSheet.create({
     ...getFontFamily('BOLD'),
     color: COLORS.TEXT_PRIMARY,
     marginTop: 48,
-    textAlign: 'justify',
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: width * 0.038,
@@ -429,7 +437,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     flex: 1,
-    justifyContent: 'justify',
+    justifyContent: 'center',
   },
   inputWrapper: {
     flexDirection: 'row',

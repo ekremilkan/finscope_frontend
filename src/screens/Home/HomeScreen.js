@@ -1,5 +1,7 @@
+// HomeScreen.js
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Dimensions, StatusBar, RefreshControl } from 'react-native'; // RefreshControl import edildi
+import { View, StyleSheet, ScrollView, Dimensions, StatusBar, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
@@ -11,7 +13,8 @@ import { HOME_USER_DATA, QUICK_ACTIONS } from '../../data/homeData';
 import campaignService from '../../services/campaignService';
 
 // Utils imports
-import { loadUserData, confirmLogout, handleTabNavigation } from '../../utils/homeUtils';
+// DEĞİŞİKLİK: 'confirmLogout' yerine 'handleLogout' import ediliyor
+import { loadUserData, handleLogout, handleTabNavigation } from '../../utils/homeUtils';
 
 // Component imports
 import HomeHeader from '../../components/Home/HomeHeader';
@@ -28,11 +31,10 @@ const HomeScreen = ({ navigation }) => {
   const [userData, setUserData] = useState(HOME_USER_DATA);
   const [activeCampaigns, setActiveCampaigns] = useState([]);
   const [loadingCampaigns, setLoadingCampaigns] = useState(true);
-  const [refreshing, setRefreshing] = useState(false); // ✅ YENİ: Yenileme durumu için state
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
 
   const loadActiveCampaigns = useCallback(async () => {
-    // Sadece ilk yüklemede loading indicator göster, refresh sırasında değil.
     if (!refreshing) {
       setLoadingCampaigns(true);
     }
@@ -43,7 +45,6 @@ const HomeScreen = ({ navigation }) => {
         return;
       }
 
-      // ✅ DEĞİŞİKLİK: Veri birleştirme mantığı güncellendi
       const progressPromises = allCampaigns.map(campaign =>
         campaignService.getUserProgress(campaign._id).catch(() => null)
       );
@@ -54,14 +55,10 @@ const HomeScreen = ({ navigation }) => {
         let userStatus = null;
         if (progress) {
           if (progress.completed) {
-            // Tamamlanmışsa
             userStatus = 'completed';
           } else if (progress.progress && progress.progress.currentQuestion > 0) {
-            // Katılmış VE en az 1 soru cevaplamışsa (yarım bırakmışsa)
             userStatus = 'in-progress';
           }
-          // Not: Eğer progress var ama currentQuestion = 0 ise, userStatus 'null' kalır
-          // ve kart bunu "henüz başlanmamış" olarak yorumlar.
         }
         return { ...campaign, userStatus };
       });
@@ -76,9 +73,9 @@ const HomeScreen = ({ navigation }) => {
       setActiveCampaigns([]);
     } finally {
       setLoadingCampaigns(false);
-      setRefreshing(false); // Yenileme işlemini bitir
+      setRefreshing(false);
     }
-  }, [refreshing]); // refreshing state'ine bağlandı
+  }, [refreshing]);
 
   useFocusEffect(
     useCallback(() => {
@@ -87,20 +84,16 @@ const HomeScreen = ({ navigation }) => {
     }, [loadActiveCampaigns])
   );
 
-  // Real-time güncelleme için useEffect (kampanya sürelerini güncellemek için)
   useEffect(() => {
     const interval = setInterval(() => {
-      // Kampanya sürelerini güncellemek için component'ları yeniden render et
       setActiveCampaigns(prev => [...prev]);
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ YENİ: Yenileme işlemini başlatan fonksiyon
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
-    // Yenileme başladığında loadActiveCampaigns tekrar çağrılır.
   }, []);
 
   const handleTabPress = (itemId) => {
@@ -111,8 +104,9 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate('CampaignDetail', { campaign });
   };
 
+  // DEĞİŞİKLİK: Bu fonksiyon artık doğrudan 'handleLogout'u çağırıyor
   const handleLogoutPress = () => {
-    confirmLogout(navigation);
+    handleLogout(navigation);
   };
 
   return (
@@ -136,7 +130,6 @@ const HomeScreen = ({ navigation }) => {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
-            // ✅ YENİ: ScrollView'a RefreshControl eklendi
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -156,7 +149,6 @@ const HomeScreen = ({ navigation }) => {
               <View style={styles.sectionSpacer} />
               <HomeStatsCard userData={userData} />
               <View style={styles.sectionSpacer} />
-              <HomeQuickActions quickActions={QUICK_ACTIONS} />
             </View>
           </ScrollView>
         </LinearGradient>

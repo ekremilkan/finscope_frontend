@@ -27,9 +27,6 @@ const ProfileStats = ({ stats, isLoading = false }) => {
         <Text style={styles.sectionTitle}>📈 Financial Overview</Text>
         <View style={styles.statsGrid}>
           <StatCard icon="💰" label="Total Savings" value="..." isLoading={true} />
-          <StatCard icon="📊" label="Transaction Count" value="..." isLoading={true} />
-          <StatCard icon="📈" label="Investment Return" value="..." isLoading={true} />
-          <StatCard icon="⭐" label="Credit Score" value="..." isLoading={true} />
         </View>
       </View>
     );
@@ -43,68 +40,41 @@ const ProfileStats = ({ stats, isLoading = false }) => {
       <View style={styles.statsGrid}>
         <StatCard
           icon="💰"
-          label="Total Savings"
+          label="Total Earnings"
           value={processedStats.savings || '₺0'}
           color={COLORS.SUCCESS}
-        />
-        <StatCard
-          icon="📊"
-          label="Transaction Count"
-          value={processedStats.transactions || '0'}
-          color={COLORS.PRIMARY}
-        />
-        <StatCard
-          icon="📈"
-          label="Investment Return"
-          value={processedStats.returns || '0%'}
-          color={processedStats.returns?.includes('+') ? COLORS.SUCCESS : COLORS.ERROR}
-        />
-        <StatCard
-          icon="⭐"
-          label="Credit Score"
-          value={processedStats.creditScore || '0'}
-          color={getCreditScoreColor(processedStats.creditScore)}
         />
       </View>
     </View>
   );
 };
 
-const getCreditScoreColor = (score) => {
-  const numScore = parseInt(score) || 0;
-  if (numScore >= 750) return COLORS.SUCCESS;
-  if (numScore >= 650) return COLORS.WARNING;
-  if (numScore >= 500) return '#ff6b35';
-  return COLORS.ERROR;
-};
-
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: Math.max(16, width * 0.04),
-    marginTop: Math.max(20, width * 0.05),
+    marginTop: Math.max(16, width * 0.04), 
   },
   sectionTitle: {
     fontSize: getResponsiveSize(width, 0.045, 18, 24),
     ...getFontFamily('BOLD'),
     color: COLORS.TEXT_PRIMARY,
-    marginBottom: Math.max(16, width * 0.04),
+    marginBottom: Math.max(12, width * 0.03), 
     textAlign: 'center',
   },
   statsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'center', 
   },
   statCard: {
     backgroundColor: COLORS.CARD_BACKGROUND,
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
-    borderRadius: 16,
-    width: '48%',
+    borderRadius: 8,
+    width: '100%', 
     alignItems: 'center',
-    paddingVertical: Math.max(20, width * 0.05),
+    paddingVertical: Math.max(16, width * 0.04), 
     paddingHorizontal: Math.max(12, width * 0.03),
-    marginBottom: Math.max(12, width * 0.03),
+    marginBottom: Math.max(10, width * 0.025), 
     shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,

@@ -1,29 +1,42 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { getGlassMorphismStyle, getResponsiveSize, handleNavigation, handleAccountDeletion } from '../../utils/profileUtils';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
+import { getResponsiveSize, handleNavigation } from '../../utils/profileUtils';
 import { COLORS } from '../../constants/colorConstants';
 import { getFontFamily } from '../../constants/fontConstants';
+import CustomAlertModal from '../common/CustomAlertModal';
 
 const { width } = Dimensions.get('window');
 
-const ProfileMenu = ({ menuItems, navigation, user }) => {
-  const handleItemPress = (item) => {
-    if (item.type === 'navigation') {
-      const params = {};
-      if (item.route === 'UserStats') {
-        params.userId = user?.id;
-      } else if (item.route === 'EarnRewards') {
-        params.userStatus = user?.status;
-        params.userStats = user?.stats;
-      }
-      
-      handleNavigation(navigation, item.route, params);
-    } else if (item.type === 'action' && item.id === 8) {
-      handleAccountDeletion(navigation, user);
-    }
+const ProfileMenu = ({ menuItems, navigation, user, showAlert: externalShowAlert, hideAlert: externalHideAlert }) => {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({});
+
+  const showAlert = (config) => {
+    setAlertConfig(config);
+    setAlertVisible(true);
   };
 
-  const getItemAvailability = (item) => {
+  const hideAlert = () => {
+    setAlertVisible(false);
+    setAlertConfig({});
+  };
+
+  const handleItemPress = item => {
+    showAlert({
+      title: 'Coming Soon',
+      message: 'This feature is currently under development. Thank you for your understanding!',
+      showCancelButton: false,
+      confirmText: 'OK',
+    });
+  };
+
+  const getItemAvailability = item => {
     if (item.route === 'EarnRewards' && user?.status === 'Basic Member') {
       return { available: false, reason: 'Premium feature' };
     }
@@ -35,201 +48,219 @@ const ProfileMenu = ({ menuItems, navigation, user }) => {
     const isDisabled = !availability.available;
 
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[
           styles.menuItem,
           item.danger && styles.dangerItem,
-          isDisabled && styles.disabledItem
-        ]} 
+          isDisabled && styles.disabledItem,
+        ]}
         onPress={() => !isDisabled && handleItemPress(item)}
-        activeOpacity={isDisabled ? 1 : 0.7}
+        activeOpacity={isDisabled ? 1 : 0.8}
         disabled={isDisabled}
       >
-        <View style={styles.menuItemLeft}>
-          <View style={[
-            styles.iconContainer,
-            item.danger && styles.dangerIconContainer,
-            isDisabled && styles.disabledIconContainer
-          ]}>
-            <Text style={[
-              styles.menuIcon,
-              isDisabled && styles.disabledText
-            ]}>
+        <View style={styles.menuItemContent}>
+          <View
+            style={[
+              styles.iconContainer,
+              item.danger && styles.dangerIconContainer,
+              isDisabled && styles.disabledIconContainer,
+            ]}
+          >
+            <Text style={[styles.menuIcon, isDisabled && styles.disabledText]}>
               {item.icon}
             </Text>
           </View>
-          
+
           <View style={styles.menuTextContainer}>
             <View style={styles.titleRow}>
-              <Text style={[
-                styles.menuTitle,
-                item.danger && styles.dangerText,
-                isDisabled && styles.disabledText
-              ]}>
+              <Text
+                style={[
+                  styles.menuTitle,
+                  item.danger && styles.dangerText,
+                  isDisabled && styles.disabledText,
+                ]}
+              >
                 {item.title}
               </Text>
               {item.badge && !isDisabled && (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{item.badge}</Text>
+                  <Text style={styles.badgeText}>{item.badgeText}</Text>
                 </View>
               )}
               {!availability.available && (
                 <View style={styles.premiumBadge}>
-                  <Text style={styles.premiumBadgeText}>{availability.reason}</Text>
+                  <Text style={styles.premiumBadgeText}>
+                    {availability.reason}
+                  </Text>
                 </View>
               )}
             </View>
-            <Text style={[
-              styles.menuSubtitle,
-              isDisabled && styles.disabledText
-            ]}>
-              {item.subtitle}
-            </Text>
+            {item.subtitle && (
+              <Text
+                style={[styles.menuSubtitle, isDisabled && styles.disabledText]}
+              >
+                {item.subtitle}
+              </Text>
+            )}
           </View>
         </View>
-        
-        <Text style={[
-          styles.arrow,
-          item.danger && styles.dangerText,
-          isDisabled && styles.disabledText
-        ]}>
-          {isDisabled ? '🔒' : (item.type === 'navigation' ? '→' : '⚠️')}
-        </Text>
       </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>⚙️ Settings & Services</Text>
-      
+      <View style={styles.headerContainer}>
+        <Text style={styles.sectionTitle}>⚙️ Settings & Services</Text>
+      </View>
+
       <View style={styles.menuContainer}>
-        {menuItems.map((item) => (
-          <MenuItemComponent key={item.id} item={item} />
+        {menuItems.map((item, index) => (
+          <View key={item.id}>
+            <MenuItemComponent item={item} />
+            {index < menuItems.length - 1 && <View style={styles.separator} />}
+          </View>
         ))}
       </View>
+
+      {/* Custom Alert Modal */}
+      <CustomAlertModal
+        isVisible={alertVisible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onConfirm={hideAlert}
+        onCancel={hideAlert}
+        confirmText={alertConfig.confirmText}
+        showCancelButton={alertConfig.showCancelButton}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: Math.max(16, width * 0.04),
-    marginTop: Math.max(20, width * 0.05),
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  headerContainer: {
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: getResponsiveSize(width, 0.045, 18, 24),
+    fontSize: 18,
     ...getFontFamily('BOLD'),
     color: COLORS.TEXT_PRIMARY,
-    marginBottom: Math.max(16, width * 0.04),
     textAlign: 'center',
   },
   menuContainer: {
     backgroundColor: COLORS.CARD_BACKGROUND,
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
-    borderRadius: 16,
-    paddingVertical: Math.max(12, width * 0.03),
+    borderRadius: 8,
+    overflow: 'hidden',
     shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingVertical: Math.max(16, width * 0.04),
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER_SECONDARY,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   dangerItem: {
-    borderBottomColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: 'rgba(239, 68, 68, 0.03)',
   },
-  menuItemLeft: {
+  disabledItem: {
+    opacity: 0.6,
+  },
+  menuItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
   iconContainer: {
-    width: Math.max(44, width * 0.11),
-    height: Math.max(44, width * 0.11),
-    borderRadius: Math.max(22, width * 0.055),
-    backgroundColor: 'rgba(247, 214, 72, 0.15)',
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: 'rgba(247, 214, 72, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(247, 214, 72, 0.3)',
+    borderColor: 'rgba(247, 214, 72, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: Math.max(16, width * 0.04),
+    marginRight: 12,
   },
   dangerIconContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+  },
+  disabledIconContainer: {
+    backgroundColor: 'rgba(148, 163, 184, 0.15)',
+    borderColor: 'rgba(148, 163, 184, 0.25)',
   },
   menuIcon: {
-    fontSize: getResponsiveSize(width, 0.05, 18, 24),
+    fontSize: 18,
+    lineHeight: 20,
   },
   menuTextContainer: {
     flex: 1,
+    justifyContent: 'center',
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   menuTitle: {
-    fontSize: getResponsiveSize(width, 0.04, 16, 20),
+    fontSize: 16,
     ...getFontFamily('SEMIBOLD'),
     color: COLORS.TEXT_PRIMARY,
+    lineHeight: 20,
   },
   dangerText: {
     color: COLORS.ERROR,
   },
-  badge: {
-    backgroundColor: COLORS.WARNING,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    marginLeft: 8,
-  },
-  badgeText: {
-    fontSize: getResponsiveSize(width, 0.025, 10, 14),
-    ...getFontFamily('SEMIBOLD'),
-    color: COLORS.SECONDARY,
-  },
-  menuSubtitle: {
-    fontSize: getResponsiveSize(width, 0.03, 12, 16),
-    color: COLORS.TEXT_SECONDARY,
-    ...getFontFamily('REGULAR'),
-  },
-  premiumBadge: {
-    backgroundColor: COLORS.PRIMARY,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-    marginLeft: 8,
-  },
-  premiumBadgeText: {
-    fontSize: getResponsiveSize(width, 0.022, 9, 12),
-    ...getFontFamily('SEMIBOLD'),
-    color: COLORS.SECONDARY,
-  },
-  disabledItem: {
-    opacity: 0.5,
-  },
-  disabledIconContainer: {
-    backgroundColor: 'rgba(148, 163, 184, 0.2)',
-    borderColor: 'rgba(148, 163, 184, 0.3)',
-  },
   disabledText: {
     color: COLORS.TEXT_SECONDARY,
   },
-  arrow: {
-    fontSize: getResponsiveSize(width, 0.045, 18, 24),
-    color: COLORS.TEXT_SECONDARY,
+  badge: {
+    backgroundColor: COLORS.WARNING,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginLeft: 6,
+  },
+  badgeText: {
+    fontSize: 10,
     ...getFontFamily('SEMIBOLD'),
+    color: COLORS.SECONDARY,
+    lineHeight: 12,
+  },
+  premiumBadge: {
+    backgroundColor: COLORS.PRIMARY,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 6,
+  },
+  premiumBadgeText: {
+    fontSize: 9,
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.SECONDARY,
+    lineHeight: 11,
+  },
+  menuSubtitle: {
+    fontSize: 13,
+    color: COLORS.TEXT_SECONDARY,
+    ...getFontFamily('REGULAR'),
+    lineHeight: 16,
+    marginTop: 1,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: COLORS.BORDER_SECONDARY,
+    marginHorizontal: 16,
+    opacity: 0.3,
   },
 });
 

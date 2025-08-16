@@ -1,3 +1,5 @@
+// homeUtils.js
+
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storageService } from '../services/AsyncStorage';
@@ -20,7 +22,6 @@ export const loadUserData = async setUserData => {
 export const handleLogout = async (navigation) => {
   console.log('Logout function triggered');
   try {
-    // Get token and userId
     const token = await storageService.getItem('userToken');
     const userId = await storageService.getItem('userId');
 
@@ -29,16 +30,13 @@ export const handleLogout = async (navigation) => {
 
     if (token && userId) {
       try {
-        // Send logout request to backend
         await authService.logoutUser(userId, token);
         console.log('Backend logout successful');
       } catch (backendError) {
         console.log('Backend logout error:', backendError);
-        // Continue even if backend error
       }
     }
 
-    // AsyncStorage cleanup
     await storageService.multiRemove([
       'userToken',
       'refreshToken',
@@ -46,12 +44,9 @@ export const handleLogout = async (navigation) => {
       'userData',
     ]);
 
-    // Clear global token
     global.userToken = null;
-
     console.log('Storage cleared');
 
-    // Navigate to login screen
     navigation.reset({
       index: 0,
       routes: [{ name: 'Auth', state: { routes: [{ name: 'Login' }] } }],
@@ -60,8 +55,6 @@ export const handleLogout = async (navigation) => {
     console.log('Redirected to login screen');
   } catch (error) {
     console.log('Logout error:', error);
-
-    // Log out user even if error occurs
     Alert.alert(
       'Warning',
       'An error occurred during logout, but you will be logged out anyway.',
@@ -91,19 +84,7 @@ export const handleLogout = async (navigation) => {
   }
 };
 
-export const confirmLogout = (navigation) => {
-  Alert.alert('Logout', 'Are you sure you want to logout?', [
-    {
-      text: 'Cancel',
-      style: 'cancel',
-    },
-    {
-      text: 'Logout',
-      style: 'destructive',
-      onPress: () => handleLogout(navigation),
-    },
-  ]);
-};
+// confirmLogout fonksiyonu kaldırıldı
 
 export const handleTabNavigation = (
   itemId,
@@ -118,7 +99,6 @@ export const handleTabNavigation = (
 };
 
 export const handleCampaignStart = (campaign, navigation) => {
-  // Navigate to Campaign Detail Screen first
   navigation.navigate('CampaignDetail', {
     campaignId: campaign._id || campaign.id,
     campaign: campaign,

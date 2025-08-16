@@ -21,10 +21,15 @@ const UserCampaignHeader = ({ navigation, campaignCount }) => {
         <Text style={styles.headerTitle}>Campaigns</Text>
         <Text style={styles.headerSubtitle}>{campaignCount} active campaign</Text>
       </View>
-
-      <View style={styles.headerRight}>
+ <TouchableOpacity 
+        style={styles.empButton}
+        
+      >
+        
+      </TouchableOpacity>
+      {/* <View style={styles.headerRight}>
         <Icon name="campaign" size={Math.max(20, Math.min(28, width * 0.06))} color={COLORS.PRIMARY} />
-      </View>
+      </View> */}
     </View>
   );
 };
@@ -60,6 +65,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
+  },
+   empButton: {
+    width: Math.max(40, width * 0.1),
+    height: Math.max(40, width * 0.1),
+    borderRadius: Math.max(20, width * 0.05),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerCenter: {
     flex: 1,
