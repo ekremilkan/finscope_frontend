@@ -1,3 +1,5 @@
+//totall earnings kısmı soldan sağa doğru hizalanacak
+//icon ?
 import React, { useState, useEffect } from 'react';
 import {
   View,

@@ -1,6 +1,7 @@
 //müşteri banner fotoğrafı eklerse gözükecek eklemezse doğrudan info
 //boşluklar azalacak 
 //alertler yerine modal açılacak 
+//campaigncontent kısmı kaldıralacak
 //kategori sayısı enfazla 3 tane oalcak 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {

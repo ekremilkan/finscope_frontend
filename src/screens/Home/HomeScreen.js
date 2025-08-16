@@ -1,5 +1,6 @@
 // HomeScreen.js
-
+//userstatistics bollşşukları düzeltilecek
+//home logout kalkacak
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions, StatusBar, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
