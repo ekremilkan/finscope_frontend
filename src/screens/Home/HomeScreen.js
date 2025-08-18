@@ -1,6 +1,3 @@
-// HomeScreen.js
-//userstatistics bollşşukları düzeltilecek
-//home logout kalkacak
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions, StatusBar, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,7 +11,6 @@ import { HOME_USER_DATA, QUICK_ACTIONS } from '../../data/homeData';
 import campaignService from '../../services/campaignService';
 
 // Utils imports
-// DEĞİŞİKLİK: 'confirmLogout' yerine 'handleLogout' import ediliyor
 import { loadUserData, handleLogout, handleTabNavigation } from '../../utils/homeUtils';
 
 // Component imports
@@ -34,7 +30,9 @@ const HomeScreen = ({ navigation }) => {
   const [loadingCampaigns, setLoadingCampaigns] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
+  const [showAllCampaigns, setShowAllCampaigns] = useState(false);
 
+  // DEĞİŞİKLİK: Kampanyaları gruplamak yerine istenen önceliğe göre sıralayan mantık
   const loadActiveCampaigns = useCallback(async () => {
     if (!refreshing) {
       setLoadingCampaigns(true);
@@ -64,11 +62,35 @@ const HomeScreen = ({ navigation }) => {
         return { ...campaign, userStatus };
       });
       
-      const campaignsToShow = mergedCampaigns
-        .filter(c => ['active', 'upcoming', 'completed', 'in-progress'].includes(c?.userStatus) || ['active', 'upcoming', 'expired'].includes(c?.status))
-        .slice(0, 4);
-        
-      setActiveCampaigns(campaignsToShow);
+      // Sıralama için kampanyalara öncelik puanı veren bir fonksiyon
+      const getCampaignPriority = (campaign) => {
+        if (!campaign) return 4; // Hatalı veriyi en sona at
+        const now = new Date();
+        const end = new Date(campaign.endDate);
+
+        const isActive = campaign.status === 'active' && now <= end && campaign.userStatus !== 'completed';
+        const isUpcoming = campaign.status === 'upcoming';
+        const isMissed = now > end && campaign.userStatus !== 'completed';
+
+        if (isActive || isUpcoming) return 1; // En yüksek öncelik
+        if (isMissed) return 2; // İkinci öncelik
+        return 3; // Diğer her şey (örn: completed)
+      };
+
+      // Tüm kampanyaları öncelik puanına göre sırala
+      const sortedCampaigns = mergedCampaigns.sort((a, b) => {
+        const priorityA = getCampaignPriority(a);
+        const priorityB = getCampaignPriority(b);
+        // Öncelikler farklıysa, puana göre sırala
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+        // Öncelikler aynıysa, bitiş tarihine göre yeniden eskiye sırala (isteğe bağlı)
+        return new Date(b.endDate) - new Date(a.endDate);
+      });
+      
+      setActiveCampaigns(sortedCampaigns);
+
     } catch (error) {
       console.error('⌐ Load campaigns error on Home:', error);
       setActiveCampaigns([]);
@@ -95,17 +117,13 @@ const HomeScreen = ({ navigation }) => {
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
+    setShowAllCampaigns(false);
   }, []);
-
-  const handleTabPress = (itemId) => {
-    handleTabNavigation(itemId, activeTab, setActiveTab, navigation);
-  };
 
   const handleCampaignPress = (campaign) => {
     navigation.navigate('CampaignDetail', { campaign });
   };
 
-  // DEĞİŞİKLİK: Bu fonksiyon artık doğrudan 'handleLogout'u çağırıyor
   const handleLogoutPress = () => {
     handleLogout(navigation);
   };
@@ -145,6 +163,8 @@ const HomeScreen = ({ navigation }) => {
                 activeCampaigns={activeCampaigns}
                 onCampaignPress={handleCampaignPress}
                 isLoading={loadingCampaigns}
+                showAllCampaigns={showAllCampaigns}
+                onViewMorePress={() => setShowAllCampaigns(true)}
               />
               
               <View style={styles.sectionSpacer} />

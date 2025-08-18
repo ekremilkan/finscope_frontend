@@ -67,29 +67,8 @@ const HomeHeader = ({ userName, onLogoutPress, onNotificationPress }) => {
             <View style={styles.notificationDot} />
           </View>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.headerIcon}
-          onPress={handleLogoutPress}
-        >
-          <View style={styles.iconContainer}>
-            <Icon name="logout" size={Math.max(20, Math.min(28, width * 0.06))} color={COLORS.ERROR} />
-          </View>
-        </TouchableOpacity>
       </View>
-
-      {/* Logout Confirmation Modal */}
-      <CustomAlertModal
-        isVisible={logoutModalVisible}
-        title="Logout Confirmation"
-        message="Are you sure you want to logout?"
-        onConfirm={confirmLogout}
-        onCancel={cancelLogout}
-        confirmText="Logout"
-        cancelText="Cancel"
-        showCancelButton={true}
-      />
-
+     
       {/* Notification Coming Soon Modal */}
       <CustomAlertModal
         isVisible={notificationModalVisible}

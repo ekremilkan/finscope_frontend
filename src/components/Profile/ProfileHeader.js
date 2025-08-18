@@ -127,7 +127,7 @@ const ProfileHeader = ({ user, onEditPress, onNameUpdate, isLoading = false }) =
       <Text style={styles.email}>{user.email || 'Email not provided'}</Text>
 
       <TouchableOpacity style={styles.editButton} onPress={handleEditPress}>
-        <Text style={styles.editButtonText}>✏️ Edit Profile</Text>
+        <Text style={styles.editButtonText}> Edit Profile</Text>
       </TouchableOpacity>
 
       {renderEditModal()}

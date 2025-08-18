@@ -29,10 +29,10 @@ const CampaignsScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
   const loadData = async () => {
+    // ... Bu fonksiyonda bir değişiklik yok ...
     if (!refreshing) {
         setLoading(true);
     }
@@ -52,20 +52,15 @@ const CampaignsScreen = ({ navigation }) => {
       
       const userProgressResults = await Promise.all(progressPromises);
 
-      // ✅ DEĞİŞİKLİK: Veri birleştirme mantığı güncellendi.
       const mergedCampaigns = campaignsData.map((campaign, index) => {
         const progress = userProgressResults[index];
         let userStatus = null;
         if (progress) {
           if (progress.completed) {
-            // Tamamlanmışsa
             userStatus = 'completed';
           } else if (progress.progress && progress.progress.currentQuestion > 0) {
-            // Katılmış VE en az 1 soru cevaplamışsa (yarım bırakmışsa)
             userStatus = 'in-progress';
           }
-          // Not: Eğer progress var ama currentQuestion = 0 ise, userStatus 'null' kalır
-          // ve kart bunu "henüz başlanmamış" olarak yorumlar.
         }
         return { ...campaign, userStatus };
       });
@@ -93,32 +88,39 @@ const CampaignsScreen = ({ navigation }) => {
   );
 
   useEffect(() => {
+    // ... Bu fonksiyonda bir değişiklik yok ...
     let filtered = [...campaigns];
-    if (searchQuery) {
-      const lowercasedQuery = searchQuery.toLowerCase();
-      filtered = filtered.filter(c => (c?.title?.toLowerCase() || '').includes(lowercasedQuery) || (c?.description?.toLowerCase() || '').includes(lowercasedQuery));
-    }
+    
     if (selectedFilter !== 'all') {
       filtered = filtered.filter(c => {
         if (!c) return false;
+        
         if (selectedFilter === 'completed') {
             return c.userStatus === 'completed';
         }
+        
         if (selectedFilter === 'active') {
             const now = new Date();
             const end = new Date(c.endDate);
             return now <= end && c.status === 'active' && c.userStatus !== 'completed';
         }
+        
         if (selectedFilter === 'missed') {
             const now = new Date();
             const end = new Date(c.endDate);
             return now > end && c.userStatus !== 'completed';
         }
-        return c.status === selectedFilter;
+        
+        if (selectedFilter === 'upcoming') {
+            return c.status === 'upcoming';
+        }
+
+        return false;
       });
     }
+
     setFilteredCampaigns(filtered);
-  }, [searchQuery, selectedFilter, campaigns]);
+  }, [selectedFilter, campaigns]);
   
   const handleCardPress = (campaign) => {
     if (!campaign?._id) return;
@@ -136,13 +138,18 @@ const CampaignsScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <LinearGradient colors={[COLORS.BACKGROUND, COLORS.BACKGROUND]} style={styles.gradientContainer}>
           <UserCampaignHeader navigation={navigation} campaignCount={filteredCampaigns.length} />
-          {/* <UserCampaignFilters selectedFilter={selectedFilter} onFilterChange={setSelectedFilter} /> */}
+          <UserCampaignFilters selectedFilter={selectedFilter} onFilterChange={setSelectedFilter} />
+          
           {loading ? renderSkeletonLoading() : error ? renderErrorState() : (
             <FlatList
               data={filteredCampaigns}
               renderItem={renderCampaignCard}
               keyExtractor={keyExtractor}
-              contentContainerStyle={styles.listContainer}
+              // DEĞİŞİKLİK: contentContainerStyle, liste boş olduğunda ortalama yapacak şekilde dinamik hale getirildi.
+              contentContainerStyle={[
+                styles.listContainer,
+                filteredCampaigns.length === 0 && styles.emptyListContainer
+              ]}
               showsVerticalScrollIndicator={false}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[COLORS.PRIMARY]} tintColor={COLORS.PRIMARY} />}
               ListEmptyComponent={!loading && !error ? renderEmptyState : null}
@@ -158,9 +165,28 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
   safeArea: { flex: 1 },
   gradientContainer: { flex: 1 },
-  listContainer: { paddingHorizontal: 20, paddingBottom: 100, paddingTop: 10 },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, marginTop: 50 },
-  emptyText: { fontSize: 18, fontWeight: '600', color: COLORS.TEXT_PRIMARY, marginTop: 16 },
+  listContainer: { 
+      paddingHorizontal: 20, 
+      paddingBottom: 100, 
+      paddingTop: 10 
+  },
+  // YENİ STİL: Liste boşken ortalama yapmak için eklendi
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  // DEĞİŞİKLİK: emptyContainer stilinden marginTop ve gereksiz padding kaldırıldı
+  emptyContainer: { 
+      alignItems: 'center', 
+      // Dikey ağırlığı header'a göre dengelemek için hafif bir alt boşluk
+      paddingBottom: 50,
+  },
+  emptyText: { 
+      fontSize: 18, 
+      fontWeight: '600', 
+      color: COLORS.TEXT_PRIMARY, 
+      marginTop: 16 
+  },
   errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   errorText: { fontSize: 16, fontWeight: '600', color: COLORS.ERROR, textAlign: 'center' },
   retryButton: { backgroundColor: COLORS.PRIMARY, padding: 12, borderRadius: 12, marginTop: 16 },

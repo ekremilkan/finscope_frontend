@@ -26,7 +26,6 @@ const ProfileLogout = ({ user, onLogoutPress }) => {
         onPress={onLogoutPress}
         activeOpacity={0.8}
       >
-        <Text style={styles.logoutIcon}>🚪</Text>
         <Text style={styles.logoutText}>Secure Logout</Text>
       </TouchableOpacity>
       

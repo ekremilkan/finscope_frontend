@@ -15,10 +15,11 @@ const HomeStatsCard = ({ userData }) => {
         </View>
       </View>
       
+      {/* İkili istatistikler için grid */}
       <View style={styles.statsGrid}>
         <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
-          <Text style={styles.statIcon}>📈</Text>
+            <Text style={styles.statIcon}>📈</Text>
           </View>
           <Text style={styles.statLabel}>Success Rate</Text>
           <Text style={styles.statValue}>%{userData.successRate}</Text>
@@ -26,21 +27,22 @@ const HomeStatsCard = ({ userData }) => {
         
         <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
-          <Text style={styles.statIcon}>🎯</Text>
+            <Text style={styles.statIcon}>🎯</Text>
           </View>
           <Text style={styles.statLabel}>Completed</Text>
           <Text style={styles.statValue}>{userData.completedCampaigns}/{userData.totalCampaigns}</Text>
         </View>
       </View>
 
-      <View style={styles.statsGrid}>
-        <View style={styles.statItem}>
-          <View style={styles.statIconContainer}>
-          <Text style={styles.statIcon}>💰</Text>
-          </View>
-          <Text style={styles.statLabel}>Total Earnings</Text>
-          <Text style={styles.statValue}>{userData.totalEarnings} USDT</Text>
+      {/* DEĞİŞİKLİK: Total Earnings için öne çıkan yeni bir alan */}
+      <View style={styles.featuredStatItem}>
+        <View style={styles.featuredStatLeft}>
+            <View style={styles.statIconContainer}>
+                <Text style={styles.statIcon}>💰</Text>
+            </View>
+            <Text style={styles.statLabel}>Total Earnings</Text>
         </View>
+        <Text style={styles.featuredStatValue}>{userData.totalEarnings} USDT</Text>
       </View>
     </View>
   );
@@ -48,16 +50,14 @@ const HomeStatsCard = ({ userData }) => {
 
 const styles = StyleSheet.create({
   statsCard: {
-    padding: Math.max(24, width * 0.06),
+    // Boşluk azaltıldı
+    padding: Math.max(18, width * 0.05),
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
     backgroundColor: COLORS.CARD_BACKGROUND,
     shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
+    shadowOffset: { width: 0, height: 8, },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
@@ -66,15 +66,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Math.max(24, height * 0.03),
-    marginTop: Math.max(16, height * 0.02),
+    // Boşluk azaltıldı
+    marginBottom: Math.max(20, height * 0.025),
+    // marginTop kaldırıldı, padding ile dengelendi
   },
   statsTitle: {
     fontSize: Math.max(20, width * 0.055),
     ...getFontFamily('BOLD'),
     color: COLORS.TEXT_PRIMARY,
-    textShadowColor: COLORS.PRIMARY,
-    textShadowRadius: 4,
   },
   statsBadge: {
     backgroundColor: 'rgba(247, 214, 72, 0.15)',
@@ -92,18 +91,21 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: Math.max(16, height * 0.02),
+    // Boşluk azaltıldı
+    marginBottom: Math.max(12, height * 0.015),
     gap: Math.max(12, width * 0.03),
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
-    padding: Math.max(16, width * 0.04),
+    // Boşluk azaltıldı
+    padding: Math.max(12, width * 0.03),
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
     backgroundColor: COLORS.SURFACE,
-    minHeight: Math.max(100, height * 0.12),
+    // minHeight azaltıldı
+    minHeight: Math.max(90, height * 0.11),
     justifyContent: 'center',
   },
   statIconContainer: {
@@ -113,7 +115,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(247, 214, 72, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Math.max(8, height * 0.01),
+    // Boşluk azaltıldı
+    marginBottom: Math.max(6, height * 0.008),
     borderWidth: 1,
     borderColor: 'rgba(247, 214, 72, 0.3)',
   },
@@ -123,7 +126,8 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: Math.max(12, width * 0.032),
     color: COLORS.TEXT_SECONDARY,
-    marginBottom: Math.max(6, height * 0.008),
+    // Boşluk azaltıldı
+    marginBottom: Math.max(4, height * 0.005),
     textAlign: 'center',
     ...getFontFamily('SEMIBOLD'),
     textTransform: 'uppercase',
@@ -135,6 +139,28 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
   },
+  // YENİ STİLLER: Öne çıkan istatistik alanı için
+  featuredStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Math.max(12, width * 0.03),
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+    backgroundColor: COLORS.SURFACE,
+    marginTop: 4, // Üstteki grid ile arasına hafif boşluk
+  },
+  featuredStatLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  featuredStatValue: {
+    fontSize: Math.max(18, width * 0.048),
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+  }
 });
 
-export default HomeStatsCard; 
+export default HomeStatsCard;

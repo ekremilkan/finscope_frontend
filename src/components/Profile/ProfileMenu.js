@@ -111,7 +111,7 @@ const ProfileMenu = ({ menuItems, navigation, user, showAlert: externalShowAlert
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.sectionTitle}>⚙️ Settings & Services</Text>
+        <Text style={styles.sectionTitle}> Settings & Services</Text>
       </View>
 
       <View style={styles.menuContainer}>

@@ -1,8 +1,4 @@
-//müşteri banner fotoğrafı eklerse gözükecek eklemezse doğrudan info
-//boşluklar azalacak 
-//alertler yerine modal açılacak 
-//campaigncontent kısmı kaldıralacak
-//kategori sayısı enfazla 3 tane oalcak 
+//campaigncontent kısmı ve title description kısmı yoruma alındı
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
@@ -277,7 +273,7 @@ const CampaignDetailScreen = ({ navigation, route }) => {
             style={styles.modalButton}
             onPress={() => setIsModalVisible(false)}
           >
-            <Text style={styles.modalButtonText}>Kapat</Text>
+            <Text style={styles.modalButtonText}>Close</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -362,10 +358,10 @@ const CampaignDetailScreen = ({ navigation, route }) => {
 
   const renderCampaignInfo = () => (
     <View style={styles.infoContainer}>
-      <Text style={styles.mainTitle}>{campaign.title}</Text>
+      {/* <Text style={styles.mainTitle}>{campaign.title}</Text>
       {!!campaign.description && (
         <Text style={styles.descriptionText}>{campaign.description}</Text>
-      )}
+      )} */}
       {Array.isArray(campaign.tags) && campaign.tags.length > 0 && (
         <View style={styles.tagsContainer}>
           {campaign.tags.slice(0, 3).map((tag, index) => (
@@ -389,7 +385,7 @@ const CampaignDetailScreen = ({ navigation, route }) => {
     return (
       <View style={styles.sliderContainer}>
         <View style={styles.sliderHeader}>
-          <Text style={styles.areaTitle}>Campaign Content</Text>
+          {/* <Text style={styles.areaTitle}>Campaign Content</Text> */}
           <Text style={styles.progressText}>
             {activeContentIndex + 1} / {content.length}
           </Text>

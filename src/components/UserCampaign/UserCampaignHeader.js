@@ -19,7 +19,7 @@ const UserCampaignHeader = ({ navigation, campaignCount }) => {
       
       <View style={styles.headerCenter}>
         <Text style={styles.headerTitle}>Campaigns</Text>
-        <Text style={styles.headerSubtitle}>{campaignCount} active campaign</Text>
+        <Text style={styles.headerSubtitle}>{campaignCount} campaign</Text>
       </View>
  <TouchableOpacity 
         style={styles.empButton}

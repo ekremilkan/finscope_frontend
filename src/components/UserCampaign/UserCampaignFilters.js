@@ -1,84 +1,91 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { CATEGORIES } from '../../constants/campaignConstants';
 import { COLORS } from '../../constants/colorConstants';
 import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
 const UserCampaignFilters = ({ selectedFilter, onFilterChange }) => {
+  // Kullanıcının istediği yeni filtre seçenekleri
+  const filterOptions = [
+    { key: 'all', label: 'All', icon: 'list' },
+    { key: 'active', label: 'Active', icon: 'play-circle-outline' },
+    { key: 'upcoming', label: 'Upcoming', icon: 'schedule' },
+    { key: 'completed', label: 'Success', icon: 'check-circle' }, // 'success' = 'completed'
+    { key: 'missed', label: 'Missed', icon: 'cancel' },
+  ];
+
   return (
-    <View style={styles.categoriesContainer}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.categoriesRow}>
-          {CATEGORIES.map((category) => (
-            <TouchableOpacity
-              key={category.id}
+    <View style={styles.container}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersContainer}
+      >
+        {filterOptions.map((option) => (
+          <TouchableOpacity
+            key={option.key}
+            style={[
+              styles.filterButton,
+              selectedFilter === option.key && styles.filterButtonActive,
+            ]}
+            onPress={() => onFilterChange(option.key)}
+            activeOpacity={0.8}
+          >
+            <Icon
+              name={option.icon}
+              size={18}
+              color={selectedFilter === option.key ? COLORS.PRIMARY : COLORS.TEXT_SECONDARY}
+            />
+            <Text
               style={[
-                styles.categoryButton,
-                selectedFilter === category.id && styles.categoryButtonSelected
+                styles.filterButtonText,
+                selectedFilter === option.key && styles.filterButtonTextActive,
               ]}
-              onPress={() => onFilterChange(category.id)}
             >
-              <Icon 
-                name={category.icon} 
-                size={16} 
-                color={selectedFilter === category.id ? COLORS.SECONDARY : COLORS.PRIMARY} 
-              />
-              <Text style={[
-                styles.categoryText,
-                selectedFilter === category.id && styles.categoryTextSelected
-              ]}>
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  categoriesContainer: {
-    paddingVertical: 8,
+  container: {
+    paddingVertical: 12,
+    backgroundColor: COLORS.BACKGROUND,
   },
-  categoriesRow: {
-    flexDirection: 'row',
-    paddingHorizontal: Math.max(20, width * 0.05),
-    gap: 12,
+  filtersContainer: {
+    paddingHorizontal: 20,
+    gap: 10,
   },
-  categoryButton: {
+  filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: COLORS.SURFACE,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
-    backgroundColor: COLORS.CARD_BACKGROUND,
     gap: 6,
-    shadowColor: COLORS.SHADOW_SECONDARY,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  categoryButtonSelected: {
-    backgroundColor: COLORS.PRIMARY,
+  filterButtonActive: {
+    backgroundColor: 'rgba(247, 214, 72, 0.15)',
     borderColor: COLORS.PRIMARY,
-    shadowColor: COLORS.PRIMARY,
-    shadowOpacity: 0.3,
   },
-  categoryText: {
-    fontSize: Math.max(14, width * 0.035),
+  filterButtonText: {
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 14,
+  },
+  filterButtonTextActive: {
     ...getFontFamily('SEMIBOLD'),
-    color: COLORS.TEXT_PRIMARY,
-  },
-  categoryTextSelected: {
-    color: COLORS.SECONDARY,
+    color: COLORS.PRIMARY,
   },
 });
 
-export default UserCampaignFilters; 
+export default UserCampaignFilters;
