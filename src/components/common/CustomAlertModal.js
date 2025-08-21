@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.SECONDARY,
   },
   confirmButtonText: {
-    color: 'white',
+    color: COLORS.TEXT_BLACK,
     ...getFontFamily('SEMIBOLD'),
     fontSize: 16,
   },

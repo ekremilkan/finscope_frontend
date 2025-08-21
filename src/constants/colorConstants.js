@@ -13,7 +13,7 @@ export const COLORS = {
   TEXT_PRIMARY: '#ffffff',   // Ana metin rengi
   TEXT_SECONDARY: '#94a3b8', // İkincil metin rengi
   TEXT_DISABLED: '#64748b',  // Devre dışı metin rengi
-  
+  TEXT_BLACK: '#181818',      // Siyah metin rengi
   // Status colors
   SUCCESS: '#10b981',      // Başarı rengi
   WARNING: '#f59e0b',      // Uyarı rengi
