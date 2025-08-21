@@ -2,7 +2,6 @@ export const PROFILE_DATA = {
   user: {
     name: 'Ali Yılmaz',
     email: 'ali@example.com',
-    avatar: '👤',
     joinDate: '2024',
     status: 'Premium Member'
   },
@@ -14,10 +13,11 @@ export const PROFILE_DATA = {
   }
 };
 
+// İkonlar Material Icons setindeki isimlerle güncellendi
 export const PROFILE_MENU_ITEMS = [
   {
     id: 1,
-    icon: '📊',
+    icon: 'leaderboard', // 'bar-chart-2' yerine
     title: 'User Statistics',
     subtitle: 'View your financial performance',
     route: 'UserStats',
@@ -25,7 +25,7 @@ export const PROFILE_MENU_ITEMS = [
   },
   {
     id: 2,
-    icon: '🏆',
+    icon: 'emoji-events', // 'award' yerine
     title: 'Earn Rewards',
     subtitle: 'Manage your status and rewards',
     route: 'EarnRewards',
@@ -34,7 +34,7 @@ export const PROFILE_MENU_ITEMS = [
   },
   {
     id: 3,
-    icon: '🎨',
+    icon: 'color-lens', // 'sun' yerine
     title: 'Theme Settings',
     subtitle: 'Customize the appearance',
     route: 'ThemeSettings',
@@ -42,7 +42,7 @@ export const PROFILE_MENU_ITEMS = [
   },
   {
     id: 4,
-    icon: '🔔',
+    icon: 'notifications', // 'bell' yerine
     title: 'Notification Settings',
     subtitle: 'Adjust your notification preferences',
     route: 'NotificationSettings',
@@ -50,7 +50,7 @@ export const PROFILE_MENU_ITEMS = [
   },
   {
     id: 5,
-    icon: '📋',
+    icon: 'description', // 'file-text' yerine
     title: 'Terms of Service',
     subtitle: 'Read our service terms',
     route: 'TermsOfService',
@@ -58,7 +58,7 @@ export const PROFILE_MENU_ITEMS = [
   },
   {
     id: 6,
-    icon: '🔒',
+    icon: 'security', // 'shield' yerine
     title: 'Privacy Policy',
     subtitle: 'Our data protection policy',
     route: 'PrivacyPolicy',
@@ -66,7 +66,7 @@ export const PROFILE_MENU_ITEMS = [
   },
   {
     id: 7,
-    icon: '💬',
+    icon: 'contact-support', // 'message-square' yerine
     title: 'Contact Us',
     subtitle: 'Customer support',
     route: 'ContactUs',
@@ -74,7 +74,7 @@ export const PROFILE_MENU_ITEMS = [
   },
   {
     id: 8,
-    icon: '🗑️',
+    icon: 'delete', // 'trash-2' yerine
     title: 'Delete Account',
     subtitle: 'Permanently delete your account',
     route: null,

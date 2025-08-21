@@ -125,13 +125,15 @@ const ForgotPassword = ({ navigation }) => {
 
   // Şifre sıfırlama işlemi
   const handleResetPassword = async (password, code) => {
-    if (!password || password.trim().length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
+  const passwordRegex = /^[0-9]{6}$/;
 
-    setLoading(true);
-    setError('');
+  if (!passwordRegex.test(password.trim())) {
+    setError('The password must consist of 6 digits.');
+    return;
+  }
+
+  setLoading(true);
+  setError('');
 
     try {
       const result = await resetPasswordAPI(email, code, password);

@@ -199,19 +199,19 @@ export const handleBackPress = (navigation) => {
 
 // Alert Utilities
 export const showAlert = (title, message, buttons = []) => {
-  const defaultButtons = [{ text: 'Tamam', style: 'default' }];
+  const defaultButtons = [{ text: 'Ok', style: 'default' }];
   Alert.alert(title, message, buttons.length > 0 ? buttons : defaultButtons);
 };
 
 export const showConfirmAlert = (title, message, onConfirm, onCancel = null) => {
   Alert.alert(title, message, [
     {
-      text: 'İptal',
+      text: 'Cancel',
       style: 'cancel',
       onPress: onCancel,
     },
     {
-      text: 'Tamam',
+      text: 'Ok',
       style: 'default',
       onPress: onConfirm,
     },

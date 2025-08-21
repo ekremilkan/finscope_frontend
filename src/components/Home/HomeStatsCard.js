@@ -1,5 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
+// DEĞİŞİKLİK: Icon kütüphanesi eklendi
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import Ficon from 'react-native-vector-icons/FontAwesome5';
 import { COLORS } from '../../constants/colorConstants';
 import { getFontFamily } from '../../constants/fontConstants';
 
@@ -15,11 +18,11 @@ const HomeStatsCard = ({ userData }) => {
         </View>
       </View>
       
-      {/* İkili istatistikler için grid */}
       <View style={styles.statsGrid}>
         <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
-            <Text style={styles.statIcon}>📈</Text>
+            {/* DEĞİŞİKLİK: Emoji yerine Icon eklendi */}
+            <Icon name="trending-up" size={22} color={COLORS.PRIMARY} />
           </View>
           <Text style={styles.statLabel}>Success Rate</Text>
           <Text style={styles.statValue}>%{userData.successRate}</Text>
@@ -27,18 +30,18 @@ const HomeStatsCard = ({ userData }) => {
         
         <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
-            <Text style={styles.statIcon}>🎯</Text>
+            {/* DEĞİŞİKLİK: Emoji yerine Icon eklendi */}
+            <Icon name="task-alt" size={22} color={COLORS.PRIMARY} />
           </View>
           <Text style={styles.statLabel}>Completed</Text>
           <Text style={styles.statValue}>{userData.completedCampaigns}/{userData.totalCampaigns}</Text>
         </View>
       </View>
 
-      {/* DEĞİŞİKLİK: Total Earnings için öne çıkan yeni bir alan */}
       <View style={styles.featuredStatItem}>
         <View style={styles.featuredStatLeft}>
             <View style={styles.statIconContainer}>
-                <Text style={styles.statIcon}>💰</Text>
+                <Ficon name="coins" size={20} color={COLORS.PRIMARY} />
             </View>
             <Text style={styles.statLabel}>Total Earnings</Text>
         </View>
@@ -50,7 +53,6 @@ const HomeStatsCard = ({ userData }) => {
 
 const styles = StyleSheet.create({
   statsCard: {
-    // Boşluk azaltıldı
     padding: Math.max(18, width * 0.05),
     borderRadius: 8,
     borderWidth: 1,
@@ -66,9 +68,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // Boşluk azaltıldı
     marginBottom: Math.max(20, height * 0.025),
-    // marginTop kaldırıldı, padding ile dengelendi
   },
   statsTitle: {
     fontSize: Math.max(20, width * 0.055),
@@ -91,20 +91,17 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // Boşluk azaltıldı
     marginBottom: Math.max(12, height * 0.015),
     gap: Math.max(12, width * 0.03),
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
-    // Boşluk azaltıldı
     padding: Math.max(12, width * 0.03),
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
     backgroundColor: COLORS.SURFACE,
-    // minHeight azaltıldı
     minHeight: Math.max(90, height * 0.11),
     justifyContent: 'center',
   },
@@ -115,18 +112,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(247, 214, 72, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    // Boşluk azaltıldı
     marginBottom: Math.max(6, height * 0.008),
     borderWidth: 1,
     borderColor: 'rgba(247, 214, 72, 0.3)',
   },
-  statIcon: {
-    fontSize: Math.max(20, width * 0.05),
-  },
+  // statIcon stili artık kullanılmıyor, kaldırılabilir.
   statLabel: {
     fontSize: Math.max(12, width * 0.032),
     color: COLORS.TEXT_SECONDARY,
-    // Boşluk azaltıldı
     marginBottom: Math.max(4, height * 0.005),
     textAlign: 'center',
     ...getFontFamily('SEMIBOLD'),
@@ -139,7 +132,6 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT_PRIMARY,
     textAlign: 'center',
   },
-  // YENİ STİLLER: Öne çıkan istatistik alanı için
   featuredStatItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -149,7 +141,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
     backgroundColor: COLORS.SURFACE,
-    marginTop: 4, // Üstteki grid ile arasına hafif boşluk
+    marginTop: 4,
   },
   featuredStatLeft: {
     flexDirection: 'row',

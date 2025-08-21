@@ -9,18 +9,22 @@ import {
   TextInput,
   ActivityIndicator
 } from 'react-native';
-import {
-  getGlassMorphismStyle,
-  getResponsiveSize,
-  getUserAvatar,
-  formatJoinDate
-} from '../../utils/profileUtils';
+// İkon kütüphanesi MaterialIcons olarak değiştirildi
+import Icon from 'react-native-vector-icons/MaterialIcons'; 
+import { getResponsiveSize } from '../../utils/profileUtils';
 import { COLORS } from '../../constants/colorConstants';
 import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
-const ProfileHeader = ({ user, onEditPress, onNameUpdate, isLoading = false }) => {
+const getInitials = (name) => {
+  if (!name) return '?';
+  const names = name.split(' ');
+  const initials = names.map(n => n[0]).join('');
+  return initials.substring(0, 2).toUpperCase();
+};
+
+const ProfileHeader = ({ user, onNameUpdate, isLoading = false }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newName, setNewName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -28,12 +32,10 @@ const ProfileHeader = ({ user, onEditPress, onNameUpdate, isLoading = false }) =
   const handleEditPress = () => {
     setNewName(user?.name || '');
     setIsModalVisible(true);
-    if (onEditPress) onEditPress();
   };
 
   const handleSaveName = async () => {
     if (!newName.trim()) return;
-
     setIsSaving(true);
     try {
       if (onNameUpdate) {
@@ -46,7 +48,7 @@ const ProfileHeader = ({ user, onEditPress, onNameUpdate, isLoading = false }) =
       setIsSaving(false);
     }
   };
-
+  
   const handleCancel = () => {
     setNewName(user?.name || '');
     setIsModalVisible(false);
@@ -109,25 +111,27 @@ const ProfileHeader = ({ user, onEditPress, onNameUpdate, isLoading = false }) =
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading profile...</Text>
-        </View>
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.avatarContainer}>
-        <Text style={styles.avatar}>{getUserAvatar(user.name)}</Text>
+      <View style={styles.leftContainer}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{getInitials(user?.name)}</Text>
+        </View>
+        <View style={styles.userInfoContainer}>
+          <Text style={styles.name} numberOfLines={1}>{user.name || 'User'}</Text>
+          <Text style={styles.email} numberOfLines={1}>{user.email || 'Email not provided'}</Text>
+        </View>
       </View>
 
-      <Text style={styles.name}>{user.name || 'User'}</Text>
-      <Text style={styles.email}>{user.email || 'Email not provided'}</Text>
-
       <TouchableOpacity style={styles.editButton} onPress={handleEditPress}>
-        <Text style={styles.editButtonText}> Edit Profile</Text>
+        {/* İkon adı 'edit' olarak değiştirildi */}
+        <Icon name="edit" size={22} color="#F7D648" />
       </TouchableOpacity>
 
       {renderEditModal()}
@@ -141,72 +145,66 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.BORDER_SECONDARY,
     borderRadius: 8,
-    alignItems: 'center',
-    paddingVertical: Math.max(20, width * 0.05),
-    paddingHorizontal: Math.max(20, width * 0.05),
+    paddingVertical: Math.max(16, width * 0.04),
+    paddingHorizontal: Math.max(16, width * 0.04),
     marginHorizontal: Math.max(16, width * 0.04),
     marginTop: Math.max(20, width * 0.05),
     shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 4
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: Math.max(12, width * 0.03)
-  },
-  avatar: {
-    fontSize: getResponsiveSize(width, 0.15, 48, 80),
-    textAlign: 'center',
-    backgroundColor: COLORS.PRIMARY,
-    width: Math.max(80, width * 0.2),
-    height: Math.max(80, width * 0.2),
-    borderRadius: Math.max(40, width * 0.1),
-    textAlignVertical: 'center',
-    lineHeight: Math.max(80, width * 0.2),
-    color: COLORS.SECONDARY,
-    ...getFontFamily('BOLD')
+    elevation: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   loadingContainer: {
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Math.max(40, width * 0.1)
+    minHeight: 120,
   },
-  loadingText: {
-    fontSize: getResponsiveSize(width, 0.04, 16, 20),
-    ...getFontFamily('REGULAR'),
-    color: COLORS.TEXT_SECONDARY
+  leftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  avatar: {
+    width: Math.max(60, width * 0.15),
+    height: Math.max(60, width * 0.15),
+    borderRadius: Math.max(30, width * 0.075),
+    backgroundColor: COLORS.PRIMARY,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  avatarText: {
+    color: COLORS.SECONDARY,
+    fontSize: getResponsiveSize(width, 0.06, 24, 30),
+    ...getFontFamily('BOLD'),
+  },
+  userInfoContainer: {
+    marginLeft: Math.max(12, width * 0.03),
+    flex: 1,
   },
   name: {
-    fontSize: getResponsiveSize(width, 0.06, 24, 32),
+    fontSize: getResponsiveSize(width, 0.045, 18, 22),
     ...getFontFamily('BOLD'),
     color: COLORS.TEXT_PRIMARY,
-    marginBottom: Math.max(4, width * 0.01),
-    textAlign: 'center'
+    marginBottom: Math.max(2, width * 0.005),
   },
   email: {
-    fontSize: getResponsiveSize(width, 0.035, 14, 18),
+    fontSize: getResponsiveSize(width, 0.032, 13, 16),
     ...getFontFamily('REGULAR'),
     color: COLORS.TEXT_SECONDARY,
-    marginBottom: Math.max(12, width * 0.03),
-    textAlign: 'center'
   },
   editButton: {
-    backgroundColor: COLORS.PRIMARY,
-    paddingHorizontal: Math.max(20, width * 0.05),
-    paddingVertical: Math.max(10, width * 0.025),
-    borderRadius: 8,
-    shadowColor: COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5
-  },
-  editButtonText: {
-    color: COLORS.SECONDARY,
-    fontSize: getResponsiveSize(width, 0.035, 14, 18),
-    ...getFontFamily('SEMIBOLD')
+    backgroundColor: 'rgba(148, 163, 184, 0.15)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,

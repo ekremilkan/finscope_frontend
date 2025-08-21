@@ -37,8 +37,10 @@ export const handleResetPassword = async (
   setError,
   navigation
 ) => {
-  if (!newPassword || newPassword.trim().length < 6) {
-    setError('Password must be at least 6 characters.');
+  const passwordRegex = /^[0-9]{6}$/; // sadece 6 haneli sayı
+
+  if (!newPassword || !passwordRegex.test(newPassword.trim())) {
+    setError('Password must be exactly 6 digits.');
     return;
   }
 
@@ -71,6 +73,7 @@ export const handleResetPassword = async (
     setLoading(false);
   }
 };
+
 
 
 

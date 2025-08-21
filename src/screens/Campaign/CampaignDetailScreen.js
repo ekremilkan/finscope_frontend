@@ -1,4 +1,4 @@
-//campaigncontent kısmı ve title description kısmı yoruma alındı
+//ana resim yoruma allınacak
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
@@ -199,15 +199,15 @@ const CampaignDetailScreen = ({ navigation, route }) => {
         await Linking.openURL(url);
       } else {
         setModalContent({
-          title: 'Hata',
-          message: `Bu link açılamıyor: ${url}`,
+          title: 'Error',
+          message: `This link cannot be opened: ${url}`,
         });
         setIsModalVisible(true);
       }
     } catch (e) {
       setModalContent({
-        title: 'Hata',
-        message: 'Link açılırken bir sorun oluştu.',
+        title: 'Error',
+        message: 'An error occurred while opening the link.',
       });
       setIsModalVisible(true);
     }
@@ -226,8 +226,8 @@ const CampaignDetailScreen = ({ navigation, route }) => {
       });
     } catch (err) {
       setModalContent({
-        title: 'Hata',
-        message: err?.message || 'Quiz başlatılamadı. Lütfen tekrar deneyin.',
+        title: 'Error',
+        message: err?.message || 'An error occurred while joining the campaign.',
       });
       setIsModalVisible(true);
     } finally {
@@ -630,8 +630,8 @@ const CampaignDetailScreen = ({ navigation, route }) => {
             />
           }
         >
-          {renderHeroImage()}
           {renderCampaignInfo()}
+          {/* {renderHeroImage()} */}
           {renderContentSlider()}
         </ScrollView>
 
@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(247, 214, 72, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.BORDER,
   },

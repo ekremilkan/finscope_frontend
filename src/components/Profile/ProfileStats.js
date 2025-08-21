@@ -1,16 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5'; 
 import { getResponsiveSize, processUserStats } from '../../utils/profileUtils';
 import { COLORS } from '../../constants/colorConstants';
 import { getFontFamily } from '../../constants/fontConstants';
 
 const { width } = Dimensions.get('window');
 
+const ICON_COLOR = '#F7D648';
+
 const ProfileStats = ({ stats, isLoading = false }) => {
-  const StatCard = ({ icon, label, value, color = COLORS.PRIMARY, isLoading = false }) => (
-    // Kartın içindeki tüm elemanlar artık tek bir grup olarak ortalanıyor
+  const StatCard = ({ iconName, label, value, color = COLORS.PRIMARY, isLoading = false }) => (
     <View style={styles.statCard}>
-      <Text style={styles.statIcon}>{icon}</Text>
+      <View style={[styles.iconContainer,{ backgroundColor: 'rgba(247, 214, 72, 0.1)' }]}>
+          <Icon name={iconName} size={20} color={ICON_COLOR}/>
+      </View>
       <Text style={styles.statLabel}>{label}</Text>
       {isLoading ? (
         <View style={styles.loadingBar} />
@@ -25,7 +29,7 @@ const ProfileStats = ({ stats, isLoading = false }) => {
       <View style={styles.container}>
         <Text style={styles.sectionTitle}>Financial Overview</Text>
         <View style={styles.statsGrid}>
-          <StatCard icon="💰" label="Total Earnings:" value="..." isLoading={true} />
+          <StatCard iconName="coins" label="Total Earnings:" value="..." isLoading={true} />
         </View>
       </View>
     );
@@ -38,7 +42,7 @@ const ProfileStats = ({ stats, isLoading = false }) => {
       <Text style={styles.sectionTitle}>Financial Overview</Text>
       <View style={styles.statsGrid}>
         <StatCard
-          icon="💰"
+          iconName="coins"
           label="Total Earnings:"
           value={processedStats.savings || '₺0'}
           color={COLORS.SUCCESS}
@@ -72,9 +76,8 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: Math.max(16, width * 0.04),
-    paddingHorizontal: Math.max(12, width * 0.03),
+    paddingHorizontal: Math.max(16, width * 0.04),
     marginBottom: Math.max(10, width * 0.025),
     shadowColor: COLORS.SHADOW_SECONDARY,
     shadowOffset: { width: 0, height: 4 },
@@ -82,15 +85,20 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  statIcon: {
-    fontSize: getResponsiveSize(width, 0.08, 24, 36),
-    marginRight: Math.max(8, width * 0.02),
+  iconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: Math.max(12, width * 0.03),
   },
   statLabel: {
-    fontSize: getResponsiveSize(width, 0.04, 14, 18),
+    fontSize: getResponsiveSize(width, 0.04, 16, 20),
     color: COLORS.TEXT_SECONDARY,
     ...getFontFamily('MEDIUM'),
-    marginRight: Math.max(10, width * 0.025),
+    flex: 1,
   },
   statValue: {
     fontSize: getResponsiveSize(width, 0.045, 18, 24),

@@ -6,12 +6,15 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getResponsiveSize, handleNavigation } from '../../utils/profileUtils';
 import { COLORS } from '../../constants/colorConstants';
 import { getFontFamily } from '../../constants/fontConstants';
 import CustomAlertModal from '../common/CustomAlertModal';
 
 const { width } = Dimensions.get('window');
+
+const ICON_COLOR = '#F7D648';
 
 const ProfileMenu = ({ menuItems, navigation, user, showAlert: externalShowAlert, hideAlert: externalHideAlert }) => {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -47,6 +50,12 @@ const ProfileMenu = ({ menuItems, navigation, user, showAlert: externalShowAlert
     const availability = getItemAvailability(item);
     const isDisabled = !availability.available;
 
+    const iconColor = item.danger
+      ? COLORS.ERROR
+      : isDisabled
+        ? COLORS.TEXT_SECONDARY
+        : ICON_COLOR;
+
     return (
       <TouchableOpacity
         style={[
@@ -62,13 +71,13 @@ const ProfileMenu = ({ menuItems, navigation, user, showAlert: externalShowAlert
           <View
             style={[
               styles.iconContainer,
-              item.danger && styles.dangerIconContainer,
-              isDisabled && styles.disabledIconContainer,
+              { 
+                backgroundColor: item.danger ? 'rgba(239, 68, 68, 0.1)' : isDisabled ? 'rgba(148, 163, 184, 0.1)' : 'rgba(247, 214, 72, 0.1)',
+                borderColor: item.danger ? 'rgba(239, 68, 68, 0.2)' : isDisabled ? 'rgba(148, 163, 184, 0.2)' : 'rgba(247, 214, 72, 0.2)',
+              }
             ]}
           >
-            <Text style={[styles.menuIcon, isDisabled && styles.disabledText]}>
-              {item.icon}
-            </Text>
+            <Icon name={item.icon} size={22} color={iconColor} />
           </View>
 
           <View style={styles.menuTextContainer}>
@@ -103,6 +112,9 @@ const ProfileMenu = ({ menuItems, navigation, user, showAlert: externalShowAlert
               </Text>
             )}
           </View>
+          {!isDisabled && (
+            <Icon name="chevron-right" size={24} color={COLORS.TEXT_SECONDARY} />
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -123,7 +135,6 @@ const ProfileMenu = ({ menuItems, navigation, user, showAlert: externalShowAlert
         ))}
       </View>
 
-      {/* Custom Alert Modal */}
       <CustomAlertModal
         isVisible={alertVisible}
         title={alertConfig.title}
@@ -180,27 +191,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: 8,
-    backgroundColor: 'rgba(247, 214, 72, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(247, 214, 72, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-  },
-  dangerIconContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    borderColor: 'rgba(239, 68, 68, 0.25)',
-  },
-  disabledIconContainer: {
-    backgroundColor: 'rgba(148, 163, 184, 0.15)',
-    borderColor: 'rgba(148, 163, 184, 0.25)',
-  },
-  menuIcon: {
-    fontSize: 18,
-    lineHeight: 20,
   },
   menuTextContainer: {
     flex: 1,

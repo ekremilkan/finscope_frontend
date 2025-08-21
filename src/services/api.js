@@ -26,6 +26,8 @@ api.interceptors.request.use(async (config) => {
     '/user/verify-login',
     '/user/resend-verification-code',
     '/user/forgot-password',
+    '/user/verify-reset-code',
+    '/user/reset-password',    
   ];
   
   console.log('🔧 API Request Debug:', {

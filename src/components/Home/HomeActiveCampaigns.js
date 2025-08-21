@@ -6,10 +6,10 @@ import { getFontFamily } from '../../constants/fontConstants';
 
 const { width, height } = Dimensions.get('window');
 
-// CampaignCard bileşeninde değişiklik yok
 const CampaignCard = ({ campaign, onCampaignPress }) => {
     if (!campaign) return null;
 
+    const ICON_COLOR = '#F7D648'; // Belirtilen yeni renk sabiti
     const userStatus = campaign?.userStatus;
     const campaignStatus = campaign?.status;
     
@@ -18,7 +18,6 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
     const isActive = campaignStatus === 'active';
     const isExpired = new Date() > new Date(campaign.endDate);
   
-    // Kampanya bitiş süresini hesaplama
     const getCampaignEndTime = () => {
       if (!campaign?.endDate) return { text: 'N/A', color: COLORS.TEXT_DISABLED };
       
@@ -30,7 +29,6 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
         return { text: 'Finished', color: COLORS.ERROR };
       }
   
-      // 1 saat = 3600000 ms
       if (difference < 3600000) {
         const minutes = Math.floor(difference / (1000 * 60));
         const seconds = Math.floor((difference / 1000) % 60);
@@ -52,91 +50,176 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
   
     const getCardState = () => {
       if (isCompleted) {
-        return { statusText: 'Success', statusColor: COLORS.SUCCESS, buttonText: 'View' };
+        return { 
+          statusText: 'Completed', 
+          statusColor: COLORS.SUCCESS, 
+          buttonText: 'View Results',
+          buttonColor: ICON_COLOR, // "View" butonu için sarı renk
+          iconName: 'check-circle',
+          bgColor: COLORS.PRIMARY + '10'
+        };
       }
       if (isExpired) {
-        return { statusText: 'Missed', statusColor: COLORS.ERROR, buttonText: 'View' };
+        return { 
+          statusText: 'Expired', 
+          statusColor: COLORS.ERROR, 
+          buttonText: 'View Details',
+          buttonColor: ICON_COLOR, 
+          iconName: 'error',
+          bgColor: COLORS.PRIMARY + '10'
+        };
       }
       if (isActive) {
         if (userJoined) {
-          return { statusText: 'Active', statusColor: COLORS.PRIMARY, buttonText: 'Continue' };
+          return { 
+            statusText: 'In Progress', 
+            statusColor: COLORS.PRIMARY, 
+            buttonText: 'Continue',
+            iconName: 'play-circle-filled',
+            bgColor: COLORS.PRIMARY + '10'
+          };
         }
-        return { statusText: 'Active', statusColor: COLORS.PRIMARY, buttonText: 'Start' };
+        return { 
+          statusText: 'Available', 
+          statusColor: COLORS.PRIMARY, 
+          buttonText: 'Join Now',
+          iconName: 'campaign',
+          bgColor: COLORS.PRIMARY + '10'
+        };
       }
       if (campaignStatus === 'upcoming') {
-        return { statusText: 'Upcoming', statusColor: COLORS.WARNING, buttonText: 'View' };
+        return { 
+          statusText: 'Coming Soon', 
+          statusColor: COLORS.WARNING, 
+          buttonText: 'Notify Me',
+          iconName: 'schedule',
+          bgColor: COLORS.WARNING + '10'
+        };
       }
-      return { statusText: 'Inactive', statusColor: COLORS.TEXT_DISABLED, buttonText: 'View' };
+      return { 
+        statusText: 'Inactive', 
+        statusColor: COLORS.TEXT_DISABLED, 
+        buttonText: 'View',
+        buttonColor: ICON_COLOR, // "View" butonu için sarı renk
+        iconName: 'pause-circle-filled',
+        bgColor: COLORS.TEXT_DISABLED + '10'
+      };
     };
   
     const cardState = getCardState();
     const endTimeInfo = getCampaignEndTime();
   
-    // Toplam katılımcı sayısını hesapla - API'den gelen currentParticipants objesi
     const totalParticipants = campaign.currentParticipants ? 
       Object.values(campaign.currentParticipants).reduce((sum, count) => sum + count, 0) : 0;
   
-    // Soru sayısını al - API'den direkt sayı geliyorsa kullan, yoksa questionIds array'inin uzunluğunu al
     const questionCount = campaign.questions || campaign.questionIds?.length || 0;
   
     return (
       <TouchableOpacity
-        style={styles.campaignCard}
-        activeOpacity={0.9}
+        style={[
+          styles.campaignCard,
+          { backgroundColor: cardState.bgColor }
+        ]}
+        activeOpacity={0.8}
         onPress={() => onCampaignPress(campaign)}
       >
         <View style={styles.cardContainer}>
-          {/* Üst kısım - Icon ve başlık */}
-          <View style={styles.campaignHeader}>
-            <View style={[styles.campaignIconContainer, { 
-              borderColor: cardState.statusColor + '30', 
-              backgroundColor: cardState.statusColor + '15' 
-            }]}>
-               <Text style={styles.campaignIcon}>📊</Text>
+          {/* Status Badge - Top Right */}
+          <View style={[styles.statusBadge, { backgroundColor: cardState.statusColor }]}>
+            <Icon name={cardState.iconName} size={12} color="#FFFFFF" />
+            <Text style={styles.statusBadgeText}>{cardState.statusText}</Text>
+          </View>
+
+          {/* Header Section */}
+          <View style={styles.headerSection}>
+            <View style={[styles.iconWrapper, { backgroundColor: cardState.statusColor + '20' }]}>
+              <Icon name="campaign" size={24} color={cardState.statusColor} />
             </View>
-            <View style={styles.headerContent}>
+            <View style={styles.titleSection}>
               <Text style={styles.campaignTitle} numberOfLines={2}>
                 {campaign?.title || 'Untitled Campaign'}
               </Text>
-              <View style={styles.statusContainer}>
-                <Text style={[styles.statusText, { color: cardState.statusColor }]}>
-                  {cardState.statusText}
-                </Text>
-              </View>
-            </View>
-          </View>
-  
-          {/* Orta kısım - Meta bilgiler */}
-          <View style={styles.campaignMeta}>
-            <View style={styles.metaItem}>
-              <Icon name="monetization-on" size={16} color={COLORS.SUCCESS} />
-              <Text style={styles.metaText}>{campaign?.reward || 0} Points</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Icon name="schedule" size={16} color={endTimeInfo.color} />
-              <Text style={[styles.metaText, { color: endTimeInfo.color }]}>
-                {endTimeInfo.text}
+              <Text style={styles.campaignSubtitle} numberOfLines={1}>
+                {campaign?.description || 'Complete tasks and earn rewards'}
               </Text>
             </View>
           </View>
-  
-          {/* Alt kısım - Buton */}
-          <View style={styles.campaignFooter}>
-            <View style={[styles.startButton, { 
-              backgroundColor: cardState.statusColor === COLORS.SUCCESS ? COLORS.SUCCESS : COLORS.PRIMARY 
-            }]}>
-              <Text style={styles.startButtonText}>{cardState.buttonText}</Text>
+
+          {/* Content Section */}
+          <View style={styles.contentSection}>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <View style={styles.statIconContainer}>
+                  <Icon name="monetization-on" size={16} color={COLORS.SUCCESS} />
+                </View>
+                <View>
+                  <Text style={styles.statValue}>{campaign?.reward || 0}</Text>
+                  <Text style={styles.statLabel}>Points</Text>
+                </View>
+              </View>
+
+              <View style={styles.statDivider} />
+
+              <View style={styles.statItem}>
+                <View style={styles.statIconContainer}>
+                  <Icon name="schedule" size={16} color={endTimeInfo.color} />
+                </View>
+                <View>
+                  <Text style={[styles.statValue, { color: endTimeInfo.color }]}>
+                    {endTimeInfo.text}
+                  </Text>
+                  <Text style={styles.statLabel}>Remaining</Text>
+                </View>
+              </View>
+
+              {/* <View style={styles.statDivider} /> */}
+
+              {/* <View style={styles.statItem}>
+                <View style={styles.statIconContainer}>
+                  <Icon name="people" size={16} color={COLORS.INFO} />
+                </View>
+                <View>
+                  <Text style={styles.statValue}>{totalParticipants}</Text>
+                  <Text style={styles.statLabel}>Joined</Text>
+                </View>
+              </View> */}
             </View>
           </View>
+
+          {/* Action Section */}
+          <View style={styles.actionSection}>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: cardState.buttonColor || cardState.statusColor }]}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.actionButtonText}>{cardState.buttonText}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Progress Indicator */}
+          {userJoined && (
+            <View style={styles.progressSection}>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressFill, 
+                    { 
+                      width: '65%', 
+                      backgroundColor: cardState.statusColor 
+                    }
+                  ]} 
+                />
+              </View>
+              <Text style={styles.progressText}>65% Complete</Text>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     );
 };
 
-// DEĞİŞİKLİK: Yeni prop'lar eklendi
 const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = false, showAllCampaigns, onViewMorePress }) => {
   if (isLoading) {
-    // ... Yüklenme durumu (değişiklik yok)
     return (
         <View style={styles.campaignsSection}>
           <View style={styles.sectionHeader}>
@@ -151,231 +234,312 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = fal
   }
 
   if (!activeCampaigns || activeCampaigns.length === 0) {
-    // ... Boş olma durumu (değişiklik yok)
     return (
         <View style={styles.campaignsSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Campaigns</Text>
           </View>
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📋</Text>
-            <Text style={styles.emptyTitle}>No Campaigns Available</Text>
-            <Text style={styles.emptyText}>Check back later!</Text>
+            <View style={styles.emptyIconContainer}>
+              <Icon name="campaign" size={48} color={COLORS.TEXT_SECONDARY} />
+            </View>
+            <Text style={styles.emptyTitle}>No Active Campaigns</Text>
+            <Text style={styles.emptyText}>New campaigns will appear here when available</Text>
           </View>
         </View>
       );
   }
   
-  // DEĞİŞİKLİK: Gösterilecek kampanya listesini state'e göre belirle
   const campaignsToDisplay = showAllCampaigns ? activeCampaigns : activeCampaigns.slice(0, 3);
   
   return (
     <View style={styles.campaignsSection}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Campaigns</Text>
-        <View style={styles.sectionBadge}><Text style={styles.sectionBadgeText}>Live</Text></View>
+        <View style={styles.titleContainer}>
+          <Text style={styles.sectionTitle}>Campaigns</Text>
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveBadgeText}>Live</Text>
+          </View>
+        </View>
+        <Text style={styles.campaignCount}>{activeCampaigns.length} Available</Text>
       </View>
 
-      {campaignsToDisplay.map((campaign) => (
-        <CampaignCard
-          key={campaign?._id}
-          campaign={campaign}
-          onCampaignPress={onCampaignPress}
-        />
-      ))}
+      <View style={styles.campaignsList}>
+        {campaignsToDisplay.map((campaign) => (
+          <View key={campaign?._id} style={styles.cardWrapper}>
+            <CampaignCard
+              campaign={campaign}
+              onCampaignPress={onCampaignPress}
+            />
+          </View>
+        ))}
+      </View>
 
-      {/* DEĞİŞİKLİK: Koşullu olarak "View More" yazısını göster */}
       {!showAllCampaigns && activeCampaigns.length > 3 && (
-        <View style={styles.viewMoreContainer}>
-          <TouchableOpacity onPress={onViewMorePress} activeOpacity={0.7}>
-            <Text style={styles.viewMoreText}>View More</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.viewMoreButton} onPress={onViewMorePress} activeOpacity={0.7}>
+          <Text style={styles.viewMoreText}>View More</Text>
+          <Icon name="arrow-forward" size={16} color={COLORS.PRIMARY} />
+        </TouchableOpacity>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // ... diğer stiller ...
-  viewMoreContainer: {
-    alignItems: 'flex-end',
-    paddingRight: 4,
+  campaignsSection: {
+    marginBottom: Math.max(32, height * 0.04),
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Math.max(20, height * 0.025),
+    paddingHorizontal: 4,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: Math.max(24, width * 0.06),
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.SUCCESS + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.SUCCESS,
+  },
+  liveBadgeText: {
+    fontSize: 10,
+    ...getFontFamily('SEMIBOLD'),
+    color: COLORS.SUCCESS,
+    textTransform: 'uppercase',
+  },
+  campaignCount: {
+    fontSize: 14,
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_SECONDARY,
+  },
+  campaignsList: {
+    gap: 8,
+  },
+  cardWrapper: {
+    // Container for individual cards with consistent spacing
+  },
+  campaignCard: {
+    borderRadius: 8,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    marginHorizontal: 2, // Prevent shadow clipping
+    marginVertical: 4,
+  },
+  cardContainer: {
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    borderRadius: 8,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY + '50',
+    position: 'relative',
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+    zIndex: 1,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    ...getFontFamily('SEMIBold'),
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+  },
+  headerSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+    paddingRight: 100, // Space for status badge
+  },
+  iconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  titleSection: {
+    flex: 1,
+    paddingTop: 2,
+  },
+  campaignTitle: {
+    fontSize: Math.max(18, width * 0.045),
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: 4,
+    lineHeight: Math.max(22, width * 0.055),
+  },
+  campaignSubtitle: {
+    fontSize: 14,
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
+    lineHeight: 18,
+  },
+  contentSection: {
+    marginBottom: 20,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  statIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
+  },
+  statValue: {
+    fontSize: 16,
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+  },
+  statLabel: {
+    fontSize: 11,
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_SECONDARY,
+    textTransform: 'uppercase',
+  },
+  statDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: COLORS.BORDER_SECONDARY,
+    marginHorizontal: 8,
+  },
+  actionSection: {
     marginTop: 4,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 8,
+    gap: 8,
+  },
+  actionButtonText: {
+    fontSize: 15,
+    ...getFontFamily('SEMIBOLD'),
+    color: '#181818',
+  },
+  progressSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.BORDER_SECONDARY + '50',
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: COLORS.BORDER_SECONDARY + '30',
+    borderRadius: 2,
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 12,
+    ...getFontFamily('MEDIUM'),
+    color: COLORS.TEXT_SECONDARY,
+    textAlign: 'center',
+  },
+  viewMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end', // Butonu sağa yaslar
+    marginTop: 12,          // Üstündeki liste ile arasına boşluk koyar
+    marginRight: 4,         // Ekranın sağ kenarından boşluk bırakır
+    gap: 4,                 // Yazı ve ikon arasına boşluk koyar
   },
   viewMoreText: {
     color: COLORS.PRIMARY,
-    ...getFontFamily('BOLD'),
+    ...getFontFamily('SEMIBOLD'),
     fontSize: 15,
   },
-  campaignsSection: { 
-    marginBottom: Math.max(24, height * .03) 
-  },
-  sectionHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    marginBottom: Math.max(16, height * .02), 
-    marginTop: Math.max(16, height * .02) 
-  },
-  sectionTitle: { 
-    fontSize: Math.max(22, width * .055), 
-    ...getFontFamily('BOLD'), 
-    color: COLORS.TEXT_PRIMARY 
-  },
-  sectionBadge: { 
-    backgroundColor: 'rgba(16, 185, 129, 0.15)', 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 8, 
-    borderWidth: 1, 
-    borderColor: 'rgba(16, 185, 129, 0.3)' 
-  },
-  sectionBadgeText: { 
-    color: COLORS.SUCCESS, 
-    fontSize: 12, 
-    ...getFontFamily('SEMIBOLD') 
-  },
-
-  // Card Container
-  campaignCard: { 
-    // Kartlar arası boşluk azaltıldı
-    marginBottom: 12, 
-    borderRadius: 12, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: .08, 
-    shadowRadius: 8, 
-    elevation: 3 
-  },
-  cardContainer: { 
-    borderRadius: 12, 
-    // İç boşluklar (padding) azaltıldı
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderWidth: 1, 
-    borderColor: COLORS.BORDER_SECONDARY, 
-    backgroundColor: COLORS.CARD_BACKGROUND 
-  },
-
-  // Header Section (Icon + Title + Status)
-  campaignHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'flex-start',
-    // Alt boşluk azaltıldı
-    marginBottom: 12
-  },
-  campaignIconContainer: { 
-    // İkon boyutu küçültüldü
-    width: 48, 
-    height: 48, 
-    borderRadius: 10, 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginRight: 12, 
-    borderWidth: 1.5 
-  },
-  campaignIcon: { 
-    // İkon font boyutu küçültüldü
-    fontSize: 24 
-  },
-  headerContent: { 
-    flex: 1,
-    paddingTop: 0 // Üst padding kaldırıldı
-  },
-  campaignTitle: { 
-    // Font boyutu küçültüldü
-    fontSize: 16, 
-    ...getFontFamily('SEMIBOLD'), 
-    color: COLORS.TEXT_PRIMARY, 
-    marginBottom: 6,
-    // Satır yüksekliği ayarlandı
-    lineHeight: 20
-  },
-  statusContainer: { 
-    alignSelf: 'flex-start'
-  },
-  statusText: { 
-    fontSize: 12, // Font boyutu küçültüldü
-    ...getFontFamily('SEMIBOLD'),
-    paddingHorizontal: 8,
-    paddingVertical: 2, // Dikey padding azaltıldı
-    borderRadius: 6,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(0,0,0,0.05)'
-  },
-
-  // Meta Section
-  campaignMeta: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between',
+  loadingContainer: {
     alignItems: 'center',
-    paddingHorizontal: 2,
-    // Alt boşluk azaltıldı
-    marginBottom: 14
+    paddingVertical: 60,
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    borderRadius: 16,
   },
-  metaItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 5,
-    flex: 1
+  loadingText: {
+    marginTop: 16,
+    color: COLORS.TEXT_PRIMARY,
+    fontSize: 16,
+    ...getFontFamily('MEDIUM'),
   },
-  metaText: { 
-    // Font boyutu küçültüldü
-    fontSize: 13, 
-    ...getFontFamily('MEDIUM'), 
-    color: COLORS.TEXT_SECONDARY 
-  },
-
-  // Footer Section (Button)
-  campaignFooter: { 
-    alignItems: 'stretch'
-  },
-  startButton: { 
-    // Buton yüksekliği azaltıldı
-    paddingVertical: 12, 
-    borderRadius: 10, 
+  emptyContainer: {
     alignItems: 'center',
-    justifyContent: 'center'
+    paddingVertical: 60,
+    backgroundColor: COLORS.CARD_BACKGROUND,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER_SECONDARY,
   },
-  startButtonText: { 
-    // Font boyutu küçültüldü
-    fontSize: 14, 
-    ...getFontFamily('BOLD'), 
-    color: COLORS.SECONDARY 
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.TEXT_SECONDARY + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
-
-  // Loading and Empty States
-  loadingContainer: { 
-    alignItems: 'center', 
-    paddingVertical: 40 
+  emptyTitle: {
+    fontSize: 20,
+    ...getFontFamily('BOLD'),
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: 8,
   },
-  loadingText: { 
-    marginTop: 12, 
-    color: COLORS.TEXT_PRIMARY, 
-    fontSize: 16 
-  },
-  emptyContainer: { 
-    alignItems: 'center', 
-    paddingVertical: 40, 
-    backgroundColor: COLORS.CARD_BACKGROUND, 
-    borderRadius: 8 
-  },
-  emptyIcon: { 
-    fontSize: 40, 
-    marginBottom: 16 
-  },
-  emptyTitle: { 
-    fontSize: 20, 
-    ...getFontFamily('BOLD'), 
-    color: COLORS.TEXT_PRIMARY, 
-    marginBottom: 8 
-  },
-  emptyText: { 
-    fontSize: 16, 
-    color: COLORS.TEXT_SECONDARY, 
-    textAlign: 'center' 
+  emptyText: {
+    fontSize: 16,
+    ...getFontFamily('REGULAR'),
+    color: COLORS.TEXT_SECONDARY,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
 

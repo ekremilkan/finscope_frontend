@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   countdownContainer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   countdownText: { fontSize: 14, ...getFontFamily('BOLD'), color: COLORS.WARNING },
   joinButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, gap: 6 },
-  joinButtonText: { fontSize: Math.max(14, width * .035), ...getFontFamily('BOLD') },
+  joinButtonText: { fontSize: Math.max(14, width * .035), ...getFontFamily },
 });
 
 export default UserCampaignCard;

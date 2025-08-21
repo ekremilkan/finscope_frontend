@@ -18,7 +18,6 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authService } from '../services/authService';
 import { FONTS, FONT_WEIGHTS, getFontFamily } from '../constants/fontConstants';
 import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
-// YENİ: CustomAlertModal import edildi
 import CustomAlertModal from '../components/common/CustomAlertModal';
 
 const { width, height } = Dimensions.get('window');
@@ -37,7 +36,6 @@ const RegisterScreen = ({ navigation }) => {
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
-  // YENİ: Modal state'leri ve fonksiyonları
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({ title: '', message: '', confirmText: 'Tamam' });
 
@@ -55,8 +53,10 @@ const RegisterScreen = ({ navigation }) => {
     return emailRegex.test(email);
   };
 
-  const validatePassword = (password) => {
-    return password.length >= 8 && /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password);
+  // DEĞİŞTİRİLDİ: Şifre validasyonu 6 haneli PIN için güncellendi
+  const validatePassword = (pin) => {
+    const pinRegex = /^\d{6}$/;
+    return pinRegex.test(pin);
   };
 
   const handleRegister = async () => {
@@ -75,16 +75,18 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
+    // DEĞİŞTİRİLDİ: Hata mesajı yeni PIN formatına göre güncellendi
     if (!validatePassword(password)) {
       showAlert({
         title: 'Validation Error',
-        message: 'Password must be at least 8 characters with uppercase, lowercase, and number'
+        message: 'PIN must be exactly 6 digits.'
       });
       return;
     }
 
+    // DEĞİŞTİRİLDİ: Hata mesajı "Passwords" yerine "PINs" olarak güncellendi
     if (password !== confirmPassword) {
-      showAlert({ title: 'Validation Error', message: 'Passwords do not match' });
+      showAlert({ title: 'Validation Error', message: 'PINs do not match' });
       return;
     }
 
@@ -99,7 +101,7 @@ const RegisterScreen = ({ navigation }) => {
       const userData = {
         name: name.trim(),
         email: email.trim(),
-        password,
+        password, // Backend'e hala 'password' olarak gönderilir
       };
 
       const response = await authService.register(userData);
@@ -213,6 +215,7 @@ const RegisterScreen = ({ navigation }) => {
                   />
                 </View>
 
+                {/* DEĞİŞTİRİLDİ: PIN giriş alanı */}
                 <View style={[
                   styles.inputWrapper,
                   passwordFocused && styles.inputWrapperFocused,
@@ -221,12 +224,14 @@ const RegisterScreen = ({ navigation }) => {
                   <Icon name="lock" size={20} color="#6b7280" style={styles.inputIcon} />
                   <TextInput
                     style={[styles.input, styles.passwordInput]}
-                    placeholder="Password (8+ chars, A-z, 0-9)"
+                    placeholder="Password"
                     placeholderTextColor="#9ca3af"
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
                     editable={!loading}
+                    keyboardType="number-pad" // Sayısal klavye
+                    maxLength={6} // Maksimum 6 karakter
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
                   />
@@ -244,6 +249,7 @@ const RegisterScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 </View>
 
+                {/* DEĞİŞTİRİLDİ: PIN doğrulama alanı */}
                 <View style={[
                   styles.inputWrapper,
                   confirmPasswordFocused && styles.inputWrapperFocused,
@@ -258,6 +264,8 @@ const RegisterScreen = ({ navigation }) => {
                     onChangeText={setConfirmPassword}
                     secureTextEntry={!showConfirmPassword}
                     editable={!loading}
+                    keyboardType="number-pad" // Sayısal klavye
+                    maxLength={6} // Maksimum 6 karakter
                     onFocus={() => setConfirmPasswordFocused(true)}
                     onBlur={() => setConfirmPasswordFocused(false)}
                   />
@@ -342,7 +350,7 @@ const RegisterScreen = ({ navigation }) => {
           </LinearGradient>
         </SafeAreaView>
       </KeyboardAvoidingView>
-      {/* YENİ: Modal bileşeni render ediliyor */}
+
       <CustomAlertModal
         isVisible={alertVisible}
         title={alertConfig.title}

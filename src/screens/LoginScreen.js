@@ -19,7 +19,6 @@ import { authService } from '../services/authService';
 import { storageService } from '../services/AsyncStorage';
 import { FONTS, FONT_WEIGHTS, getFontFamily } from '../constants/fontConstants';
 import { COLORS, getCornerGradientColors } from '../constants/colorConstants';
-// YENİ: CustomAlertModal import edildi
 import CustomAlertModal from '../components/common/CustomAlertModal';
 
 const { width, height } = Dimensions.get('window');
@@ -32,7 +31,6 @@ const LoginScreen = ({ navigation }) => {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
-  // YENİ: Modal state'leri ve fonksiyonları
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({ title: '', message: '', confirmText: 'Tamam' });
 
@@ -61,8 +59,10 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    if (password.length < 6) {
-      showAlert({ title: 'Validation Error', message: 'Password must be at least 6 characters' });
+    // DEĞİŞTİRİLDİ: PIN formatı kontrolü (tam olarak 6 rakam olmalı)
+    const pinRegex = /^\d{6}$/;
+    if (!pinRegex.test(password)) {
+      showAlert({ title: 'Validation Error', message: 'PIN must be exactly 6 digits.' });
       return;
     }
 
@@ -202,6 +202,7 @@ const LoginScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.inputContainer}>
+                {/* DEĞİŞTİRİLDİ: Etiket "Password" yerine "PIN" oldu */}
                 <Text style={styles.inputLabel}>Password</Text>
                 <View
                   style={[
@@ -215,6 +216,7 @@ const LoginScreen = ({ navigation }) => {
                     color="#6b7280"
                     style={styles.inputIcon}
                   />
+                  {/* DEĞİŞTİRİLDİ: PIN giriş alanı için numeric klavye ve maxLength eklendi */}
                   <TextInput
                     style={[styles.input, styles.passwordInput]}
                     placeholder="Enter your password"
@@ -222,9 +224,9 @@ const LoginScreen = ({ navigation }) => {
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
-                    autoComplete="password"
-                    textContentType="password"
                     editable={!loading}
+                    keyboardType="number-pad" // EKLENDİ
+                    maxLength={6} // EKLENDİ
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
                     returnKeyType="done"
@@ -250,7 +252,7 @@ const LoginScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate('ForgotPassword')}
                 activeOpacity={0.7}
               >
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -301,7 +303,6 @@ const LoginScreen = ({ navigation }) => {
           </SafeAreaView>
         </ScrollView>
       </KeyboardAvoidingView>
-      {/* YENİ: Modal bileşeni render ediliyor */}
       <CustomAlertModal
         isVisible={alertVisible}
         title={alertConfig.title}
@@ -314,6 +315,7 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
+// ... stiller aynı kaldığı için buraya eklenmedi ...
 const styles = StyleSheet.create({
   container: {
     flex: 1,

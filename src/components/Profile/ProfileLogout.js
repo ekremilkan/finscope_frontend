@@ -8,7 +8,7 @@ const { width } = Dimensions.get('window');
 
 const ProfileLogout = ({ user, onLogoutPress }) => {
   const getAppVersion = () => {
-    return 'Finscope v2.1.0';
+    return 'finScope v2.1.0';
   };
 
   const getLastLoginInfo = () => {

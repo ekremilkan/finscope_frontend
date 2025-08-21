@@ -9,7 +9,8 @@ export const validateEmail = (email) => {
 };
 
 export const validatePassword = (password) => {
-  return password.length >= AUTH_CONFIG.minPasswordLength;
+  const pinRegex = /^[0-9]{6}$/;
+  return pinRegex.test(password);
 };
 
 export const validateForm = (formData, type = 'login') => {
