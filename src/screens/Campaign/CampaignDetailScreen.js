@@ -800,8 +800,8 @@ const styles = StyleSheet.create({
   completedButtonText: { color: COLORS.BACKGROUND, fontWeight: 'bold' },
   upcomingButton: {
     flex: 1,
-    backgroundColor: COLORS.WARNING,
-    borderColor: COLORS.WARNING,
+    backgroundColor: COLORS.PRIMARY,
+    borderColor: COLORS.PRIMARY,
     justifyContent: 'center',
   },
   upcomingButtonText: { color: COLORS.BACKGROUND, fontWeight: 'bold' },

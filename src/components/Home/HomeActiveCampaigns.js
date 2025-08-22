@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // GÜNCELLEME: Canlı geri sayım için useState ve useEffect eklendi
 import { View, Text, StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../constants/colorConstants';
@@ -8,53 +8,83 @@ const { width, height } = Dimensions.get('window');
 
 const CampaignCard = ({ campaign, onCampaignPress }) => {
     if (!campaign) return null;
+    
+    // GÜNCELLEME: Geri sayım için state tanımlandı
+    const [timeInfo, setTimeInfo] = useState({ text: '', color: COLORS.INFO, label: 'Remaining' });
 
-    const ICON_COLOR = '#F7D648'; // Belirtilen yeni renk sabiti
+    const ICON_COLOR = '#F7D648';
     const userStatus = campaign?.userStatus;
     const campaignStatus = campaign?.status;
     
     const isCompleted = userStatus === 'completed';
     const userJoined = userStatus === 'in-progress';
     const isActive = campaignStatus === 'active';
-    const isExpired = new Date() > new Date(campaign.endDate);
   
-    const getCampaignEndTime = () => {
-      if (!campaign?.endDate) return { text: 'N/A', color: COLORS.TEXT_DISABLED };
-      
-      const now = new Date();
-      const end = new Date(campaign.endDate);
-      const difference = end - now;
-  
-      if (difference <= 0) {
-        return { text: 'Finished', color: COLORS.ERROR };
-      }
-  
-      if (difference < 3600000) {
-        const minutes = Math.floor(difference / (1000 * 60));
-        const seconds = Math.floor((difference / 1000) % 60);
-        return { 
-          text: `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`, 
-          color: COLORS.WARNING 
+    // GÜNCELLEME: Canlı geri sayım ve durum geçişlerini yöneten useEffect hook'u
+    useEffect(() => {
+        const calculateTime = () => {
+            const now = new Date();
+            let targetDate, label, isUpcomingCountdown = false;
+
+            // Eğer kampanya "upcoming" ise ve başlangıç tarihi henüz gelmediyse, başlangıç tarihine geri sayım yap
+            if (campaignStatus === 'upcoming' && new Date(campaign.startDate) > now) {
+                targetDate = new Date(campaign.startDate);
+                label = 'Starts In';
+                isUpcomingCountdown = true;
+            } else {
+                // Diğer tüm durumlar için (aktif, veya başlamış upcoming) bitiş tarihini kullan
+                targetDate = new Date(campaign.endDate);
+                label = 'Remaining';
+            }
+    
+            const difference = targetDate - now;
+    
+            if (difference <= 0) {
+                // Eğer başlangıç sayacı bittiyse ve hala buradaysak, normal bitiş sayacına geç.
+                // Eğer bitiş sayacı da bittiyse, 'Finished' göster.
+                if (!isUpcomingCountdown) {
+                    setTimeInfo({ text: 'Finished', color: COLORS.ERROR, label: 'Status' });
+                }
+                // (Başlangıç sayacı bittiğinde, bir sonraki saniyede bu bloktan çıkıp normal bitiş sayacına geçecek)
+                return; 
+            }
+    
+            // 1 saatin altındaysa Dakika:Saniye formatında göster
+            if (difference < 3600000) {
+                const minutes = Math.floor((difference / 1000 / 60) % 60);
+                const seconds = Math.floor((difference / 1000) % 60);
+                setTimeInfo({
+                    text: `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
+                    color: COLORS.WARNING,
+                    label: label
+                });
+            } else { // 1 saatten fazlaysa Gün:Saat formatında göster
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+                setTimeInfo({
+                    text: days > 0 ? `${days}d ${hours}h` : `${hours}h`,
+                    color: COLORS.INFO,
+                    label: label
+                });
+            }
         };
-      }
-  
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-      
-      if (days > 0) {
-        return { text: `${days}d ${hours}h`, color: COLORS.INFO };
-      } else {
-        return { text: `${hours}h`, color: COLORS.INFO };
-      }
-    };
+    
+        calculateTime(); // Bileşen yüklendiğinde hemen 1 kere çalıştır
+        const interval = setInterval(calculateTime, 1000); // Her saniye güncelle
+    
+        // Bileşen ekrandan kaldırıldığında interval'ı temizle (hafıza sızıntısını önler)
+        return () => clearInterval(interval);
+    }, [campaign, campaignStatus]); // campaign veya status değiştiğinde sayacı yeniden başlat
   
     const getCardState = () => {
+      const isExpired = new Date() > new Date(campaign.endDate);
+
       if (isCompleted) {
         return { 
           statusText: 'Completed', 
           statusColor: COLORS.SUCCESS, 
           buttonText: 'View Results',
-          buttonColor: ICON_COLOR, // "View" butonu için sarı renk
+          buttonColor: ICON_COLOR,
           iconName: 'check-circle',
           bgColor: COLORS.PRIMARY + '10'
         };
@@ -69,7 +99,7 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
           bgColor: COLORS.PRIMARY + '10'
         };
       }
-      if (isActive) {
+      if (isActive || (campaignStatus === 'upcoming' && new Date(campaign.startDate) <= new Date())) {
         if (userJoined) {
           return { 
             statusText: 'In Progress', 
@@ -80,39 +110,36 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
           };
         }
         return { 
-          statusText: 'Available', 
+          statusText: 'Active', 
           statusColor: COLORS.PRIMARY, 
           buttonText: 'Join Now',
+          textColor: COLORS.TEXT_BLACK,
           iconName: 'campaign',
           bgColor: COLORS.PRIMARY + '10'
         };
       }
       if (campaignStatus === 'upcoming') {
+        // GÜNCELLEME: Renkler ICON_COLOR ile uyumlu hale getirildi
         return { 
-          statusText: 'Coming Soon', 
-          statusColor: COLORS.WARNING, 
-          buttonText: 'Notify Me',
+          statusText: 'Upcoming', 
+          statusColor: ICON_COLOR, 
+          buttonText: 'View Details',
+          textColor: COLORS.TEXT_BLACK,
           iconName: 'schedule',
-          bgColor: COLORS.WARNING + '10'
+          bgColor: ICON_COLOR + '10'
         };
       }
       return { 
         statusText: 'Inactive', 
         statusColor: COLORS.TEXT_DISABLED, 
-        buttonText: 'View',
-        buttonColor: ICON_COLOR, // "View" butonu için sarı renk
+        buttonText: 'View Details',
+        buttonColor: ICON_COLOR,
         iconName: 'pause-circle-filled',
         bgColor: COLORS.TEXT_DISABLED + '10'
       };
     };
   
     const cardState = getCardState();
-    const endTimeInfo = getCampaignEndTime();
-  
-    const totalParticipants = campaign.currentParticipants ? 
-      Object.values(campaign.currentParticipants).reduce((sum, count) => sum + count, 0) : 0;
-  
-    const questionCount = campaign.questions || campaign.questionIds?.length || 0;
   
     return (
       <TouchableOpacity
@@ -124,13 +151,11 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
         onPress={() => onCampaignPress(campaign)}
       >
         <View style={styles.cardContainer}>
-          {/* Status Badge - Top Right */}
           <View style={[styles.statusBadge, { backgroundColor: cardState.statusColor }]}>
-            <Icon name={cardState.iconName} size={12} color="#FFFFFF" />
+            <Icon name={cardState.iconName} size={12} color="#181818" />
             <Text style={styles.statusBadgeText}>{cardState.statusText}</Text>
           </View>
 
-          {/* Header Section */}
           <View style={styles.headerSection}>
             <View style={[styles.iconWrapper, { backgroundColor: cardState.statusColor + '20' }]}>
               <Icon name="campaign" size={24} color={cardState.statusColor} />
@@ -145,7 +170,6 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
             </View>
           </View>
 
-          {/* Content Section */}
           <View style={styles.contentSection}>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
@@ -154,7 +178,7 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
                 </View>
                 <View>
                   <Text style={styles.statValue}>{campaign?.reward || 0}</Text>
-                  <Text style={styles.statLabel}>Points</Text>
+                  <Text style={styles.statLabel}>Rewards</Text>
                 </View>
               </View>
 
@@ -162,62 +186,35 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
 
               <View style={styles.statItem}>
                 <View style={styles.statIconContainer}>
-                  <Icon name="schedule" size={16} color={endTimeInfo.color} />
+                  <Icon name="schedule" size={16} color={timeInfo.color} />
                 </View>
                 <View>
-                  <Text style={[styles.statValue, { color: endTimeInfo.color }]}>
-                    {endTimeInfo.text}
+                  {/* GÜNCELLEME: Kalan süre bilgisi state'den alınıyor */}
+                  <Text style={[styles.statValue, { color: timeInfo.color }]}>
+                    {timeInfo.text}
                   </Text>
-                  <Text style={styles.statLabel}>Remaining</Text>
+                  <Text style={styles.statLabel}>{timeInfo.label}</Text>
                 </View>
               </View>
-
-              {/* <View style={styles.statDivider} /> */}
-
-              {/* <View style={styles.statItem}>
-                <View style={styles.statIconContainer}>
-                  <Icon name="people" size={16} color={COLORS.INFO} />
-                </View>
-                <View>
-                  <Text style={styles.statValue}>{totalParticipants}</Text>
-                  <Text style={styles.statLabel}>Joined</Text>
-                </View>
-              </View> */}
             </View>
           </View>
 
-          {/* Action Section */}
           <View style={styles.actionSection}>
+            {/* GÜNCELLEME: Butona onPress eylemi eklendi */}
             <TouchableOpacity 
               style={[styles.actionButton, { backgroundColor: cardState.buttonColor || cardState.statusColor }]}
               activeOpacity={0.8}
+              onPress={() => onCampaignPress(campaign)}
             >
               <Text style={styles.actionButtonText}>{cardState.buttonText}</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Progress Indicator */}
-          {userJoined && (
-            <View style={styles.progressSection}>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { 
-                      width: '65%', 
-                      backgroundColor: cardState.statusColor 
-                    }
-                  ]} 
-                />
-              </View>
-              <Text style={styles.progressText}>65% Complete</Text>
-            </View>
-          )}
         </View>
       </TouchableOpacity>
     );
 };
 
+// ... (HomeActiveCampaigns ve styles kısımları aynı kalabilir, değişiklik gerekmiyor)
 const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = false, showAllCampaigns, onViewMorePress }) => {
   if (isLoading) {
     return (
@@ -373,7 +370,7 @@ const styles = StyleSheet.create({
   statusBadgeText: {
     fontSize: 10,
     ...getFontFamily('SEMIBold'),
-    color: '#FFFFFF',
+    color: '#181818',
     textTransform: 'uppercase',
   },
   headerSection: {

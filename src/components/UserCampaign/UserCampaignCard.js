@@ -78,8 +78,8 @@ const UserCampaignCard = ({ campaign, onPress }) => {
       return {
         statusText: 'Success',
         statusColor: COLORS.SUCCESS,
-        buttonText: 'View',
-        buttonIcon: 'visibility',
+        buttonText: 'View Details',
+        buttonIcon: 'chevron-right',
         isButtonDisabled: false,
       };
     }
@@ -90,7 +90,7 @@ const UserCampaignCard = ({ campaign, onPress }) => {
         statusText: 'Missed',
         statusColor: COLORS.ERROR,
         buttonText: 'View Details',
-        buttonIcon: 'visibility',
+        buttonIcon: 'chevron-right',
         isButtonDisabled: false,
       };
     }
@@ -121,9 +121,9 @@ const UserCampaignCard = ({ campaign, onPress }) => {
     if (campaignStatus === 'upcoming') {
       return {
         statusText: 'Upcoming',
-        statusColor: COLORS.WARNING,
-        buttonText: 'View',
-        buttonIcon: 'visibility',
+        statusColor: COLORS.PRIMARY,
+        buttonText: 'View Details',
+        buttonIcon: 'chevron-right',
         isButtonDisabled: false,
       };
     }
@@ -133,7 +133,7 @@ const UserCampaignCard = ({ campaign, onPress }) => {
       statusText: 'Inactive',
       statusColor: COLORS.TEXT_DISABLED,
       buttonText: 'View Details',
-      buttonIcon: 'visibility',
+      buttonIcon: 'chevron-right',
       isButtonDisabled: true,
     };
   };
@@ -169,7 +169,7 @@ const UserCampaignCard = ({ campaign, onPress }) => {
       <View style={styles.campaignFooter}>
         <View style={styles.footerInfo}>
           {cardState.statusText === 'Upcoming' ? (
-            <View style={styles.countdownContainer}><Icon name="schedule" size={16} color={COLORS.WARNING} /><Text style={styles.countdownText}>Starts in {timeLeft}</Text></View>
+            <View style={styles.countdownContainer}><Icon name="schedule" size={16} color={COLORS.PRIMARY} /><Text style={styles.countdownText}>Starts in {timeLeft}</Text></View>
           ) : (
             <View style={styles.countdownContainer}>
                <Icon name={cardState.statusText === 'Success' ? 'check-circle' : cardState.statusText === 'Missed' ? 'event-busy' : 'fiber-manual-record'} size={16} color={cardState.statusColor} />
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   campaignFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(247, 214, 72, 0.1)' },
   footerInfo: { flex: 1, justifyContent: 'center' },
   countdownContainer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  countdownText: { fontSize: 14, ...getFontFamily('BOLD'), color: COLORS.WARNING },
+  countdownText: { fontSize: 14, ...getFontFamily('BOLD'), color: COLORS.PRIMARY },
   joinButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, gap: 6 },
   joinButtonText: { fontSize: Math.max(14, width * .035), ...getFontFamily },
 });
