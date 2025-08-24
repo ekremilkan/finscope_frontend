@@ -1,3 +1,4 @@
+//not eligible tamam ancak filtre gerek
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -12,8 +13,9 @@ const UserCampaignFilters = ({ selectedFilter, onFilterChange }) => {
     { key: 'all', label: 'All', icon: 'list' },
     { key: 'active', label: 'Active', icon: 'play-circle-outline' },
     { key: 'upcoming', label: 'Upcoming', icon: 'schedule' },
-    { key: 'completed', label: 'Success', icon: 'check-circle' }, // 'success' = 'completed'
+    { key: 'completed', label: 'Success', icon: 'check-circle' }, 
     { key: 'missed', label: 'Missed', icon: 'cancel' },
+    { key: 'not_eligible', label: 'Not Eligible', icon: 'block' }, 
   ];
 
   return (

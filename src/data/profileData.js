@@ -7,7 +7,7 @@ export const PROFILE_DATA = {
   },
   stats: {
     totalTransactions: 1247,
-    totalSavings: '₺45,320',
+    totalSavings: '$45,320',
     investmentReturn: '+12.5%',
     creditScore: 785
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // GÜNCELLEME: Canlı geri sayım için useState ve useEffect eklendi
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../constants/colorConstants';
@@ -9,7 +9,6 @@ const { width, height } = Dimensions.get('window');
 const CampaignCard = ({ campaign, onCampaignPress }) => {
     if (!campaign) return null;
     
-    // GÜNCELLEME: Geri sayım için state tanımlandı
     const [timeInfo, setTimeInfo] = useState({ text: '', color: COLORS.INFO, label: 'Remaining' });
 
     const ICON_COLOR = '#F7D648';
@@ -20,61 +19,64 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
     const userJoined = userStatus === 'in-progress';
     const isActive = campaignStatus === 'active';
   
-    // GÜNCELLEME: Canlı geri sayım ve durum geçişlerini yöneten useEffect hook'u
     useEffect(() => {
         const calculateTime = () => {
             const now = new Date();
             let targetDate, label, isUpcomingCountdown = false;
 
-            // Eğer kampanya "upcoming" ise ve başlangıç tarihi henüz gelmediyse, başlangıç tarihine geri sayım yap
             if (campaignStatus === 'upcoming' && new Date(campaign.startDate) > now) {
                 targetDate = new Date(campaign.startDate);
                 label = 'Starts In';
                 isUpcomingCountdown = true;
             } else {
-                // Diğer tüm durumlar için (aktif, veya başlamış upcoming) bitiş tarihini kullan
                 targetDate = new Date(campaign.endDate);
-                label = 'Remaining';
+                label = 'Ends In';
             }
     
             const difference = targetDate - now;
     
             if (difference <= 0) {
-                // Eğer başlangıç sayacı bittiyse ve hala buradaysak, normal bitiş sayacına geç.
-                // Eğer bitiş sayacı da bittiyse, 'Finished' göster.
                 if (!isUpcomingCountdown) {
                     setTimeInfo({ text: 'Finished', color: COLORS.ERROR, label: 'Status' });
                 }
-                // (Başlangıç sayacı bittiğinde, bir sonraki saniyede bu bloktan çıkıp normal bitiş sayacına geçecek)
                 return; 
             }
     
-            // 1 saatin altındaysa Dakika:Saniye formatında göster
-            if (difference < 3600000) {
-                const minutes = Math.floor((difference / 1000 / 60) % 60);
-                const seconds = Math.floor((difference / 1000) % 60);
+            
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((difference / 1000 / 60) % 60);
+            const seconds = Math.floor((difference / 1000) % 60);
+
+            if (days > 0) {
+                
+                setTimeInfo({
+                    text: `${days}d ${hours}h`,
+                    color: COLORS.INFO,
+                    label: label
+                });
+            } else if (hours > 0) {
+                
+                setTimeInfo({
+                    text: `${hours}h ${minutes}m`,
+                    color: COLORS.INFO,
+                    label: label
+                });
+            } else {
+                
                 setTimeInfo({
                     text: `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
                     color: COLORS.WARNING,
                     label: label
                 });
-            } else { // 1 saatten fazlaysa Gün:Saat formatında göster
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-                setTimeInfo({
-                    text: days > 0 ? `${days}d ${hours}h` : `${hours}h`,
-                    color: COLORS.INFO,
-                    label: label
-                });
             }
         };
     
-        calculateTime(); // Bileşen yüklendiğinde hemen 1 kere çalıştır
-        const interval = setInterval(calculateTime, 1000); // Her saniye güncelle
+        calculateTime();
+        const interval = setInterval(calculateTime, 1000);
     
-        // Bileşen ekrandan kaldırıldığında interval'ı temizle (hafıza sızıntısını önler)
         return () => clearInterval(interval);
-    }, [campaign, campaignStatus]); // campaign veya status değiştiğinde sayacı yeniden başlat
+    }, [campaign, campaignStatus]);
   
     const getCardState = () => {
       const isExpired = new Date() > new Date(campaign.endDate);
@@ -119,7 +121,6 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
         };
       }
       if (campaignStatus === 'upcoming') {
-        // GÜNCELLEME: Renkler ICON_COLOR ile uyumlu hale getirildi
         return { 
           statusText: 'Upcoming', 
           statusColor: ICON_COLOR, 
@@ -189,7 +190,6 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
                   <Icon name="schedule" size={16} color={timeInfo.color} />
                 </View>
                 <View>
-                  {/* GÜNCELLEME: Kalan süre bilgisi state'den alınıyor */}
                   <Text style={[styles.statValue, { color: timeInfo.color }]}>
                     {timeInfo.text}
                   </Text>
@@ -200,7 +200,6 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
           </View>
 
           <View style={styles.actionSection}>
-            {/* GÜNCELLEME: Butona onPress eylemi eklendi */}
             <TouchableOpacity 
               style={[styles.actionButton, { backgroundColor: cardState.buttonColor || cardState.statusColor }]}
               activeOpacity={0.8}
@@ -214,7 +213,6 @@ const CampaignCard = ({ campaign, onCampaignPress }) => {
     );
 };
 
-// ... (HomeActiveCampaigns ve styles kısımları aynı kalabilir, değişiklik gerekmiyor)
 const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = false, showAllCampaigns, onViewMorePress }) => {
   if (isLoading) {
     return (
@@ -230,7 +228,27 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = fal
       );
   }
 
-  if (!activeCampaigns || activeCampaigns.length === 0) {
+  const processedCampaigns = activeCampaigns
+    ? activeCampaigns
+        .filter(campaign => {
+          const status = campaign?.status;
+          const now = new Date();
+          const endDate = new Date(campaign.endDate);
+          const isExpired = now > endDate;
+          return (status === 'active' || status === 'upcoming') && !isExpired;
+        })
+        .sort((a, b) => {
+          if (a.status === 'active' && b.status === 'upcoming') {
+            return -1;
+          }
+          if (a.status === 'upcoming' && b.status === 'active') {
+            return 1;
+          }
+          return 0;
+        })
+    : [];
+
+  if (!processedCampaigns || processedCampaigns.length === 0) {
     return (
         <View style={styles.campaignsSection}>
           <View style={styles.sectionHeader}>
@@ -247,7 +265,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = fal
       );
   }
   
-  const campaignsToDisplay = showAllCampaigns ? activeCampaigns : activeCampaigns.slice(0, 3);
+  const campaignsToDisplay = showAllCampaigns ? processedCampaigns : processedCampaigns.slice(0, 3);
   
   return (
     <View style={styles.campaignsSection}>
@@ -259,7 +277,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = fal
             <Text style={styles.liveBadgeText}>Live</Text>
           </View>
         </View>
-        <Text style={styles.campaignCount}>{activeCampaigns.length} Available</Text>
+        <Text style={styles.campaignCount}>{processedCampaigns.length} Available</Text>
       </View>
 
       <View style={styles.campaignsList}>
@@ -273,7 +291,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = fal
         ))}
       </View>
 
-      {!showAllCampaigns && activeCampaigns.length > 3 && (
+      {!showAllCampaigns && processedCampaigns.length > 3 && (
         <TouchableOpacity style={styles.viewMoreButton} onPress={onViewMorePress} activeOpacity={0.7}>
           <Text style={styles.viewMoreText}>View More</Text>
           <Icon name="arrow-forward" size={16} color={COLORS.PRIMARY} />
@@ -282,6 +300,7 @@ const HomeActiveCampaigns = ({ activeCampaigns, onCampaignPress, isLoading = fal
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   campaignsSection: {
@@ -344,7 +363,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    marginHorizontal: 2, // Prevent shadow clipping
+    marginHorizontal: 2, 
     marginVertical: 4,
   },
   cardContainer: {
@@ -377,7 +396,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 20,
-    paddingRight: 100, // Space for status badge
+    paddingRight: 100, 
   },
   iconWrapper: {
     width: 48,

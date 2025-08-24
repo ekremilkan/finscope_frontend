@@ -1,4 +1,3 @@
-//ana resim yoruma allınacak
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
@@ -36,7 +35,6 @@ const COLORS = {
 
 const { width, height } = Dimensions.get('window');
 
-/** custom hook: sayacı yönetir ve status değişimini bildirir */
 function useCountdown({ startDate, endDate, status, onStatusChange }) {
   const [timeLeft, setTimeLeft] = useState('');
 
@@ -58,29 +56,39 @@ function useCountdown({ startDate, endDate, status, onStatusChange }) {
         return;
       }
 
-      if (now < start) {
-        const diff = start.getTime() - now.getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / 1000 / 60) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
+      const isUpcomingCountdown = status === 'upcoming' && now < start;
+      const targetDate = isUpcomingCountdown ? start : end;
+      
+      const diff = targetDate.getTime() - now.getTime();
 
-        if (days > 0) {
-          setTimeLeft(`${days}d ${hours}h`);
-        } else if (hours > 0) {
-          setTimeLeft(
-            `${hours.toString().padStart(2, '0')}:${minutes
-              .toString()
-              .padStart(2, '0')}`
-          );
-        } else {
-          setTimeLeft(
-            `${minutes.toString().padStart(2, '0')}:${seconds
-              .toString()
-              .padStart(2, '0')}`
-          );
+      if (diff <= 0) {
+        if (isUpcomingCountdown && status === 'upcoming') {
+           onStatusChange?.('active');
         }
+        return;
+      }
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      if (days > 0) {
+        // 1 günden fazla: "3d 5h"
+        setTimeLeft(`${days}d ${hours}h`);
+      } else if (hours > 0) {
+        // 1 günden az, 1 saatten fazla: "15h 30m"
+        setTimeLeft(`${hours}h ${minutes}m`);
       } else {
+        // 1 saatten az: "45:21"
+        setTimeLeft(
+          `${minutes.toString().padStart(2, '0')}:${seconds
+            .toString()
+            .padStart(2, '0')}`
+        );
+      }
+
+      if (now >= start && now < end) {
         if (status !== 'active') onStatusChange?.('active');
       }
     };
